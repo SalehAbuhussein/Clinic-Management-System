@@ -1,0 +1,290 @@
+﻿using BCrypt.Net;
+using Clinic_Business;
+using Clinic_Management_System.DTOs.Auth;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+
+namespace Clinic_Management_System.Controllers
+{
+    [Route("api/Auth")]
+    [ApiController]
+    public class AuthController : ControllerBase
+    {
+        private readonly IConfiguration _configuration; 
+
+        public AuthController(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
+        [HttpPost("login")]
+        [EnableRateLimiting("AuthLimiter")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public IActionResult Login([FromBody] LoginRequest request)
+        {
+            // Step 1: Find User by Email
+            var user = clsUser.FindByEmail(request.Email);
+
+            if (user == null)
+                return Unauthorized("Invalid credentials");
+
+            // Step 2: Verify the provided password against the stored hash
+            bool isValidPassword = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
+
+            if (!isValidPassword)
+                return Unauthorized("Invalid credentials");
+
+            if (!user.Active)
+                return Problem(statusCode: 403, detail: "Account inactive, please contact an admin");
+
+            // Step 3: Create claims that represent the authenticated user's identity
+            // These claims will be embedded inside the JWT.
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString() ?? ""),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.Role)
+            };
+
+            // Step 4: Create the symmetric security key used to sign the JWT.
+            // This key must match the key used in JWT validation middleware.
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+
+            // Step 5: Define the signing credentials.
+            // This specifies the algorithm used to sign the token.
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            // Step 6: Create the JWT token.
+            // The token includes issuer, audience, claims, expiration, and signature.
+            var token = new JwtSecurityToken(
+                issuer: "ClinicApi",
+                audience: "ClinicApiUsers",
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(30),
+                signingCredentials: creds
+            );
+
+            // Step 7: Serialize the JWT into a string
+            // This is what the client will send in the Authorization header
+            var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
+
+            // Step 8: Create Refresh token (secure random)
+            // Refresh token is used to request a new access token later
+            var refreshToken = GenerateRefreshToken();
+
+            // Step 9: Store refresh token securely (hash + expiry + not revoked).
+            // We store the HASH only (never store the raw refresh token)
+            user.RefreshTokenHash = BCrypt.Net.BCrypt.HashPassword(refreshToken);
+            user.RefreshTokenExpiresAt = DateTime.UtcNow.AddDays(7);
+            user.RefreshTokenRevokedAt = null;
+
+            if (user.Save())
+            {
+                // Step 10: Return the serialized JWT token to the client.
+                // The client will send this token with future requests.
+                return Ok(new TokenResponse
+                {
+                    AccessToken = accessToken,
+                    RefreshToken = refreshToken
+                });
+            }
+
+            return BadRequest("Invalid data.");
+        }
+
+        [HttpPost("refresh")]
+        [EnableRateLimiting("AuthLimiter")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public IActionResult Refresh([FromBody] RefreshRequest request)
+        {
+            if (
+                string.IsNullOrEmpty(request.RefreshToken) || 
+                string.IsNullOrEmpty(request.Email)
+            )
+                return BadRequest("Invalid data.");
+
+            clsUser? user = clsUser.FindByEmail(request.Email);
+
+            if (user == null)
+                return Unauthorized("Invalid refresh request.");
+
+            if (user.RefreshTokenRevokedAt != null)
+                return Unauthorized("Refresh token is revoked.");
+
+            if (user.RefreshTokenExpiresAt == null || user.RefreshTokenExpiresAt <= DateTime.UtcNow)
+                return Unauthorized("Refresh token expired.");
+
+            if (string.IsNullOrEmpty(user.RefreshTokenHash))
+                return BadRequest("Invalid refresh token hash");
+
+            bool refreshValid = BCrypt.Net.BCrypt.Verify(request.RefreshToken, user.RefreshTokenHash);
+            if (!refreshValid)
+                return Unauthorized("Invalid refresh token");
+
+            if (!user.Active)
+                return Problem(statusCode: 403, detail: "Account inactive, please contact an admin");
+
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString() ?? ""),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.Role)
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var jwt = new JwtSecurityToken(
+                issuer: "ClinicApi",
+                audience: "ClinicApiUsers",
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(30),
+                //expires: DateTime.Now.AddSeconds(10),
+                signingCredentials: creds
+            );
+
+            var newAccessToken = new JwtSecurityTokenHandler().WriteToken(jwt);
+
+            // Rotation: replace refresh token
+            var newRefreshToken = GenerateRefreshToken();
+            user.RefreshTokenHash = BCrypt.Net.BCrypt.HashPassword(newRefreshToken);
+            user.RefreshTokenExpiresAt = DateTime.UtcNow.AddDays(7);
+            user.RefreshTokenRevokedAt = null;
+
+            if (user.Save())
+                return Ok(new TokenResponse
+                {
+                    AccessToken = newAccessToken,
+                    RefreshToken = newRefreshToken
+                });
+
+            return BadRequest("Invalid data.");
+        }
+
+        [HttpPost("logout")]
+        [EnableRateLimiting("AuthLimiter")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult Logout([FromBody] LogoutRequest request)
+        {
+            if (string.IsNullOrEmpty(request.RefreshToken) || string.IsNullOrEmpty(request.Email))
+                return Ok();
+
+            clsUser? user = clsUser.FindByEmail(request.Email);
+
+            if (user == null)
+                return Ok();
+
+            if (string.IsNullOrEmpty(user.RefreshTokenHash))
+                return Ok();
+
+            bool refreshValid = BCrypt.Net.BCrypt.Verify(request.RefreshToken, user.RefreshTokenHash);
+            if (!refreshValid)
+                return Ok();
+
+            user.RefreshTokenRevokedAt = DateTime.UtcNow;
+
+            if (!user.Save())
+                return Ok();
+
+            return Ok("Logged out successfully");
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("register")]
+        [EnableRateLimiting("AuthLimiter")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public IActionResult Register([FromBody] RegisterRequest request)
+        {
+            if (clsUser.FindByEmail(request.Email) != null)
+                return BadRequest("Invalid registeration email");
+
+            clsUser user = new clsUser();
+            user.Email = request.Email;
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+            user.PersonInfo.Firstname = request.Firstname;
+            user.PersonInfo.Midname = request.Midname;
+            user.PersonInfo.Thirdname = request.Thirdname;
+            user.PersonInfo.Lastname = request.Lastname;
+            user.PersonInfo.Phone = request.Phone;
+            user.PersonInfo.Gender = request.Gender;
+            user.PersonInfo.DateOfBirth = request.DateOfBirth;
+            user.PersonInfo.NationalNo = request.NationalNo;
+
+            //user.RefreshTokenExpiresAt = DateTime.UtcNow.AddDays(7);
+            //user.RefreshTokenRevokedAt = null;
+            //user.RefreshTokenHash = BCrypt.Net.BCrypt.HashPassword(GenerateRefreshToken());
+
+            if (user.Save())
+                return Ok(new { message = "User created successfully!" });
+
+            return BadRequest("Invalid registeration Data");
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPatch("deactivate", Name = "DeactivateUser")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public ActionResult DeactivateUser(int id)
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            if (id < 1)
+                return BadRequest("Invalid user id");
+
+            if (userId == id)
+                return BadRequest("Invalid operation");
+
+            clsUser? user = clsUser.FindUser(id);
+            if (user == null)
+                return NotFound($"User with id {id} not found");
+
+            if (user.Deactivate())
+                return Ok("User has been deactivated successfully");
+
+            return BadRequest("Invalid user data");
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPatch("activate", Name = "Activate")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public ActionResult Activate(int id)
+        {
+            if (id < 1)
+                return BadRequest("Invalid user id");
+
+            clsUser? user = clsUser.FindUser(id);
+            if (user == null)
+                return NotFound($"User with id {id} not found");
+
+            if (user.Activate())
+                return Ok("User has been activated successfully");
+
+            return BadRequest("Invalid user data");
+        }
+
+        private static string GenerateRefreshToken()
+        {
+            var bytes = new byte[64];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(bytes);
+            return Convert.ToBase64String(bytes);
+        }
+    }
+}

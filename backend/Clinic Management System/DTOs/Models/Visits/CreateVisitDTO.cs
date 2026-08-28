@@ -1,0 +1,14 @@
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Clinic_Management_System.DTOs.Models.Visits
+{
+    public class CreateVisitDTO
+    {
+        [Required]
+        [Range(1, int.MaxValue)]
+        public int AppointmentID { get; set; }
+        public DateTimeOffset? CheckinTime { get; set; }
+        [MaxLength(255)]
+        public string? Notes { get; set; }
+    }
+}
