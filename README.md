@@ -45,7 +45,7 @@ once on your machine before the first run:
 ```
 cd "backend/Clinic Management System"
 dotnet user-secrets set "Jwt:Key" "any random string of 32 characters or more"
-dotnet user-secrets set "ConnectionStrings:Key" "your SQL Server connection string"
+dotnet user-secrets set "ConnectionStrings:Clinic" "your SQL Server connection string"
 ```
 
 Then start it:

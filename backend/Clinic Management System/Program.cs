@@ -13,7 +13,7 @@ using Clinic_DataAccess;
 
 var builder = WebApplication.CreateBuilder(args);
 var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is not configured. run dotnet user-secrets set.");
-var connectionString = builder.Configuration["ConnectionStrings:Key"]  ?? throw new InvalidOperationException("ConnectionStrings:Key is not configured. run dotnet user-secrets set.");
+var connectionString = builder.Configuration.GetConnectionString("Clinic") ?? throw new InvalidOperationException("ConnectionStrings:Clinic is not configured. run dotnet user-secrets set.");
 
 clsDataAccessSettings.ConnectionString = connectionString;
 
