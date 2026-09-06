@@ -2,6 +2,7 @@
 using Clinic_Management_System.DTOs.Models.Patients;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Security.Claims;
 
@@ -17,11 +18,8 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public ActionResult<PatientDTO> GetPatients(int page = 1, int perPage = 10)
+        public ActionResult<PatientDTO> GetPatients([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
-            if (page < 1 || perPage < 1)
-                return BadRequest("Invalid parameters");
-
             perPage = Math.Clamp(perPage, 1, 10);
 
             DataTable table = clsPatient.FindPatients(page, perPage);
@@ -48,11 +46,8 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<PatientDTO> GetPatientByID(int id)
+        public ActionResult<PatientDTO> GetPatientByID([Range(1, int.MaxValue)] int id)
         {
-            if (id < 1)
-                return BadRequest("Invalid patient id");
-
             clsPatient? patient = clsPatient.FindPatient(id);
             if (patient == null)
                 return NotFound($"Patient with id {id} not found");
@@ -75,9 +70,6 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public ActionResult<PatientDTO> AddPatient(CreatePatientDTO patientDTO)
         {
-            if (!ModelState.IsValid)
-                return BadRequest("Invalid patient data");
-
             if (clsPatient.FindPatientByNationalNo(patientDTO.NationalNo) != null)
                 return BadRequest("Invalid patient data");
 
@@ -91,8 +83,8 @@ namespace Clinic_Management_System.Controllers
             newPatient.Lastname = patientDTO.Lastname;
             newPatient.NationalNo = patientDTO.NationalNo;
             newPatient.Phone = patientDTO.Phone;
-            newPatient.Gender = patientDTO.Gender;
-            newPatient.DateOfBirth = patientDTO.DateOfBirth;
+            newPatient.Gender = patientDTO.Gender!.Value;
+            newPatient.DateOfBirth = patientDTO.DateOfBirth!.Value;
 
             if (newPatient.Save())
             {
@@ -117,9 +109,6 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult UpdatePatient(int id, UpdatePatientDTO updatedPatient)
         {
-            if (!ModelState.IsValid)
-                return BadRequest("Invalid patient data");
-
             clsPatient? patient = clsPatient.FindPatient(id);
 
             if (patient == null)
@@ -132,8 +121,8 @@ namespace Clinic_Management_System.Controllers
             patient.Thirdname = updatedPatient.Thirdname;
             patient.Lastname = updatedPatient.Lastname;
             patient.Phone = updatedPatient.Phone;
-            patient.Gender = updatedPatient.Gender;
-            patient.DateOfBirth = updatedPatient.DateOfBirth;
+            patient.Gender = updatedPatient.Gender!.Value;
+            patient.DateOfBirth = updatedPatient.DateOfBirth!.Value;
 
             if (patient.Save())
                 return NoContent();
@@ -147,11 +136,8 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult DeletePatient(int id)
+        public ActionResult DeletePatient([Range(1, int.MaxValue)] int id)
         {
-            if (id < 1)
-                return BadRequest("Invalid patient id");
-
             clsPatient? patient = clsPatient.FindPatient(id);
             if (patient == null)
                 return NotFound($"Patient with id {id} not found");

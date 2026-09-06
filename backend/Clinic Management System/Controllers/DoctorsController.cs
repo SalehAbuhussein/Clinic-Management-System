@@ -2,6 +2,7 @@
 using Clinic_Management_System.DTOs.Models.Doctors;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Security.Claims;
 
@@ -15,11 +16,8 @@ namespace Clinic_Management_System.Controllers
         [HttpGet(Name = "GetDoctors")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<DoctorDTO> GetDoctors(int page = 1, int perPage = 10)
+        public ActionResult<DoctorDTO> GetDoctors([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
-            if (page < 1 || perPage < 1)
-                return BadRequest("Invalid parameters");
-
             perPage = Math.Clamp(perPage, 1, 10);
 
             DataTable table = clsDoctor.FindAllDoctors(page, perPage);
@@ -46,11 +44,8 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<DoctorDTO> GetDoctorByID(int id)
+        public ActionResult<DoctorDTO> GetDoctorByID([Range(1, int.MaxValue)] int id)
         {
-            if (id < 1)
-                return BadRequest("Invalid doctor id");
-
             clsDoctor? doctor = clsDoctor.Find(id);
             if (doctor == null)
                 return NotFound($"Doctor with id {id} not found");
@@ -89,8 +84,8 @@ namespace Clinic_Management_System.Controllers
             newDoctor.UserInfo.PersonInfo.Thirdname = addDoctorDTO.Thirdname;
             newDoctor.UserInfo.PersonInfo.Lastname = addDoctorDTO.Lastname;
             newDoctor.UserInfo.PersonInfo.Phone = addDoctorDTO.Phone;
-            newDoctor.UserInfo.PersonInfo.Gender = addDoctorDTO.Gender;
-            newDoctor.UserInfo.PersonInfo.DateOfBirth = addDoctorDTO.DateOfBirth;
+            newDoctor.UserInfo.PersonInfo.Gender = addDoctorDTO.Gender!.Value;
+            newDoctor.UserInfo.PersonInfo.DateOfBirth = addDoctorDTO.DateOfBirth!.Value;
             newDoctor.UserInfo.PersonInfo.NationalNo = addDoctorDTO.NationalNo;
             newDoctor.UserInfo.PersonInfo.ProfileImage = addDoctorDTO.ProfileImage;
             newDoctor.UserInfo.Email = addDoctorDTO.Email;
@@ -119,9 +114,6 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult UpdateDoctor(int id, UpdateDoctorDTO updatedDoctor)
         {
-            if (!ModelState.IsValid)
-                return BadRequest("Invalid doctor data");
-
             clsDoctor? doctor = clsDoctor.Find(id);
             if (doctor == null)
                 return NotFound($"Doctor with id {id} not found");
@@ -143,8 +135,8 @@ namespace Clinic_Management_System.Controllers
             person.Thirdname = updatedDoctor.Thirdname;
             person.Lastname = updatedDoctor.Lastname;
             person.Phone = updatedDoctor.Phone;
-            person.Gender = updatedDoctor.Gender;
-            person.DateOfBirth = updatedDoctor.DateOfBirth;
+            person.Gender = updatedDoctor.Gender!.Value;
+            person.DateOfBirth = updatedDoctor.DateOfBirth!.Value;
             person.ProfileImage = updatedDoctor.ProfileImage;
 
             if (doctor.Save())
@@ -158,11 +150,8 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult DeleteDoctor(int id)
+        public ActionResult DeleteDoctor([Range(1, int.MaxValue)] int id)
         {
-            if (id < 1)
-                return BadRequest("Invalid doctor id");
-
             clsDoctor? doctor = clsDoctor.Find(id);
             if (doctor == null)
                 return NotFound($"doctor with id {id} not found");

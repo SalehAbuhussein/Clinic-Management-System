@@ -2,6 +2,7 @@
 using Clinic_Management_System.DTOs.Models.Visits;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 
 namespace Clinic_Management_System.Controllers
@@ -15,11 +16,8 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public ActionResult<VisitDTO> GetVisits(int page = 1, int perPage = 10)
+        public ActionResult<VisitDTO> GetVisits([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
-            if (page < 1 || perPage < 1)
-                return BadRequest("Invalid parameters");
-
             perPage = Math.Clamp(perPage, 1, 10);
 
             DataTable table = clsVisit.FindAll(page, perPage);
@@ -45,11 +43,8 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<VisitDTO> GetVisitByID(int id)
+        public ActionResult<VisitDTO> GetVisitByID([Range(1, int.MaxValue)] int id)
         {
-            if (id < 1)
-                return BadRequest("Invalid visit id");
-
             clsVisit? visit = clsVisit.Find(id);
             if (visit == null)
                 return NotFound($"Visit with id {id} not found");
@@ -112,11 +107,8 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult UpdateVisit(int id, UpdateVisitDTO visitDTO)
+        public ActionResult UpdateVisit([Range(1, int.MaxValue)] int id, UpdateVisitDTO visitDTO)
         {
-            if (id < 1)
-                return BadRequest("Invalid visit id");
-
             clsVisit? visit = clsVisit.Find(id);
             if (visit == null)
                 return NotFound($"visit with id {id} not found");
@@ -157,11 +149,8 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult CheckoutVisit(int id)
+        public ActionResult CheckoutVisit([Range(1, int.MaxValue)] int id)
         {
-            if (id < 1)
-                return BadRequest("Invalid visit id");
-
             clsVisit? visit = clsVisit.Find(id);
             if (visit == null)
                 return NotFound($"visit with id {id} not found");
@@ -187,11 +176,8 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult DeleteVisit(int id)
+        public ActionResult DeleteVisit([Range(1, int.MaxValue)] int id)
         {
-            if (id < 1)
-                return BadRequest("Invalid visit id");
-
             clsVisit? visit = clsVisit.Find(id);
             if (visit == null)
                 return NotFound($"visit with id {id} not found");

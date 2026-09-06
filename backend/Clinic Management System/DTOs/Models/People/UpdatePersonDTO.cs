@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Clinic_Management_System.Validation;
+using System.ComponentModel.DataAnnotations;
 
 namespace Clinic_Management_System.DTOs.Models.People
 {
@@ -19,9 +20,10 @@ namespace Clinic_Management_System.DTOs.Models.People
         [MaxLength(15)]
         public string Phone { get; set; } = string.Empty;
         [Required]
-        public bool Gender { get; set; }
+        public bool? Gender { get; set; }
         [Required]
-        public DateTime DateOfBirth { get; set; }
+        [DateOfBirth]
+        public DateTime? DateOfBirth { get; set; }
         [MaxLength(255)]
         public string? ProfileImage { get; set; }
     }

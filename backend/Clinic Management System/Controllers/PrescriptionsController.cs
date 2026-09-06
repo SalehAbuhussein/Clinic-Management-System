@@ -2,6 +2,7 @@
 using Clinic_Management_System.DTOs.Models.Prescriptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 
 namespace Clinic_Management_System.Controllers
@@ -20,14 +21,11 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<List<PrescriptionDTO>>> GetVisitPrescriptionItems(
             [FromServices] IAuthorizationService authorizationService,
-            int visitId,
-            int page = 1,
-            int perPage = 10
+            [Range(1, int.MaxValue)] int visitId,
+            [Range(1, int.MaxValue)] int page = 1,
+            [Range(1, 10)] int perPage = 10
         )
         {
-            if (page < 1 || perPage < 1 || visitId < 1)
-                return BadRequest("Invalid parameters");
-
             perPage = Math.Clamp(perPage, 1, 10);
 
             var authResult = await authorizationService.AuthorizeAsync(
@@ -70,9 +68,6 @@ namespace Clinic_Management_System.Controllers
             [FromServices] IAuthorizationService authorizationService
         )
         {
-            if (!ModelState.IsValid)
-                return BadRequest("Invalid Prescription data");
-
             var authResult = await authorizationService.AuthorizeAsync(
                 User,
                 visitId,
@@ -114,9 +109,6 @@ namespace Clinic_Management_System.Controllers
             [FromServices] IAuthorizationService authorizationService
         )
         {
-            if (!ModelState.IsValid)
-                return BadRequest("Invalid Prescription data");
-
             var authResult = await authorizationService.AuthorizeAsync(
                 User,
                 visitId,

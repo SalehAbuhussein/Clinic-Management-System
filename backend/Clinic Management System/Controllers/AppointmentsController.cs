@@ -2,6 +2,7 @@
 using Clinic_Management_System.DTOs.Models.Appointments;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Security.Claims;
 
@@ -21,13 +22,10 @@ namespace Clinic_Management_System.Controllers
             int? doctorId,
             int? patientId,
             DateTime? date,
-            int page = 1, 
-            int perPage = 10
+            [Range(1, int.MaxValue)] int page = 1, 
+            [Range(1, 10)] int perPage = 10
         )
         {
-            if (page < 1 || perPage < 1)
-                return BadRequest("Invalid parameters");
-
             perPage = Math.Clamp(perPage, 1, 10);
 
             DataTable table = clsAppointment.FindAll(doctorId, patientId, date, page, perPage);
@@ -57,13 +55,10 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<AppointmentDTO>> GetAppointmentByID(
-            int id,
+            [Range(1, int.MaxValue)] int id,
             [FromServices] IAuthorizationService authorizationService
         )
         {
-            if (id < 1)
-                return BadRequest("Invalid appointment id");
-
             clsAppointment? appointment = clsAppointment.Find(id);
             if (appointment == null)
                 return NotFound($"Appointment with id {id} not found");
@@ -98,9 +93,6 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public ActionResult<AppointmentDTO> AddAppointment(CreateAppointmentDTO appointmentDTO)
         {
-            if (!ModelState.IsValid)
-                return BadRequest("Invalid appointment data");
-
             if (!clsDoctor.IsDoctorExist(appointmentDTO.DoctorID) || !clsPatient.IsPatientExist(appointmentDTO.PatientID))
                 return BadRequest("Invalid ids");
 
@@ -146,14 +138,8 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult UpdateAppointment(int id, UpdateAppointmentDTO updatedAppointmentDTO)
+        public ActionResult UpdateAppointment([Range(1, int.MaxValue)] int id, UpdateAppointmentDTO updatedAppointmentDTO)
         {
-            if (!ModelState.IsValid)
-                return BadRequest("Invalid appointment data");
-
-            if (id < 1)
-                return BadRequest("Invalid appointment id");
-
             clsAppointment? appointment = clsAppointment.Find(id);
 
             if (appointment == null)
@@ -203,13 +189,10 @@ namespace Clinic_Management_System.Controllers
         public async Task<ActionResult<List<AppointmentDTO>>> GetDoctorAppointments(
             int doctorId,
             [FromServices] IAuthorizationService authorizationService,
-            int page = 1,
-            int perPage = 10
+            [Range(1, int.MaxValue)] int page = 1,
+            [Range(1, 10)] int perPage = 10
         )
         {
-            if (page < 1 || perPage < 1)
-                return BadRequest("Invalid parameters");
-
             perPage = Math.Clamp(perPage, 1, 10);
 
             if (clsDoctor.Find(doctorId) == null)
@@ -250,11 +233,8 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult AttendAppointment(int id)
+        public ActionResult AttendAppointment([Range(1, int.MaxValue)] int id)
         {
-            if (id < 1)
-                return BadRequest("Invalid appointment id");
-
             clsAppointment? appointment = clsAppointment.Find(id);
             if (appointment == null)
                 return NotFound($"Appointment with id {id} not found");
@@ -280,11 +260,8 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult UnattendAppointment(int id)
+        public ActionResult UnattendAppointment([Range(1, int.MaxValue)] int id)
         {
-            if (id < 1)
-                return BadRequest("Invalid appointment id");
-
             clsAppointment? appointment = clsAppointment.Find(id);
             if (appointment == null)
                 return NotFound($"Appointment with id {id} not found");
@@ -310,11 +287,8 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult CancelAppointment(int id)
+        public ActionResult CancelAppointment([Range(1, int.MaxValue)] int id)
         {
-            if (id < 1)
-                return BadRequest("Invalid appointment id");
-
             clsAppointment? appointment = clsAppointment.Find(id);
             if (appointment == null)
                 return NotFound($"Appointment with id {id} not found");
@@ -339,11 +313,8 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult DeleteAppointment(int id)
+        public ActionResult DeleteAppointment([Range(1, int.MaxValue)] int id)
         {
-            if (id < 1)
-                return BadRequest("Invalid medicine id");
-
             clsAppointment? appointment = clsAppointment.Find(id);
             if (appointment == null)
                 return NotFound($"Appointment with id {id} not found");

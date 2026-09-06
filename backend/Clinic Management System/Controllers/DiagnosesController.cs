@@ -2,6 +2,7 @@
 using Clinic_Management_System.DTOs.Models.Diagnoses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace Clinic_Management_System.Controllers
 {
@@ -14,11 +15,8 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public ActionResult<DiagnosisDTO> GetDiagnosisByID(int id)
+        public ActionResult<DiagnosisDTO> GetDiagnosisByID([Range(1, int.MaxValue)] int id)
         {
-            if (id < 1)
-                return BadRequest("Invalid Diagnosis ID");
-
             clsDiagnosis? diagnosis = clsDiagnosis.Find(id);
             if (diagnosis == null)
                 return NotFound($"Diagnosis with id {id} not found");
@@ -39,9 +37,6 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         public ActionResult<DiagnosisDTO> AddDiagnoses(CreateDiagnosesDTO createDiagnosesDTO)
         {
-            if (createDiagnosesDTO.VisitID < 1)
-                return BadRequest("Invalid visit id");
-
             if (clsDiagnosis.IsExistByVisitID(createDiagnosesDTO.VisitID))
                 return Conflict($"Visit {createDiagnosesDTO.VisitID} already has a diagnosis");
 
@@ -75,11 +70,8 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult UpdateDiagnosis(int id, UpdateDiagnosesDTO updateDiagnosesDTO)
+        public ActionResult UpdateDiagnosis([Range(1, int.MaxValue)] int id, UpdateDiagnosesDTO updateDiagnosesDTO)
         {
-            if (id < 1)
-                return BadRequest("Invalid visit id");
-
             clsDiagnosis? diagnosis = clsDiagnosis.Find(id);
             if (diagnosis == null)
                 return NotFound($"Diagnosis with id {id} not found");

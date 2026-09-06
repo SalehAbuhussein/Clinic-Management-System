@@ -2,6 +2,7 @@
 using Clinic_Management_System.DTOs.Models.Medicines;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 
 namespace Clinic_Management_System.Controllers
@@ -14,11 +15,8 @@ namespace Clinic_Management_System.Controllers
         [HttpGet(Name = "GetMedicines")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<MedicineDTO> GetMedicines(int page = 1, int perPage = 10)
+        public ActionResult<MedicineDTO> GetMedicines([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
-            if (page < 1 || perPage < 1)
-                return BadRequest("Invalid parameters");
-
             perPage = Math.Clamp(perPage, 1, 10);
 
             DataTable table = clsMedicine.FindAll(page, perPage);
@@ -44,11 +42,8 @@ namespace Clinic_Management_System.Controllers
         [HttpGet("{id}", Name = "GetMedicineByID")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<MedicineDTO> GetMedicineByID(int id)
+        public ActionResult<MedicineDTO> GetMedicineByID([Range(1, int.MaxValue)] int id)
         {
-            if (id < 1)
-                return BadRequest("Invalid medicine id.");
-
             clsMedicine? medicine = clsMedicine.Find(id);
             if (medicine == null)
                 return NotFound($"Medicine with id {id} not found!");
@@ -73,9 +68,6 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult<MedicineDTO> AddMedicine(CreateMedicineDTO medicineDTO)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             clsMedicine newMedicine = new clsMedicine();
             newMedicine.Genericname = medicineDTO.Genericname;
             newMedicine.Brandname = medicineDTO.Brandname;
@@ -107,9 +99,6 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult UpdateMedicine(int id, UpdateMedicineDTO updatedMedicine)
         {
-            if (!ModelState.IsValid)
-                return BadRequest("Invalid medicine data.");
-
             clsMedicine? medicine = clsMedicine.Find(id);
             if (medicine == null)
                 return NotFound($"Medicine with id {id} not found.");
@@ -131,11 +120,8 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult DeleteMedicine(int id)
+        public ActionResult DeleteMedicine([Range(1, int.MaxValue)] int id)
         {
-            if (id < 1)
-                return BadRequest("Invalid medicine id");
-
             clsMedicine? medicine = clsMedicine.Find(id);
             if (medicine == null)
                 return NotFound($"Medicine with id {id} not found");

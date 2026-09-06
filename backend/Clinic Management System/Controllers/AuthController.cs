@@ -107,12 +107,6 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult Refresh([FromBody] RefreshRequest request)
         {
-            if (
-                string.IsNullOrEmpty(request.RefreshToken) || 
-                string.IsNullOrEmpty(request.Email)
-            )
-                return BadRequest("Invalid data.");
-
             clsUser? user = clsUser.FindByEmail(request.Email);
 
             if (user == null)
@@ -175,13 +169,10 @@ namespace Clinic_Management_System.Controllers
         [HttpPost("logout")]
         [EnableRateLimiting("AuthLimiter")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult Logout([FromBody] LogoutRequest request)
         {
-            if (string.IsNullOrEmpty(request.RefreshToken) || string.IsNullOrEmpty(request.Email))
-                return NoContent();
-
             clsUser? user = clsUser.FindByEmail(request.Email);
-
             if (user == null)
                 return NoContent();
 
@@ -218,8 +209,8 @@ namespace Clinic_Management_System.Controllers
             person.Thirdname = request.Thirdname;
             person.Lastname = request.Lastname;
             person.Phone = request.Phone;
-            person.Gender = request.Gender;
-            person.DateOfBirth = request.DateOfBirth;
+            person.Gender = request.Gender!.Value;
+            person.DateOfBirth = request.DateOfBirth!.Value;
             person.NationalNo = request.NationalNo;
 
             user.Email = request.Email;

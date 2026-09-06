@@ -2,6 +2,7 @@
 using Clinic_Management_System.DTOs.Models.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Security.Claims;
 
@@ -17,11 +18,8 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public ActionResult<List<UserDTO>> GetUsers(int page = 1, int perPage = 10)
+        public ActionResult<List<UserDTO>> GetUsers([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
-            if (page < 1 || perPage < 1)
-                return BadRequest("Invalid parameters");
-
             perPage = Math.Clamp(perPage, 1, 10);
 
             DataTable table = clsUser.FindUsers(page, perPage);
@@ -48,11 +46,8 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public ActionResult<UserDTO> GetUser(int id)
+        public ActionResult<UserDTO> GetUser([Range(1, int.MaxValue)] int id)
         {
-            if (id < 1)
-                return BadRequest("Invalid user id");
-
             clsUser? user = clsUser.FindUser(id);
             if (user == null)
                 return NotFound($"User with id {id} not found");
@@ -75,11 +70,8 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public ActionResult UpdateUser(int id, UpdateUserDTO updatedUserDTO)
+        public ActionResult UpdateUser([Range(1, int.MaxValue)] int id, UpdateUserDTO updatedUserDTO)
         {
-            if (id < 1)
-                return BadRequest("Invalid user id");
-
             clsUser? user = clsUser.FindUser(id);
             if (user == null)
                 return NotFound($"User with id {id} not found");
@@ -105,12 +97,9 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public ActionResult DeactivateUser(int id)
+        public ActionResult DeactivateUser([Range(1, int.MaxValue)] int id)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
-            if (id < 1)
-                return BadRequest("Invalid user id");
 
             if (userId == id)
                 return BadRequest("Invalid operation");
@@ -131,11 +120,8 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public ActionResult Activate(int id)
+        public ActionResult Activate([Range(1, int.MaxValue)] int id)
         {
-            if (id < 1)
-                return BadRequest("Invalid user id");
-
             clsUser? user = clsUser.FindUser(id);
             if (user == null)
                 return NotFound($"User with id {id} not found");

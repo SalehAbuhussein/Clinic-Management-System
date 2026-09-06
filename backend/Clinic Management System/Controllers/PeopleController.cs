@@ -2,6 +2,7 @@
 using Clinic_Management_System.DTOs.Models.People;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 
 namespace Clinic_Management_System.Controllers
@@ -14,11 +15,8 @@ namespace Clinic_Management_System.Controllers
         [HttpGet(Name = "GetPeople")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<List<PersonDTO>> GetPeople(int page = 1, int perPage = 10)
+        public ActionResult<List<PersonDTO>> GetPeople([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
-            if (page < 1 || perPage < 1)
-                return BadRequest("Invalid parameters");
-
             perPage = Math.Clamp(perPage, 1, 10);
 
             DataTable table = clsPerson.FindAll(page, perPage);
@@ -49,13 +47,10 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<PersonDTO>> GetPersonById(
-            int id,
+            [Range(1, int.MaxValue)] int id,
             [FromServices] IAuthorizationService authorizationService
         )
         {
-            if (id < 1)
-                return BadRequest("Invalid person id.");
-
             clsPerson? person = clsPerson.Find(id);
 
             if (person == null)
@@ -91,11 +86,8 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult DeletePerson(int id)
+        public ActionResult DeletePerson([Range(1, int.MaxValue)] int id)
         {
-            if (id < 1)
-                return BadRequest("Invalid person id.");
-
             clsPerson? person = clsPerson.Find(id);
             if (person == null)
                 return NotFound($"Person with ID {id} not found.");
