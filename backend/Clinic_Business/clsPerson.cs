@@ -5,19 +5,13 @@ namespace Clinic_Business
 {
     public class clsPerson
     {
-        public enum enMode
-        {
-            Add,
-            Update
-        }
-
         public int? PersonID { get; set; }
-        public string Firstname { get; set; }
-        public string Midname { get; set; }
+        public string Firstname { get; set; } = string.Empty;
+        public string Midname { get; set; } = string.Empty;
         public string? Thirdname { get; set; }
-        public string Lastname { get; set; }
-        public string NationalNo { get; set; }
-        public string Phone { get; set; }
+        public string Lastname { get; set; } = string.Empty;
+        public string NationalNo { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
         public bool Gender { get; set; }
         public DateTime DateOfBirth { get; set; }
         public int Age
@@ -34,11 +28,9 @@ namespace Clinic_Business
             } 
         }
         public string? ProfileImage { get; set; }
-        private enMode _Mode = enMode.Add;
 
         public clsPerson()
         {
-            _Mode = enMode.Add;
         }
 
         private clsPerson(
@@ -54,7 +46,6 @@ namespace Clinic_Business
             string? profileImage
         )
         {
-            _Mode = enMode.Update;
             PersonID = Id;
             Firstname = firstname;
             Midname = midname;
