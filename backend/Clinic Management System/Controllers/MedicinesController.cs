@@ -102,7 +102,7 @@ namespace Clinic_Management_System.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpPut("{id}", Name = "UpdateMedicine")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult UpdateMedicine(int id, UpdateMedicineDTO updatedMedicine)
@@ -120,16 +120,17 @@ namespace Clinic_Management_System.Controllers
             medicine.Strength = updatedMedicine.Strength;
 
             if (medicine.Save())
-                return Ok($"Medicine with id {id} updated successfully");
+                return NoContent();
 
             return BadRequest("Invalid medicine data.");
         }
 
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}", Name = "DeleteMedicine")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult DeleteMedicine(int id)
         {
             if (id < 1)
@@ -140,7 +141,7 @@ namespace Clinic_Management_System.Controllers
                 return NotFound($"Medicine with id {id} not found");
 
             if (clsMedicine.Delete(id))
-                return Ok($"Medicine with id of {id} has been deleted.");
+                return NoContent();
 
             return BadRequest("Invalid medicine id");
         }

@@ -111,7 +111,7 @@ namespace Clinic_Management_System.Controllers
 
         [Authorize(Roles = "Admin,Staff")]
         [HttpPut("{id}", Name = "UpdatePatient")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -136,14 +136,14 @@ namespace Clinic_Management_System.Controllers
             patient.DateOfBirth = updatedPatient.DateOfBirth;
 
             if (patient.Save())
-                return Ok($"patient with id {id} has been successfully updated");
+                return NoContent();
 
             return BadRequest("Invalid patient data");
         }
 
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}", Name = "DeletePatient")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -157,7 +157,7 @@ namespace Clinic_Management_System.Controllers
                 return NotFound($"Patient with id {id} not found");
 
             if (clsPatient.DeletePatient(id))
-                return Ok($"Patient with id {id} deleted successfully");
+                return NoContent();
 
             return BadRequest("Invalid patient data");
         }

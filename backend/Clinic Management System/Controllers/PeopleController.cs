@@ -88,7 +88,7 @@ namespace Clinic_Management_System.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}", Name = "DeletePerson")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult DeletePerson(int id)
@@ -100,10 +100,8 @@ namespace Clinic_Management_System.Controllers
             if (person == null)
                 return NotFound($"Person with ID {id} not found.");
 
-            bool isDeleted = clsPerson.Delete(id);
-
-            if (isDeleted)
-                return Ok($"Person with id {id} has been deleted.");
+            if (clsPerson.Delete(id))
+                return NoContent();
 
             return BadRequest($"Something went wrong with deletion of person {id}");
         }

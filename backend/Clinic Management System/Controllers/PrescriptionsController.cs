@@ -60,7 +60,7 @@ namespace Clinic_Management_System.Controllers
 
         [Authorize]
         [HttpPost(Name = "AddPrescriptionItems")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -105,7 +105,7 @@ namespace Clinic_Management_System.Controllers
 
         [Authorize]
         [HttpPut(Name = "UpdatePrescriptionItems")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult> UpdatePrescriptionItems(
@@ -141,7 +141,7 @@ namespace Clinic_Management_System.Controllers
 
             var items = request.Items.Select(item => (visitId, item.MedicineID, item.Dosage, item.Frequency, item.Duration)).ToList();
             if (clsPrescriptionItem.UpdatePrescriptionItems(items) > 0)
-                return Ok("Prescription updated successfully");
+                return NoContent();
 
             return BadRequest("Invalid Prescription data");
         }

@@ -71,7 +71,7 @@ namespace Clinic_Management_System.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpPut("{id}", Name = "UpdateUser")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -94,14 +94,14 @@ namespace Clinic_Management_System.Controllers
             user.Active = updatedUserDTO.Active ?? user.Active;
 
             if (user.Save())
-                return Ok($"User with id {id} updated successfully");
+                return NoContent();
 
             return BadRequest("Invalid user data");
         }
 
         [Authorize(Roles = "Admin")]
         [HttpPatch("{id}/deactivate", Name = "DeactivateUser")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -120,14 +120,14 @@ namespace Clinic_Management_System.Controllers
                 return NotFound($"User with id {id} not found");
 
             if (user.Deactivate())
-                return Ok("User has been deactivated successfully");
+                return NoContent();
 
             return BadRequest("Invalid user data");
         }
 
         [Authorize(Roles = "Admin")]
         [HttpPatch("{id}/activate", Name = "ActivateUser")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -141,7 +141,7 @@ namespace Clinic_Management_System.Controllers
                 return NotFound($"User with id {id} not found");
 
             if (user.Activate())
-                return Ok("User has been activated successfully");
+                return NoContent();
 
             return BadRequest("Invalid user data");
         }

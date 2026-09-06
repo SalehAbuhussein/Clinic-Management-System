@@ -11,7 +11,7 @@ namespace Clinic_Management_System.Controllers
     {
         [Authorize(Roles = "Admin,Doctor")]
         [HttpGet("{id}",Name = "GetDiagnosisByID")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public ActionResult<DiagnosisDTO> GetDiagnosisByID(int id)
@@ -58,14 +58,20 @@ namespace Clinic_Management_System.Controllers
             diagnosis.Notes = createDiagnosesDTO.Notes;
 
             if (diagnosis.Save())
-                return CreatedAtRoute("GetDiagnosisByID", new { id = diagnosis.DiagnosesID }, createDiagnosesDTO);
+                return CreatedAtRoute("GetDiagnosisByID", new { id = diagnosis.DiagnosesID },
+                    new DiagnosisDTO
+                    {
+                        DiagnosisID = diagnosis.DiagnosesID ?? 0,
+                        Diagnosis = diagnosis.Diagnosis,
+                        Notes = diagnosis.Notes
+                    });
 
             return BadRequest("Invalid Diagnosis data");
         }
 
         [Authorize(Roles = "Admin,Doctor")]
         [HttpPut("{id}",Name = "UpdateDiagnosis")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -78,14 +84,14 @@ namespace Clinic_Management_System.Controllers
             if (diagnosis == null)
                 return NotFound($"Diagnosis with id {id} not found");
 
-            if (clsVisit.HasCheckedout(id))
+            if (clsVisit.HasCheckedout(diagnosis.VisitID))
                 return BadRequest("Linked Visit has been already locked");
 
-            diagnosis.Diagnosis = updateDiagnosesDTO.Diagnoses;
+            diagnosis.Diagnosis = updateDiagnosesDTO.Diagnosis;
             diagnosis.Notes = updateDiagnosesDTO.Notes;
 
             if (diagnosis.Save())
-                return Ok($"Diagnoses with id {id} updated successfully");
+                return NoContent();
 
             return BadRequest("Invalid diagnosis data");
         }

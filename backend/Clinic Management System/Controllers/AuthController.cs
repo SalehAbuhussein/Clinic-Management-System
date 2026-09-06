@@ -174,36 +174,36 @@ namespace Clinic_Management_System.Controllers
 
         [HttpPost("logout")]
         [EnableRateLimiting("AuthLimiter")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public IActionResult Logout([FromBody] LogoutRequest request)
         {
             if (string.IsNullOrEmpty(request.RefreshToken) || string.IsNullOrEmpty(request.Email))
-                return Ok();
+                return NoContent();
 
             clsUser? user = clsUser.FindByEmail(request.Email);
 
             if (user == null)
-                return Ok();
+                return NoContent();
 
             if (string.IsNullOrEmpty(user.RefreshTokenHash))
-                return Ok();
+                return NoContent();
 
             bool refreshValid = BCrypt.Net.BCrypt.Verify(request.RefreshToken, user.RefreshTokenHash);
             if (!refreshValid)
-                return Ok();
+                return NoContent();
 
             user.RefreshTokenRevokedAt = DateTime.UtcNow;
 
             if (!user.Save())
-                return Ok();
+                return NoContent();
 
-            return Ok("Logged out successfully");
+            return NoContent();
         }
 
         [Authorize(Roles = "Admin")]
         [HttpPost("register")]
         [EnableRateLimiting("AuthLimiter")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult Register([FromBody] RegisterRequest request)
         {
@@ -231,7 +231,7 @@ namespace Clinic_Management_System.Controllers
             //user.RefreshTokenHash = BCrypt.Net.BCrypt.HashPassword(GenerateRefreshToken());
 
             if (user.Save())
-                return Ok(new { message = "User created successfully!" });
+                return CreatedAtRoute("GetUser", new { id = user.UserID }, null);
 
             return BadRequest("Invalid registeration Data");
         }

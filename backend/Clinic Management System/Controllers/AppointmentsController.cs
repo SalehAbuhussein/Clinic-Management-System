@@ -143,7 +143,7 @@ namespace Clinic_Management_System.Controllers
 
         [Authorize(Roles = "Admin,Staff")]
         [HttpPut("{id}", Name = "UpdateAppointment")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult UpdateAppointment(int id, UpdateAppointmentDTO updatedAppointmentDTO)
@@ -190,7 +190,7 @@ namespace Clinic_Management_System.Controllers
             appointment.Notes = updatedAppointmentDTO.Notes;
 
             if (appointment.Save())
-                return Ok($"Appointment with id {id} has been updated successfully");
+                return NoContent();
 
             return BadRequest("Invalid appointment data");
         }
@@ -246,7 +246,7 @@ namespace Clinic_Management_System.Controllers
 
         [Authorize(Roles = "Admin,Staff")]
         [HttpPatch("{id}/attend", Name = "AttendAppointment")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -269,14 +269,14 @@ namespace Clinic_Management_System.Controllers
                 return BadRequest("Appointment date has run by");
 
             if (appointment.AttendAppointment())
-                return Ok($"Appointment with id {id} has been marked at attended");
+                return NoContent();
 
             return BadRequest("Invalid Appointment data");
         }
 
         [Authorize(Roles = "Admin,Staff")]
         [HttpPatch("{id}/no-show", Name = "UnattendAppointment")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -299,14 +299,14 @@ namespace Clinic_Management_System.Controllers
                 return BadRequest("Appointment is already attended");
 
             if (appointment.UnattendAppointment())
-                return Ok($"Appointment with id {id} has been marked at unattended");
+                return NoContent();
 
             return BadRequest("Invalid Appointment data");
         }
 
         [Authorize(Roles = "Admin,Staff")]
         [HttpPatch("{id}/cancel", Name = "CancelAppointment")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -329,14 +329,14 @@ namespace Clinic_Management_System.Controllers
                 return BadRequest("Appointment is already attended");
 
             if (appointment.CancelAppointment())
-                return Ok($"Appointment with id {id} has been cancelled");
+                return NoContent();
 
             return BadRequest("Invalid Appointment data");
         }
 
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}", Name = "DeleteAppointment")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult DeleteAppointment(int id)
@@ -349,7 +349,7 @@ namespace Clinic_Management_System.Controllers
                 return NotFound($"Appointment with id {id} not found");
 
             if (clsAppointment.Delete(id))
-                return Ok($"Medicine with id of {id} has been deleted.");
+                return NoContent();
 
             return BadRequest("Invalid medicine id");
         }

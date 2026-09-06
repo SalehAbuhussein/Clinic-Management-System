@@ -109,10 +109,10 @@ namespace Clinic_Management_System.Controllers
 
         [Authorize(Roles = "Admin,Staff")]
         [HttpPut("{id}", Name = "updatedVisit")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult UpdateVisit(int id, UpdateVisitDTO updatedVisit)
+        public ActionResult UpdateVisit(int id, UpdateVisitDTO visitDTO)
         {
             if (id < 1)
                 return BadRequest("Invalid visit id");
@@ -124,7 +124,7 @@ namespace Clinic_Management_System.Controllers
             if (visit.IsLocked)
                 return BadRequest("Visit has already been finalized");
 
-            if (updatedVisit.CheckinTime is not DateTimeOffset checkinTime)
+            if (visitDTO.CheckinTime is not DateTimeOffset checkinTime)
                 return BadRequest("Checkin time is required");
 
             DateTime checkinTimeUtc = checkinTime.UtcDateTime;
@@ -142,17 +142,17 @@ namespace Clinic_Management_System.Controllers
                 return BadRequest($"Visit is already locked");
 
             visit.CheckinTime = checkinTimeUtc;
-            visit.Notes = updatedVisit.Notes;
+            visit.Notes = visitDTO.Notes;
 
             if (visit.Save())
-                return Ok($"Visit with id of {id} has been updated successfully");
+                return NoContent();
 
             return BadRequest("Invalid visit data");
         }
 
         [Authorize(Roles = "Admin,Staff")]
         [HttpPatch("{id}/checkout")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -177,14 +177,14 @@ namespace Clinic_Management_System.Controllers
             visit.IsLocked = true;
 
             if (visit.Save())
-                return Ok($"Visit with id {id} has been checked out");
+                return NoContent();
 
             return BadRequest("Invalid visit data");
         }
 
         [Authorize(Roles = "Admin, Staff")]
         [HttpDelete("{id}", Name = "DeleteVisit")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult DeleteVisit(int id)
@@ -206,7 +206,7 @@ namespace Clinic_Management_System.Controllers
             }
 
             if (clsVisit.Delete(id))
-                return Ok($"visit with id {id} deleted successfully");
+                return NoContent();
 
             return BadRequest("Invalid visit data");
         }

@@ -114,7 +114,7 @@ namespace Clinic_Management_System.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpPut("{id}", Name = "UpdateDoctor")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult UpdateDoctor(int id, UpdateDoctorDTO updatedDoctor)
@@ -148,14 +148,14 @@ namespace Clinic_Management_System.Controllers
             person.ProfileImage = updatedDoctor.ProfileImage;
 
             if (doctor.Save())
-                return Ok($"Doctor with id {id} updated successfully");
+                return NoContent();
 
             return BadRequest("Invalid doctor data");
         }
 
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}", Name = "DeleteDoctor")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult DeleteDoctor(int id)
@@ -172,7 +172,7 @@ namespace Clinic_Management_System.Controllers
                 return NotFound($"doctor with id {id} not found");
 
             if (clsDoctor.DeleteDoctor(id))
-                return Ok($"doctor with id {id} deleted successfully");
+                return NoContent();
 
             return BadRequest("Invalid doctor data");
         }
