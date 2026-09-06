@@ -18,10 +18,10 @@ namespace Clinic_Business
 
         public int? MedicineID { get; set; }
         public int RxCUI { get; set; }
-        public string Genericname { get; set; }
+        public string Genericname { get; set; } = string.Empty;
         public string? Brandname { get; set; }
-        public string Form { get; set; }
-        public string Strength { get; set; }
+        public string Form { get; set; } = string.Empty;
+        public string Strength { get; set; } = string.Empty;
         private enMode _Mode = enMode.Add;
 
         public clsMedicine()
@@ -62,6 +62,11 @@ namespace Clinic_Business
         public static bool Delete(int id)
         {
             return clsMedicineDA.Delete(id);
+        }
+
+        public static bool IsValidMedicines(List<string> medicineIds)
+        {
+            return clsMedicineDA.IsValidMedicines(medicineIds);
         }
 
         private bool _CreateMedicine()

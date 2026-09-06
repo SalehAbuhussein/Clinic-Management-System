@@ -92,6 +92,41 @@ namespace Clinic_DataAccess
             return isFound;
         }
 
+        public static bool IsValidMedicines(List<string> medicineIds)
+        {
+            bool isValid = false;
+
+            medicineIds = medicineIds.Distinct().ToList();
+
+            if (medicineIds.Count == 0)
+                return false;
+
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                connection.Open();
+
+                string query = @"SELECT MedicineCount = COUNT(DISTINCT MedicineID)
+                FROM Medicines
+                WHERE MedicineID IN (SELECT CAST(value AS INT) FROM STRING_SPLIT(@MedicineIds, ','))
+                HAVING COUNT(DISTINCT MedicineID) = @MedicineIdsCount";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    string[] medicineIdsArr = medicineIds.ToArray();
+
+                    command.Parameters.AddWithValue("@MedicineIds", string.Join(",", medicineIdsArr));
+                    command.Parameters.AddWithValue("@MedicineIdsCount", medicineIdsArr.Length);
+
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        isValid = reader.HasRows;
+                    }
+                }
+            }
+
+            return isValid;
+        }
+
         public static int? Create(
             int rxCUI,
             string genericName,
