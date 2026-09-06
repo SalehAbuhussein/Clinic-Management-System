@@ -278,7 +278,16 @@ namespace Clinic_DataAccess
                         command.Parameters.AddWithValue($"@Duration{i}", items[i].duration);
                     }
 
-                    command.CommandText = $@"MERGE INTO [dbo].[PrescriptionItems] WITH (HOLDLOCK) AS tgt
+                    // Every item belongs to the same visit; this scopes the target so the
+                    // DELETE branch can only ever reach this prescription's rows.
+                    command.Parameters.AddWithValue("@VisitID", items[0].visitID);
+
+                    command.CommandText = $@"WITH tgt AS (
+                        SELECT [VisitID], [MedicineID], [Dosage], [Frequency], [Duration]
+                        FROM [dbo].[PrescriptionItems] WITH (HOLDLOCK)
+                        WHERE [VisitID] = @VisitID
+                    )
+                    MERGE INTO tgt
                     USING (VALUES {string.Join(",\n", valueRows)})
                         AS src ([VisitID], [MedicineID], [Dosage], [Frequency], [Duration])
                     ON  tgt.[VisitID] = src.[VisitID]
@@ -289,10 +298,9 @@ namespace Clinic_DataAccess
                                    tgt.[Duration]  = src.[Duration]
                     WHEN NOT MATCHED BY TARGET THEN
                         INSERT ([VisitID], [MedicineID], [Dosage], [Frequency], [Duration])
-                        VALUES (src.[VisitID], src.[MedicineID], src.[Dosage], src.[Frequency], src.[Duration]);
-                    WHEN NOT MATCHED BY SOURCE
-                        AND tgt.[VisitID] = @VisitID THEN
-                        DELETE";
+                        VALUES (src.[VisitID], src.[MedicineID], src.[Dosage], src.[Frequency], src.[Duration])
+                    WHEN NOT MATCHED BY SOURCE THEN
+                        DELETE;";
 
                     command.Connection = connection;
 
