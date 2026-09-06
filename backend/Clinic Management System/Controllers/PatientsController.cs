@@ -16,6 +16,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public ActionResult<PatientDTO> GetPatients(int page = 1, int perPage = 10)
         {
             if (page < 1 || perPage < 1)
@@ -45,6 +46,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<PatientDTO> GetPatientByID(int id)
         {
@@ -82,7 +84,7 @@ namespace Clinic_Management_System.Controllers
             clsPatient newPatient = new clsPatient();
             newPatient.EmergencyContactNumber = patientDTO.EmergencyContactNumber;
             newPatient.EmergencyContactName = patientDTO.EmergencyContactName;
-            newPatient.CreatedBy = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            newPatient.CreatedBy = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             newPatient.Firstname = patientDTO.Firstname;
             newPatient.Midname = patientDTO.Midname;
             newPatient.Thirdname = patientDTO.Thirdname;

@@ -82,7 +82,7 @@ namespace Clinic_Management_System.Controllers
             newDoctor.Specialization = addDoctorDTO.Specialization;
             newDoctor.MedicalSchool = addDoctorDTO.MedicalSchool;
             newDoctor.GraduationYear = addDoctorDTO.GraduationYear;
-            newDoctor.CreatedBy = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            newDoctor.CreatedBy = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
             newDoctor.UserInfo.PersonInfo.Firstname = addDoctorDTO.Firstname;
             newDoctor.UserInfo.PersonInfo.Midname = addDoctorDTO.Midname;

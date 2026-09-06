@@ -18,6 +18,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public ActionResult<List<UserDTO>> GetUsers(int page = 1, int perPage = 10)
         {
             if (page < 1 || perPage < 1)
@@ -48,6 +49,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public ActionResult<UserDTO> GetUser(int id)
         {
             if (id < 1)
@@ -74,6 +76,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public ActionResult UpdateUser(int id, UpdateUserDTO updatedUserDTO)
         {
             if (id < 1)
