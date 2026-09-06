@@ -42,105 +42,53 @@ namespace Clinic_DataAccess
             return dt;
         }
 
-        public static bool Find(
-            int? id,
-            ref string emergencyContactNumber,
-            ref string emergencyContactName,
-            ref DateTime createdAt,
-            ref DateTime updatedAt,
-            ref int createdBy,
-            ref int personID,
-            ref bool active
-        )
+        /// <summary>
+        /// A patient with its person, in one round trip. Find and FindByNationalNo differ
+        /// only in their WHERE, so they share this query. The column name is a compile-time
+        /// literal from the two callers below, never from a request.
+        /// </summary>
+        private static DataRow? _FindBy(string whereColumn, object value)
         {
-            if (!id.HasValue)
-                return false;
-
-            bool isFound = false;
+            DataTable dt = new DataTable();
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
                 connection.Open();
 
-                string query = @"SELECT *
-                FROM [dbo].[Patients]
-                WHERE PatientID = @PatientID";
+                string query = $@"SELECT
+                    PT.PatientID, PT.EmergencyContactNumber, PT.EmergencyContactName,
+                    PT.CreatedAt, PT.UpdatedAt, PT.CreatedBy, PT.Active, PT.PersonID,
+                    P.Firstname, P.Midname, P.Thirdname, P.Lastname,
+                    P.NationalNo, P.Phone, P.Gender, P.DateOfBirth, P.ProfileImage
+                FROM Patients PT
+                INNER JOIN People P ON P.PersonID = PT.PersonID
+                WHERE {whereColumn} = @Value";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
-                    command.Parameters.AddWithValue("@PatientID", id);
+                    command.Parameters.AddWithValue("@Value", value);
 
                     using (SqlDataReader reader = command.ExecuteReader())
                     {
-                        if (reader.Read())
-                        {
-                            isFound = true;
-
-                            emergencyContactName = reader["EmergencyContactName"].ToString() ?? "";
-                            emergencyContactNumber = reader["EmergencyContactNumber"].ToString() ?? "";
-                            createdAt = (DateTime)reader["CreatedAt"];
-                            updatedAt = (DateTime)reader["UpdatedAt"];
-                            createdBy = (int)reader["CreatedBy"];
-                            personID = (int)reader["PersonID"];
-                            active = (bool)reader["Active"];
-                        }
+                        if (reader.HasRows)
+                            dt.Load(reader);
                     }
                 }
             }
 
-            return isFound;
+            return dt.Rows.Count > 0 ? dt.Rows[0] : null;
         }
 
-        public static bool FindByNationalNo(
-            string nationalNo,
-            ref int? id,
-            ref string emergencyContactNumber,
-            ref string emergencyContactName,
-            ref DateTime createdAt,
-            ref DateTime updatedAt,
-            ref int createdBy,
-            ref int personID,
-            ref bool active
-        )
+        public static DataRow? Find(int? id)
         {
-            if (string.IsNullOrEmpty(nationalNo))
-                return false;
-
-            bool isFound = false;
-
-            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
-            {
-                connection.Open();
-
-                string query = @"SELECT Patients.* FROM Patients
-                INNER JOIN People ON Patients.PersonID = People.PersonID
-                WHERE People.NationalNo = @NationalNo";
-
-                using (SqlCommand command = new SqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@NationalNo", nationalNo);
-
-                    using (SqlDataReader reader = command.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            isFound = true;
-
-                            id = (int)reader["PatientID"];
-                            emergencyContactName = reader["EmergencyContactName"].ToString() ?? "";
-                            emergencyContactNumber = reader["EmergencyContactNumber"].ToString() ?? "";
-                            createdAt = (DateTime)reader["CreatedAt"];
-                            updatedAt = (DateTime)reader["UpdatedAt"];
-                            createdBy = (int)reader["CreatedBy"];
-                            personID = (int)reader["PersonID"];
-                            active = (bool)reader["Active"];
-                        }
-                    }
-                }
-            }
-
-            return isFound;
+            return id.HasValue ? _FindBy("PT.PatientID", id.Value) : null;
         }
+
+        public static DataRow? FindByNationalNo(string nationalNo)
+        {
+            return string.IsNullOrEmpty(nationalNo) ? null : _FindBy("P.NationalNo", nationalNo);
+        }
+
 
         public static int? Create(
             string? emergencyContactNumber,

@@ -81,82 +81,45 @@ namespace Clinic_Business
 
         public static clsPatient? FindPatient(int? id)
         {
-            string emergencyContactNumber = string.Empty;
-            string emergencyContactName = string.Empty;
-            DateTime createdAt = DateTime.MinValue;
-            DateTime updatedAt = DateTime.MinValue;
-            int createdBy = int.MinValue;
-            int personID = int.MinValue;
-            bool active = false;
+            DataRow? row = clsPatientDA.Find(id);
 
-            if (clsPatientDA.Find(id, ref emergencyContactNumber, ref emergencyContactName, ref createdAt, ref updatedAt, ref createdBy, ref personID, ref active))
-            {
-                clsPerson? person = clsPerson.Find(personID);
-
-                if (person != null)
-                    return new clsPatient(
-                        id, 
-                        emergencyContactNumber, 
-                        emergencyContactName, 
-                        createdAt, 
-                        updatedAt, 
-                        createdBy,
-                        active,
-                        personID,
-                        person.Firstname,
-                        person.Midname,
-                        person.Thirdname,
-                        person.Lastname,
-                        person.Phone,
-                        person.Gender,
-                        person.DateOfBirth,
-                        person.ProfileImage,
-                        person.NationalNo
-                    );
-            }
-
-            return null;
+            return row == null ? null : _MapPatient(row);
         }
-        
+
         public static clsPatient? FindPatientByNationalNo(string nationalNo)
         {
-            string emergencyContactNumber = string.Empty;
-            string emergencyContactName = string.Empty;
-            DateTime createdAt = DateTime.MinValue;
-            DateTime updatedAt = DateTime.MinValue;
-            int? id = null;
-            int createdBy = int.MinValue;
-            int personID = int.MinValue;
-            bool active = false;
+            DataRow? row = clsPatientDA.FindByNationalNo(nationalNo);
 
-            if (clsPatientDA.FindByNationalNo(nationalNo, ref id, ref emergencyContactNumber, ref emergencyContactName, ref createdAt, ref updatedAt, ref createdBy, ref personID, ref active))
-            {
-                clsPerson? person = clsPerson.Find(personID);
-
-                if (person != null)
-                    return new clsPatient(
-                        id,
-                        emergencyContactNumber,
-                        emergencyContactName,
-                        createdAt,
-                        updatedAt,
-                        createdBy,
-                        active,
-                        personID,
-                        person.Firstname,
-                        person.Midname,
-                        person.Thirdname,
-                        person.Lastname,
-                        person.Phone,
-                        person.Gender,
-                        person.DateOfBirth,
-                        person.ProfileImage,
-                        person.NationalNo
-                    );
-            }
-
-            return null;
+            return row == null ? null : _MapPatient(row);
         }
+
+        /// <summary>
+        /// Builds the patient from the single joined row. clsPatient inherits clsPerson
+        /// rather than holding one, so the person columns go into the base properties.
+        /// </summary>
+        private static clsPatient _MapPatient(DataRow row)
+        {
+            return new clsPatient(
+                row.Field<int>("PatientID"),
+                row.Field<string>("EmergencyContactNumber"),
+                row.Field<string>("EmergencyContactName"),
+                row.Field<DateTime>("CreatedAt"),
+                row.Field<DateTime>("UpdatedAt"),
+                row.Field<int>("CreatedBy"),
+                row.Field<bool>("Active"),
+                row.Field<int>("PersonID"),
+                row.Field<string>("Firstname") ?? string.Empty,
+                row.Field<string>("Midname") ?? string.Empty,
+                row.Field<string>("Thirdname"),
+                row.Field<string>("Lastname") ?? string.Empty,
+                row.Field<string>("Phone") ?? string.Empty,
+                row.Field<bool>("Gender"),
+                row.Field<DateTime>("DateOfBirth"),
+                row.Field<string>("ProfileImage"),
+                row.Field<string>("NationalNo") ?? string.Empty
+            );
+        }
+        
         
         public static bool DeletePatient(int? id)
         {

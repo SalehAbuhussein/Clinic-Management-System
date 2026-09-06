@@ -49,18 +49,20 @@ namespace Clinic_DataAccess
         /// than SELECT *: Doctors and Users both have UserID, Users and People both have
         /// PersonID, and ADO.NET would silently rename the duplicates to UserID1/PersonID1.
         /// </summary>
-        public static DataRow? Find(int? id)
+        /// <summary>
+        /// A doctor with its user and person, in one round trip. Find and FindByUserID
+        /// differ only in their WHERE, so they share this query. The column name is a
+        /// compile-time literal from the two callers below, never from a request.
+        /// </summary>
+        private static DataRow? _FindBy(string whereColumn, object value)
         {
-            if (!id.HasValue)
-                return null;
-
             DataTable dt = new DataTable();
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
                 connection.Open();
 
-                string query = @"SELECT
+                string query = $@"SELECT
                     D.DoctorID, D.UserID, D.Specialization, D.MedicalSchool,
                     D.GraduationYear, D.CreatedAt, D.UpdatedAt, D.CreatedBy,
                     U.PersonID, U.Email, U.PasswordHash, U.Role, U.Active,
@@ -69,11 +71,11 @@ namespace Clinic_DataAccess
                 FROM Doctors D
                 INNER JOIN Users U ON U.UserID = D.UserID
                 INNER JOIN People P ON P.PersonID = U.PersonID
-                WHERE D.DoctorID = @DoctorID";
+                WHERE {whereColumn} = @Value";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
-                    command.Parameters.AddWithValue("@DoctorID", id);
+                    command.Parameters.AddWithValue("@Value", value);
 
                     using (SqlDataReader reader = command.ExecuteReader())
                     {
@@ -86,60 +88,16 @@ namespace Clinic_DataAccess
             return dt.Rows.Count > 0 ? dt.Rows[0] : null;
         }
 
-        public static bool FindByUserID(
-            int? id,
-            ref int doctorID,
-            ref string specialization,
-            ref string medicalSchool,
-            ref ushort graduationYear,
-            ref DateTime createdAt,
-            ref DateTime updatedAt,
-            ref int createdBy
-        )
+        public static DataRow? Find(int? id)
         {
-            if (!id.HasValue)
-                return false;
-
-            bool isFound = false;
-
-            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
-            {
-                connection.Open();
-
-                string query = @"SELECT [DoctorID]
-                    ,[Specialization]
-                    ,[MedicalSchool]
-                    ,[GraduationYear]
-                    ,[CreatedAt]
-                    ,[UpdatedAt]
-                    ,[CreatedBy]
-                    ,[UserID]
-                FROM [dbo].[Doctors]
-                WHERE UserID = @UserID";
-
-                using (SqlCommand command = new SqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@UserID", id);
-
-                    using (SqlDataReader reader = command.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            isFound = true;
-                            doctorID = (int)reader["DoctorID"];
-                            specialization = reader["Specialization"].ToString() ?? "";
-                            medicalSchool = reader["MedicalSchool"].ToString() ?? "";
-                            graduationYear = Convert.ToUInt16(reader["GraduationYear"]);
-                            createdAt = (DateTime)reader["CreatedAt"];
-                            updatedAt = (DateTime)reader["UpdatedAt"];
-                            createdBy = (int)reader["CreatedBy"];
-                        }
-                    }
-                }
-            }
-
-            return isFound;
+            return id.HasValue ? _FindBy("D.DoctorID", id.Value) : null;
         }
+
+        public static DataRow? FindByUserID(int? userID)
+        {
+            return userID.HasValue ? _FindBy("D.UserID", userID.Value) : null;
+        }
+
 
         public static (int? doctorID, int? personID, int? userID) Create(
             string specialization,

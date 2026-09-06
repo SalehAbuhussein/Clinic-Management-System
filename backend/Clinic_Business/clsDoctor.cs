@@ -105,31 +105,11 @@ namespace Clinic_Business
             { UserInfo = user };
         }
 
-        public static clsDoctor? FindByUserID(int userID)
+        public static clsDoctor? FindByUserID(int? userID)
         {
-            string specialization = string.Empty;
-            string medicalSchool = string.Empty;
-            ushort graduationYear = ushort.MinValue;
-            DateTime createdAt = DateTime.MinValue;
-            DateTime updatedAt = DateTime.MinValue;
-            int createdBy = int.MinValue;
-            int doctorID = int.MinValue;
+            DataRow? row = clsDoctorDA.FindByUserID(userID);
 
-            if (clsDoctorDA.FindByUserID(
-                userID,
-                ref doctorID,
-                ref specialization,
-                ref medicalSchool,
-                ref graduationYear,
-                ref createdAt,
-                ref updatedAt,
-                ref createdBy)
-            )
-            {
-                return new clsDoctor(doctorID, userID, specialization, medicalSchool, graduationYear, createdAt, updatedAt, createdBy);
-            }
-
-            return null;
+            return row == null ? null : _MapDoctor(row);
         }
 
         public static bool DeleteDoctor(int? id)
