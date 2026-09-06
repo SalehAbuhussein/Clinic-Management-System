@@ -78,7 +78,7 @@ namespace Clinic_Management_System.Controllers
             if (diagnosis == null)
                 return NotFound($"Diagnosis with id {id} not found");
 
-            if (diagnosis.VisitInfo.IsLocked)
+            if (diagnosis.VisitInfo?.IsLocked == true)
                 return BadRequest("Linked Visit has been already locked");
 
             diagnosis.Diagnosis = updateDiagnosesDTO.Diagnoses;
@@ -88,30 +88,6 @@ namespace Clinic_Management_System.Controllers
                 return Ok($"Diagnoses with id {id} updated successfully");
 
             return BadRequest("Invalid diagnosis data");
-        }
-
-        [Authorize(Roles = "Admin,Doctor")]
-        [HttpDelete("{id}", Name = "DeleteDiagnosis")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult DeleteDiagnosis(int id)
-        {
-            if (id < 1)
-                return BadRequest("Invalid Diagnosis ID");
-
-            clsDiagnosis? diagnosis = clsDiagnosis.Find(id);
-            if (diagnosis == null)
-                return NotFound($"Diagnosis with id {id} not found");
-
-            if (diagnosis.VisitInfo.IsLocked)
-                return BadRequest("Can not modify locked visit info");
-
-            if (clsDiagnosis.Delete(id))
-                return Ok($"Diagnosis with id {id} deleted succesfully");
-
-            return BadRequest("Invalid diagonsis data");
         }
     }
 }
