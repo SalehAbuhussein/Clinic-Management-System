@@ -68,7 +68,7 @@ namespace Clinic_Management_System.Controllers
                 issuer: "ClinicApi",
                 audience: "ClinicApiUsers",
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(30),
+                expires: DateTime.UtcNow.AddMinutes(30),
                 signingCredentials: creds
             );
 
