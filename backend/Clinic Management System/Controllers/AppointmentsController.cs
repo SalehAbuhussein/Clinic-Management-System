@@ -156,15 +156,15 @@ namespace Clinic_Management_System.Controllers
                 return BadRequest("Invalid appointment id");
 
             clsAppointment? appointment = clsAppointment.Find(id);
+
             if (appointment == null)
+                return NotFound($"Appointment with id {id} not found");
+
+            if (!clsDoctor.IsDoctorExist(appointment.DoctorID))
                 return NotFound($"Appointment with id {id} not found");
 
             if (!appointment.IsValid())
                 return BadRequest("Invalid appointment data");
-
-            clsUser? user = appointment.DoctorInfo?.UserInfo;
-            if (user == null)
-                return NotFound($"Appointment with id {id} not found");
 
             DateTime newStart = updatedAppointmentDTO.StartAt.UtcDateTime;
             DateTime newEnd = updatedAppointmentDTO.EndAt.UtcDateTime;

@@ -36,7 +36,6 @@ namespace Clinic_Business
             DiagnosesID = diagnosesID;
             VisitID = visitID;
             Diagnosis = diagnosis;
-            VisitInfo = clsVisit.Find(visitID);
             Notes = notes;
             CreatedAt = createdAt;
             UpdatedAt = updatedAt;

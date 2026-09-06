@@ -13,7 +13,7 @@ namespace Clinic_Business
         }
 
         public int AppointmentID { get; set; }
-        public int DoctorID { get; set; }
+        public int? DoctorID { get; set; }
         public clsDoctor? DoctorInfo { get; set; }
         public int PatientID { get; set; }
         public clsPatient? PatientInfo { get; set; }
@@ -49,9 +49,7 @@ namespace Clinic_Business
 
             AppointmentID = id;
             DoctorID = doctorId;
-            DoctorInfo = clsDoctor.Find(doctorId);
             PatientID = patientID;
-            PatientInfo = clsPatient.FindPatient(patientID);
             StartAt = startAt;
             EndAt = endAt;
             Status = status;
@@ -101,7 +99,7 @@ namespace Clinic_Business
             return clsAppointmentDA.Delete(id);
         }
 
-        public static bool HasDoctorExistingAppointment(int doctorId, DateTime startAt, DateTime endAt, int? excludeAppointmentID = null)
+        public static bool HasDoctorExistingAppointment(int? doctorId, DateTime startAt, DateTime endAt, int? excludeAppointmentID = null)
         {
             return clsAppointmentDA.HasDoctorExistingAppointment(doctorId, startAt, endAt, excludeAppointmentID);
         }

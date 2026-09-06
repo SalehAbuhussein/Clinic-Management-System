@@ -78,7 +78,7 @@ namespace Clinic_Management_System.Controllers
             if (diagnosis == null)
                 return NotFound($"Diagnosis with id {id} not found");
 
-            if (diagnosis.VisitInfo?.IsLocked == true)
+            if (clsVisit.HasCheckedout(id))
                 return BadRequest("Linked Visit has been already locked");
 
             diagnosis.Diagnosis = updateDiagnosesDTO.Diagnoses;

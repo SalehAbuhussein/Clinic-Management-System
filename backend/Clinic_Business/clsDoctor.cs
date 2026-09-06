@@ -55,9 +55,9 @@ namespace Clinic_Business
             UpdatedAt = updatedAt;
             CreatedBy = createdBy;
             UserID = userId;
-            // a doctor with no user row is broken data: keep the invariant and let IsValid reject it
-
-            UserInfo = clsUser.FindUser(userId) ?? new clsUser();
+            // UserInfo is supplied by _MapDoctor from the joined row, not loaded here.
+            // An empty one keeps the non-null invariant for callers that build a doctor by hand.
+            UserInfo = new clsUser();
         }
 
         public static DataTable FindAllDoctors(int pageNumber = 1, int pageSize = 10)
@@ -67,30 +67,54 @@ namespace Clinic_Business
 
         public static clsDoctor? Find(int? id)
         {
-            string specialization = string.Empty;
-            string medicalSchool = string.Empty;
-            ushort graduationYear = ushort.MinValue;
-            DateTime createdAt = DateTime.MinValue;
-            DateTime updatedAt = DateTime.MinValue;
-            int createdBy = int.MinValue;
-            int userId = int.MinValue;
+            DataRow? row = clsDoctorDA.Find(id);
 
+            return row == null ? null : _MapDoctor(row);
+        }
 
-            if (clsDoctorDA.Find(
-                id, 
-                ref userId, 
-                ref specialization, 
-                ref medicalSchool, 
-                ref graduationYear, 
-                ref createdAt, 
-                ref updatedAt, 
-                ref createdBy)
-            )
+        /// <summary>
+        /// Builds the doctor, its user and its person from the single joined row.
+        /// Doctors, Users and People are one entity across three tables, so they load
+        /// together; anything the doctor merely points at is loaded on request.
+        /// </summary>
+        private static clsDoctor _MapDoctor(DataRow row)
+        {
+            clsPerson person = new clsPerson
             {
-                return new clsDoctor(id, userId, specialization, medicalSchool, graduationYear, createdAt, updatedAt, createdBy);
-            }
+                PersonID = row.Field<int>("PersonID"),
+                Firstname = row.Field<string>("Firstname") ?? string.Empty,
+                Midname = row.Field<string>("Midname") ?? string.Empty,
+                Thirdname = row.Field<string>("Thirdname"),
+                Lastname = row.Field<string>("Lastname") ?? string.Empty,
+                NationalNo = row.Field<string>("NationalNo") ?? string.Empty,
+                Phone = row.Field<string>("Phone") ?? string.Empty,
+                Gender = row.Field<bool>("Gender"),
+                DateOfBirth = row.Field<DateTime>("DateOfBirth"),
+                ProfileImage = row.Field<string>("ProfileImage")
+            };
 
-            return null;
+            clsUser user = new clsUser
+            {
+                UserID = row.Field<int>("UserID"),
+                PersonID = row.Field<int>("PersonID"),
+                Email = row.Field<string>("Email") ?? string.Empty,
+                PasswordHash = row.Field<string>("PasswordHash") ?? string.Empty,
+                Role = row.Field<string>("Role") ?? string.Empty,
+                Active = row.Field<bool>("Active"),
+                PersonInfo = person
+            };
+
+            return new clsDoctor(
+                row.Field<int>("DoctorID"),
+                row.Field<int>("UserID"),
+                row.Field<string>("Specialization") ?? string.Empty,
+                row.Field<string>("MedicalSchool") ?? string.Empty,
+                Convert.ToUInt16(row.Field<short>("GraduationYear")),
+                row.Field<DateTime>("CreatedAt"),
+                row.Field<DateTime>("UpdatedAt"),
+                row.Field<int>("CreatedBy")
+            )
+            { UserInfo = user };
         }
 
         public static clsDoctor? FindByUserID(int userID)
@@ -128,8 +152,12 @@ namespace Clinic_Business
         public static bool IsDoctorExist(int? id)
         {
             clsDoctor? doctor = Find(id);
-
             return doctor != null && doctor.UserInfo.Active;
+        }
+
+        public static bool IsDoctorOfVisit(int? visitId, int? userId)
+        {
+            return clsDoctorDA.IsDoctorOfVisit(visitId, userId);
         }
 
         private bool _CreateDoctor()

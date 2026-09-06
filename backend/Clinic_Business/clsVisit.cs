@@ -43,7 +43,6 @@ namespace Clinic_Business
 
             VisitID = visitID;
             AppointmentID = appointmentID;
-            AppointmentInfo = clsAppointment.Find(appointmentID);
             CheckinTime = checkinTime;
             CheckoutTime = checkoutTime;
             Notes = notes;

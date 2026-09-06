@@ -44,30 +44,32 @@ namespace Clinic_DataAccess
             return dt;
         }
 
-        public static bool Find(
-            int? id,
-            ref int userId,
-            ref string specialization,
-            ref string medicalSchool,
-            ref ushort graduationYear,
-            ref DateTime createdAt,
-            ref DateTime updatedAt,
-            ref int createdBy
-        )
+        /// <summary>
+        /// A doctor with its user and person, in one round trip. Columns are named rather
+        /// than SELECT *: Doctors and Users both have UserID, Users and People both have
+        /// PersonID, and ADO.NET would silently rename the duplicates to UserID1/PersonID1.
+        /// </summary>
+        public static DataRow? Find(int? id)
         {
             if (!id.HasValue)
-                return false;
+                return null;
 
-            bool isFound = false;
+            DataTable dt = new DataTable();
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
                 connection.Open();
 
-                string query = @"SELECT *
-                FROM Doctors d
-                INNER JOIN Users U ON D.UserID = U.UserID
-                WHERE DoctorID = @DoctorID";
+                string query = @"SELECT
+                    D.DoctorID, D.UserID, D.Specialization, D.MedicalSchool,
+                    D.GraduationYear, D.CreatedAt, D.UpdatedAt, D.CreatedBy,
+                    U.PersonID, U.Email, U.PasswordHash, U.Role, U.Active,
+                    P.Firstname, P.Midname, P.Thirdname, P.Lastname,
+                    P.NationalNo, P.Phone, P.Gender, P.DateOfBirth, P.ProfileImage
+                FROM Doctors D
+                INNER JOIN Users U ON U.UserID = D.UserID
+                INNER JOIN People P ON P.PersonID = U.PersonID
+                WHERE D.DoctorID = @DoctorID";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
@@ -75,22 +77,13 @@ namespace Clinic_DataAccess
 
                     using (SqlDataReader reader = command.ExecuteReader())
                     {
-                        if (reader.Read())
-                        {
-                            isFound = true;
-                            userId = (int)reader["UserID"];
-                            specialization = reader["Specialization"].ToString() ?? "";
-                            medicalSchool = reader["MedicalSchool"].ToString() ?? "";
-                            graduationYear = Convert.ToUInt16(reader["GraduationYear"]);
-                            createdAt = (DateTime)reader["CreatedAt"];
-                            updatedAt = (DateTime)reader["UpdatedAt"];
-                            createdBy = (int)reader["CreatedBy"];
-                        }
+                        if (reader.HasRows)
+                            dt.Load(reader);
                     }
                 }
             }
 
-            return isFound;
+            return dt.Rows.Count > 0 ? dt.Rows[0] : null;
         }
 
         public static bool FindByUserID(
@@ -308,6 +301,32 @@ namespace Clinic_DataAccess
                     int result = (int)returnValue.Value;
 
                     return result == 1;
+                }
+            }
+        }
+
+        public static bool IsDoctorOfVisit(int? visitId, int? userId)
+        {
+            if (!visitId.HasValue || !userId.HasValue)
+                return false;
+
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                connection.Open();
+
+                string query = @"SELECT 1
+                FROM Visits V
+                INNER JOIN Appointments A ON A.AppointmentID = V.AppointmentID
+                INNER JOIN Doctors D ON D.DoctorID = A.DoctorID
+                WHERE V.VisitID = @VisitID AND D.UserID = @UserID";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@VisitID", visitId);
+                    command.Parameters.AddWithValue("@UserID", userId);
+
+                    using (SqlDataReader reader = command.ExecuteReader())
+                        return reader.HasRows;
                 }
             }
         }

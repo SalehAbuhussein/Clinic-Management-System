@@ -258,7 +258,7 @@ namespace Clinic_DataAccess
         }
 
         public static int? Create(
-            int doctorID,
+            int? doctorID,
             int patientID,
             DateTime startAt,
             DateTime endAt,
@@ -314,7 +314,7 @@ namespace Clinic_DataAccess
 
         public static bool Update(
             int? id,
-            int doctorID,
+            int? doctorID,
             int patientID,
             DateTime startAt,
             DateTime endAt,
@@ -381,8 +381,11 @@ namespace Clinic_DataAccess
             return rowsAffected > 0;
         }
 
-        public static bool HasDoctorExistingAppointment(int doctorId, DateTime startAt, DateTime endAt, int? excludeAppointmentID = null)
+        public static bool HasDoctorExistingAppointment(int? doctorId, DateTime startAt, DateTime endAt, int? excludeAppointmentID = null)
         {
+            if (!doctorId.HasValue)
+                return false;
+
             bool hasOverlap = false;
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
