@@ -18,17 +18,10 @@ namespace Clinic_Management_System.Authorization.Prescription
 
             if (context.User.IsInRole("Doctor"))
             {
-                clsVisit? visit = clsVisit.Find(visitId);
+                var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-                if (visit != null)
-                {
-                    clsAppointment? appointment = visit.AppointmentInfo;
-                    clsDoctor? doctor = appointment?.DoctorInfo;
-                    var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-                    if (doctor?.UserID.ToString() == userId)
-                        context.Succeed(requirement);
-                }
+                if (int.TryParse(userId, out int authenticatedUserID) && clsDoctor.IsDoctorOfVisit(visitId, authenticatedUserID))
+                    context.Succeed(requirement);
             }
 
             return Task.CompletedTask;
