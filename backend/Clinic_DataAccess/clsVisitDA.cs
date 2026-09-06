@@ -168,6 +168,33 @@ namespace Clinic_DataAccess
             return isFound;
         }
 
+        public static bool HasCheckedout(int? id)
+        {
+            if (!id.HasValue)
+                return false;
+
+            bool hasCheckedout = false;
+
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                connection.Open();
+
+                string query = @"SELECT true=1 FROM Visits WHERE VisitID = @VisitID AND IsLocked = 1 AND CheckoutTime IS NOT NULL";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@VisitID", id);
+
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        hasCheckedout = reader.HasRows;
+                    }
+                }
+            }
+
+            return hasCheckedout;
+        }
+
         public static int? Create(
             int appointmentID,
             DateTime checkinTime,
@@ -181,7 +208,10 @@ namespace Clinic_DataAccess
             {
                 connection.Open();
 
-                string query = @"INSERT INTO [dbo].[Visits]
+                string query = @"UPDATE [dbo].[Appointments]
+	            SET [Status] = 1
+                WHERE AppointmentID = @AppointmentID;
+                INSERT INTO [dbo].[Visits]
                     ([AppointmentID]
                     ,[CheckinTime]
                     ,[CheckoutTime]
