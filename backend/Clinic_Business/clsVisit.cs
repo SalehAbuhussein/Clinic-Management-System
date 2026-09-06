@@ -92,6 +92,11 @@ namespace Clinic_Business
             return clsVisitDA.IsExistByAppointmentID(id);
         }
 
+        public static bool HasCheckedout(int? id)
+        {
+            return clsVisitDA.HasCheckedout(id);
+        }
+
         public static bool Delete(int? id)
         {
             return clsVisitDA.Delete(id);

@@ -22,7 +22,6 @@ namespace Clinic_Management_System.Authorization.Appointment
             {
                 var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-
                 if (int.TryParse(userId, out int authenticatedUserId))
                 {
                     clsDoctor? doctor = clsDoctor.FindByUserID(authenticatedUserId);

@@ -58,7 +58,7 @@ namespace Clinic_Management_System.Controllers
 
             // Step 4: Create the symmetric security key used to sign the JWT.
             // This key must match the key used in JWT validation middleware.
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
 
             // Step 5: Define the signing credentials.
             // This specifies the algorithm used to sign the token.
@@ -143,7 +143,7 @@ namespace Clinic_Management_System.Controllers
                 new Claim(ClaimTypes.Role, user.Role)
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
@@ -213,16 +213,20 @@ namespace Clinic_Management_System.Controllers
                 return BadRequest("Invalid registeration email");
 
             clsUser user = new clsUser();
+            clsPerson person = new clsPerson();
+
+            person.Firstname = request.Firstname;
+            person.Midname = request.Midname;
+            person.Thirdname = request.Thirdname;
+            person.Lastname = request.Lastname;
+            person.Phone = request.Phone;
+            person.Gender = request.Gender;
+            person.DateOfBirth = request.DateOfBirth;
+            person.NationalNo = request.NationalNo;
+
             user.Email = request.Email;
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
-            user.PersonInfo.Firstname = request.Firstname;
-            user.PersonInfo.Midname = request.Midname;
-            user.PersonInfo.Thirdname = request.Thirdname;
-            user.PersonInfo.Lastname = request.Lastname;
-            user.PersonInfo.Phone = request.Phone;
-            user.PersonInfo.Gender = request.Gender;
-            user.PersonInfo.DateOfBirth = request.DateOfBirth;
-            user.PersonInfo.NationalNo = request.NationalNo;
+            user.PersonInfo = person;
 
             //user.RefreshTokenExpiresAt = DateTime.UtcNow.AddDays(7);
             //user.RefreshTokenRevokedAt = null;
@@ -239,9 +243,10 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public ActionResult DeactivateUser(int id)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
             if (id < 1)
                 return BadRequest("Invalid user id");
@@ -264,6 +269,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public ActionResult Activate(int id)
         {
             if (id < 1)

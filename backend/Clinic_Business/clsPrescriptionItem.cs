@@ -10,28 +10,19 @@ namespace Clinic_Business
 {
     public class clsPrescriptionItem
     {
-        public enum enMode
-        {
-            Add,
-            Update
-        }
-
         public int PrescriptionItemID { get; set; }
         public int VisitID { get; set; }
         public int MedicineID { get; set; }
-        public string Dosage { get; set; }
-        public string Frequency { get; set; }
-        public string Duration { get; set; }
-        private enMode _Mode = enMode.Add;
+        public string Dosage { get; set; } = string.Empty;
+        public string Frequency { get; set; } = string.Empty;
+        public string Duration { get; set; } = string.Empty;
 
         public clsPrescriptionItem()
         {
-            _Mode = enMode.Add;
         }
 
         private clsPrescriptionItem(int id, int visitID, int medicineID, string dosage, string frequency, string duration)
         {
-            _Mode = enMode.Update;
 
             PrescriptionItemID = id;
             VisitID = visitID;
@@ -41,9 +32,14 @@ namespace Clinic_Business
             Duration = duration;
         }
 
-        public static DataTable FindAllByVisitID(int visitID, int pageNumber = 1, int pageSize = 10)
+        public static DataTable FindAllByVisitID(int visitID, int pageNumber, int pageSize)
         {
             return clsPrescriptionItemDA.FindAllByVisitID(visitID, pageNumber, pageSize);
+        }
+
+        public static bool HasPrescriptionByVisitID(int? id)
+        {
+            return clsPrescriptionItemDA.HasPrescriptionByVisitID(id);
         }
 
         public static bool CreatePrescriptionItems(List<(int visitID, int medicineID, string dosage, string frequency, string duration)> items)
@@ -63,6 +59,11 @@ namespace Clinic_Business
                 return new clsPrescriptionItem(id, visitID, medicineID, dosage, frequency, duration);
 
             return null;
+        }
+
+        public static int UpdatePrescriptionItems(List<(int visitID, int medicineID, string dosage, string frequency, string duration)> items)
+        {
+            return clsPrescriptionItemDA.UpdatePrescriptionItems(items);
         }
     }
 }
