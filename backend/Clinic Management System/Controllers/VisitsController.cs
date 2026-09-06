@@ -151,7 +151,7 @@ namespace Clinic_Management_System.Controllers
         }
 
         [Authorize(Roles = "Admin,Staff")]
-        [HttpPatch("checkout")]
+        [HttpPatch("{id}/checkout")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]

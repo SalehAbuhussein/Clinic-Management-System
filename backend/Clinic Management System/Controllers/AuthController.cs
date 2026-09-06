@@ -236,53 +236,6 @@ namespace Clinic_Management_System.Controllers
             return BadRequest("Invalid registeration Data");
         }
 
-        [Authorize(Roles = "Admin")]
-        [HttpPatch("deactivate", Name = "DeactivateUser")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public ActionResult DeactivateUser(int id)
-        {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
-            if (id < 1)
-                return BadRequest("Invalid user id");
-
-            if (userId == id)
-                return BadRequest("Invalid operation");
-
-            clsUser? user = clsUser.FindUser(id);
-            if (user == null)
-                return NotFound($"User with id {id} not found");
-
-            if (user.Deactivate())
-                return Ok("User has been deactivated successfully");
-
-            return BadRequest("Invalid user data");
-        }
-
-        [Authorize(Roles = "Admin")]
-        [HttpPatch("activate", Name = "Activate")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public ActionResult Activate(int id)
-        {
-            if (id < 1)
-                return BadRequest("Invalid user id");
-
-            clsUser? user = clsUser.FindUser(id);
-            if (user == null)
-                return NotFound($"User with id {id} not found");
-
-            if (user.Activate())
-                return Ok("User has been activated successfully");
-
-            return BadRequest("Invalid user data");
-        }
-
         private static string GenerateRefreshToken()
         {
             var bytes = new byte[64];

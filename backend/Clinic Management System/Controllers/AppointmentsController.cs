@@ -245,7 +245,7 @@ namespace Clinic_Management_System.Controllers
         }
 
         [Authorize(Roles = "Admin,Staff")]
-        [HttpPatch("attend", Name = "AttendAppointment")]
+        [HttpPatch("{id}/attend", Name = "AttendAppointment")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -275,7 +275,7 @@ namespace Clinic_Management_System.Controllers
         }
 
         [Authorize(Roles = "Admin,Staff")]
-        [HttpPatch("no-show", Name = "UnattendAppointment")]
+        [HttpPatch("{id}/no-show", Name = "UnattendAppointment")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -305,7 +305,7 @@ namespace Clinic_Management_System.Controllers
         }
 
         [Authorize(Roles = "Admin,Staff")]
-        [HttpPatch("cancel", Name = "CancelAppointment")]
+        [HttpPatch("{id}/cancel", Name = "CancelAppointment")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
