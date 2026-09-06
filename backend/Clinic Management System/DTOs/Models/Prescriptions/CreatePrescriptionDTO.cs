@@ -5,9 +5,6 @@ namespace Clinic_Management_System.DTOs.Models.Prescriptions
     public class CreatePrescriptionDTO : IValidatableObject
     {
         [Required]
-        [Range(1, int.MaxValue)]
-        public int VisitID { get; set; }
-        [Required]
         [MinLength(1)]
         public List<CreatePrescriptionItemDTO> Items { get; set; } = new List<CreatePrescriptionItemDTO>();
 
