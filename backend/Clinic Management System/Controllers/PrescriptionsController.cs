@@ -1,8 +1,6 @@
 ﻿using Clinic_Business;
-using Clinic_DataAccess;
 using Clinic_Management_System.DTOs.Models.Prescriptions;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
 

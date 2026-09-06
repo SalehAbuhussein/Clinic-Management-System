@@ -1,10 +1,8 @@
 ﻿using Clinic_Business;
 using Clinic_Management_System.DTOs.Models.People;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
-using System.Diagnostics;
 
 namespace Clinic_Management_System.Controllers
 {

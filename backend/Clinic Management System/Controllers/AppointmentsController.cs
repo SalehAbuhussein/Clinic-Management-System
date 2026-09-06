@@ -1,7 +1,6 @@
 ﻿using Clinic_Business;
 using Clinic_Management_System.DTOs.Models.Appointments;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
 using System.Security.Claims;

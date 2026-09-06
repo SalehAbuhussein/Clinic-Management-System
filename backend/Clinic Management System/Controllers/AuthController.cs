@@ -1,8 +1,6 @@
-﻿using BCrypt.Net;
-using Clinic_Business;
+﻿using Clinic_Business;
 using Clinic_Management_System.DTOs.Auth;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
