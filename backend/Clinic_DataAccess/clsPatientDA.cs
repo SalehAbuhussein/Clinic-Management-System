@@ -50,7 +50,6 @@ namespace Clinic_DataAccess
             ref DateTime updatedAt,
             ref int createdBy,
             ref int personID,
-            ref string nationalNo,
             ref bool active
         )
         {
@@ -83,7 +82,6 @@ namespace Clinic_DataAccess
                             updatedAt = (DateTime)reader["UpdatedAt"];
                             createdBy = (int)reader["CreatedBy"];
                             personID = (int)reader["PersonID"];
-                            nationalNo = reader["NationalNo"].ToString() ?? "";
                             active = (bool)reader["Active"];
                         }
                     }
