@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -10,6 +10,7 @@ using Clinic_Management_System.Authorization.People;
 using Microsoft.AspNetCore.Authorization;
 using Clinic_Management_System.Authorization.Appointment;
 using Clinic_DataAccess;
+using Clinic_Management_System.Authorization.Prescription;
 
 var builder = WebApplication.CreateBuilder(args);
 var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is not configured. run dotnet user-secrets set.");
@@ -73,31 +74,50 @@ builder.Services.AddAuthorization(options =>
         policy => policy.Requirements.Add(new PersonOwnerOrAuthorizedRequirement()));
     options.AddPolicy("CanDoctorViewAppointment",
         policy => policy.Requirements.Add(new CanDoctorViewAppointmentRequirement()));
-
+    options.AddPolicy("ManagePrescription",
+        policy => policy.Requirements.Add(new ManagePrescriptionRequirement()));
 });
 builder.Services.AddSingleton<IAuthorizationHandler, PersonOwnerOrAuthorizedHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, CanDoctorViewAppointmentHandler>();
+builder.Services.AddSingleton<IAuthorizationHandler, ManagePrescriptionHandler>();
 
 builder.Services.AddProblemDetails();
 // ✅ NEW
 // ===============================
-// 2.5) Rate Limiting (Login + Refresh)
+// 2.5) Rate Limiting (auth endpoints)
 // ===============================
 builder.Services.AddRateLimiter(options =>
 {
     // Always return 429 when blocked
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
-    // Policy: max 5 requests per 1 minute per IP
+    // One bucket per caller per action, named "<ip>:<action>", e.g. "127.0.0.1:login".
+    // Separate buckets matter: without them, five bad passwords also block the
+    // refresh and logout calls, which signs the user out for getting a password wrong.
     options.AddPolicy("AuthLimiter", httpContext =>
     {
         var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
+        // last path segment names the action: /api/Auth/login -> "login"
+        var path = httpContext.Request.Path.Value ?? "";
+        var action = path[(path.LastIndexOf('/') + 1)..].ToLowerInvariant();
+        if (action.Length == 0)
+            action = "auth";
+
+        var permitLimit = action switch
+        {
+            "login" => 5,       // the brute-force target, keep it tight
+            "register" => 10,   // Admin only, but cheap to guard
+            _ => 30             // refresh and logout are routine, not attacks
+        };
+
+        // The limit must vary only by something already in the key: the factory
+        // runs once per new key and its options are cached against that key.
         return RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: ip,
+            partitionKey: $"{ip}:{action}",
             factory: _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 5,
+                PermitLimit = permitLimit,
                 Window = TimeSpan.FromMinutes(1),
                 QueueLimit = 0
             });
