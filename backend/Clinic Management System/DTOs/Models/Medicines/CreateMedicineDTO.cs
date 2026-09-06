@@ -9,14 +9,14 @@ namespace Clinic_Management_System.DTOs.Models.Medicines
         public int RxCUI { get; set; }
         [Required]
         [MaxLength(3000)]
-        public string Genericname { get; set; }
+        public string Genericname { get; set; } = string.Empty;
         [MaxLength(255)]
-        public string Brandname { get; set; }
+        public string Brandname { get; set; } = string.Empty;
         [Required]
         [MaxLength(100)]
-        public string Form { get; set; }
+        public string Form { get; set; } = string.Empty;
         [Required]
         [MaxLength(255)]
-        public string Strength { get; set; }
+        public string Strength { get; set; } = string.Empty;
     }
 }

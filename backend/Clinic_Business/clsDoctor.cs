@@ -18,8 +18,8 @@ namespace Clinic_Business
         }
 
         public int? DoctorID { get; set; }
-        public string Specialization { get; set; }
-        public string MedicalSchool { get; set; }
+        public string Specialization { get; set; } = string.Empty;
+        public string MedicalSchool { get; set; } = string.Empty;
         public ushort GraduationYear { get; set; }
         public int? UserID { get; set; }
         public clsUser UserInfo { get; set; }
@@ -55,7 +55,9 @@ namespace Clinic_Business
             UpdatedAt = updatedAt;
             CreatedBy = createdBy;
             UserID = userId;
-            UserInfo = clsUser.FindUser(userId);
+            // a doctor with no user row is broken data: keep the invariant and let IsValid reject it
+
+            UserInfo = clsUser.FindUser(userId) ?? new clsUser();
         }
 
         public static DataTable FindAllDoctors(int pageNumber = 1, int pageSize = 10)

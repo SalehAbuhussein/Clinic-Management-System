@@ -17,8 +17,8 @@ namespace Clinic_Business
 
         public int? DiagnosesID { get; set; }
         public int? VisitID { get; set; }
-        public clsVisit VisitInfo { get; set; }
-        public string Diagnosis { get; set; }
+        public clsVisit? VisitInfo { get; set; }
+        public string Diagnosis { get; set; } = string.Empty;
         public string? Notes { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }

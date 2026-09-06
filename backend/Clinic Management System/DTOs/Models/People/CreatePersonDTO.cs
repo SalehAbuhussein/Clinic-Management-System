@@ -6,21 +6,21 @@ namespace Clinic_Management_System.DTOs.Models.People
     {
         [Required]
         [MaxLength(20)]
-        public string Firstname { get; set; }
+        public string Firstname { get; set; } = string.Empty;
         [Required]
         [MaxLength(20)]
-        public string Midname { get; set; }
+        public string Midname { get; set; } = string.Empty;
         [MaxLength(20)]
         public string? Thirdname { get; set; }
         [Required]
         [MaxLength(20)]
-        public string Lastname { get; set; }
+        public string Lastname { get; set; } = string.Empty;
         [Required]
         [MaxLength(15)]
-        public string NationalNo { get; set; }
+        public string NationalNo { get; set; } = string.Empty;
         [Required]
         [MaxLength(15)]
-        public string Phone { get; set; }
+        public string Phone { get; set; } = string.Empty;
         public bool Gender { get; set; }
         [Required]
         public DateTime DateOfBirth { get; set; }

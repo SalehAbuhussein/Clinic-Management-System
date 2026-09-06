@@ -17,15 +17,15 @@ namespace Clinic_Business
         }
 
         public int? UserID { get; set; }
-        public string PasswordHash { get; set; }
-        public string Role { get; set; }
-        public string Email { get; set; }
+        public string PasswordHash { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
         public bool Active { get; set; }
         public string? RefreshTokenHash { get; set; }
         public DateTime? RefreshTokenExpiresAt { get; set; }
         public DateTime? RefreshTokenRevokedAt { get; set; }
         public int? PersonID { get; set; }
-        public clsPerson? PersonInfo { get; set; }
+        public clsPerson PersonInfo { get; set; } = new clsPerson();
         private enMode _Mode = enMode.Add;
 
         public clsUser()
@@ -57,7 +57,8 @@ namespace Clinic_Business
             RefreshTokenExpiresAt = refreshTokenExpiresAt;
             RefreshTokenRevokedAt = refreshTokenRevokedAt;
             PersonID = personID;
-            PersonInfo = clsPerson.Find(PersonID);
+
+            PersonInfo = clsPerson.Find(PersonID) ?? new clsPerson();
         }
 
         public static DataTable FindUsers(int pageNumber = 1, int pageSize = 10)

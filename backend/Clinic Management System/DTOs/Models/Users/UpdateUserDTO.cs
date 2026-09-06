@@ -8,7 +8,7 @@ namespace Clinic_Management_System.DTOs.Models.Users
         [Required]
         [EmailAddress]
         [MaxLength(255)]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
         [MaxLength(10)]
         [AllowedValues(null, "Admin", "Doctor", "Staff")]
         public string? Role { get; set; }

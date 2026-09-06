@@ -83,14 +83,13 @@ namespace Clinic_Business
         {
             string emergencyContactNumber = string.Empty;
             string emergencyContactName = string.Empty;
-            string nationalNo = string.Empty;
             DateTime createdAt = DateTime.MinValue;
             DateTime updatedAt = DateTime.MinValue;
             int createdBy = int.MinValue;
             int personID = int.MinValue;
             bool active = false;
 
-            if (clsPatientDA.Find(id, ref emergencyContactNumber, ref emergencyContactName, ref createdAt, ref updatedAt, ref createdBy, ref personID, ref nationalNo, ref active))
+            if (clsPatientDA.Find(id, ref emergencyContactNumber, ref emergencyContactName, ref createdAt, ref updatedAt, ref createdBy, ref personID, ref active))
             {
                 clsPerson? person = clsPerson.Find(personID);
 
@@ -210,7 +209,7 @@ namespace Clinic_Business
             );
         }
 
-        public new bool Save()
+        public bool Save()
         {
             if (!base.IsValid())
                 return false;
