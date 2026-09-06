@@ -16,6 +16,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public ActionResult<VisitDTO> GetVisits([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
             perPage = Math.Clamp(perPage, 1, 10);
@@ -41,13 +42,16 @@ namespace Clinic_Management_System.Controllers
         [Authorize(Roles = "Admin, Staff")]
         [HttpGet("{id}", Name = "GetVisitByID")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<VisitDTO> GetVisitByID([Range(1, int.MaxValue)] int id)
         {
             clsVisit? visit = clsVisit.Find(id);
             if (visit == null)
-                return NotFound($"Visit with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Visit with id {id} not found");
 
             VisitDTO visitDTO = new VisitDTO
             {
@@ -65,24 +69,33 @@ namespace Clinic_Management_System.Controllers
         [HttpPost(Name = "AddVisit")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public ActionResult<VisitDTO> AddVisit(CreateVisitDTO visitDTO)
         {
             if (clsVisit.IsExistByAppointmentID(visitDTO.AppointmentID))
-                return Conflict($"Appointment {visitDTO.AppointmentID} already has a visit.");
+                return Problem(statusCode: StatusCodes.Status409Conflict,
+                    detail: $"Appointment {visitDTO.AppointmentID} already has a visit.");
 
             if (!clsAppointment.IsExistByID(visitDTO.AppointmentID))
-                return BadRequest("Invalid appointment id");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Appointment with id {visitDTO.AppointmentID} not found");
 
             if (clsAppointment.IsAppointmentCancelled(visitDTO.AppointmentID))
-                return BadRequest("Appointment has been cancelled");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                    detail: "The appointment has been cancelled, so no visit can be created for it.");
 
             if (visitDTO.CheckinTime is not DateTimeOffset checkinTime)
-                return BadRequest("Checkin time is required");
+                return Problem(statusCode: StatusCodes.Status400BadRequest,
+                    detail: "Checkin time is required.");
 
             DateTime checkinTimeUtc = checkinTime.UtcDateTime;
             if (checkinTimeUtc > DateTime.UtcNow)
-                return BadRequest("Checkin time cannot be in the future");
+                return Problem(statusCode: StatusCodes.Status400BadRequest,
+                    detail: "Checkin time cannot be in the future.");
 
             clsVisit newVisit = new clsVisit();
             newVisit.AppointmentID = visitDTO.AppointmentID;
@@ -99,39 +112,49 @@ namespace Clinic_Management_System.Controllers
                     Notes = newVisit.Notes,
                 });
 
-            return BadRequest("Invalid visit data");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The visit could not be saved.");
         }
 
         [Authorize(Roles = "Admin,Staff")]
         [HttpPut("{id}", Name = "updatedVisit")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public ActionResult UpdateVisit([Range(1, int.MaxValue)] int id, UpdateVisitDTO visitDTO)
         {
             clsVisit? visit = clsVisit.Find(id);
             if (visit == null)
-                return NotFound($"visit with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Visit with id {id} not found");
 
             if (visit.IsLocked)
-                return BadRequest("Visit has already been finalized");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                    detail: "The visit has already been finalized.");
 
             if (visitDTO.CheckinTime is not DateTimeOffset checkinTime)
-                return BadRequest("Checkin time is required");
+                return Problem(statusCode: StatusCodes.Status400BadRequest,
+                    detail: "Checkin time is required.");
 
             DateTime checkinTimeUtc = checkinTime.UtcDateTime;
 
             if (visit.CheckoutTime.HasValue && checkinTimeUtc > visit.CheckoutTime.Value)
-                return BadRequest("Checkin time cannot be greater than checkout time");
+                return Problem(statusCode: StatusCodes.Status400BadRequest,
+                    detail: "Checkin time cannot be later than the checkout time.");
             else
             {
                 if (checkinTimeUtc > DateTime.UtcNow)
-                    return BadRequest("Checkin time cannot be in the future");
+                    return Problem(statusCode: StatusCodes.Status400BadRequest,
+                        detail: "Checkin time cannot be in the future.");
             }
 
             // Allow Admin to modify the resource
             if (visit.IsLocked && !User.IsInRole("Admin"))
-                return BadRequest($"Visit is already locked");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                    detail: "The visit is locked and can only be changed by an admin.");
 
             visit.CheckinTime = checkinTimeUtc;
             visit.Notes = visitDTO.Notes;
@@ -139,7 +162,8 @@ namespace Clinic_Management_System.Controllers
             if (visit.Save())
                 return NoContent();
 
-            return BadRequest("Invalid visit data");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The visit could not be saved.");
         }
 
         [Authorize(Roles = "Admin,Staff")]
@@ -149,18 +173,22 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public ActionResult CheckoutVisit([Range(1, int.MaxValue)] int id)
         {
             clsVisit? visit = clsVisit.Find(id);
             if (visit == null)
-                return NotFound($"visit with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Visit with id {id} not found");
 
             clsDiagnosis? diagnosis = clsDiagnosis.FindByVisitID(id);
             if (diagnosis == null)
-                return BadRequest("Visit must have a existing diagnosis");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                    detail: "A visit must have a diagnosis before it can be checked out.");
 
             if (visit.IsLocked)
-                return BadRequest("Visit is already locked");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                    detail: "The visit has already been finalized.");
 
             visit.CheckoutTime = DateTime.UtcNow;
             visit.IsLocked = true;
@@ -168,33 +196,41 @@ namespace Clinic_Management_System.Controllers
             if (visit.Save())
                 return NoContent();
 
-            return BadRequest("Invalid visit data");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The visit could not be checked out.");
         }
 
         [Authorize(Roles = "Admin, Staff")]
         [HttpDelete("{id}", Name = "DeleteVisit")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public ActionResult DeleteVisit([Range(1, int.MaxValue)] int id)
         {
             clsVisit? visit = clsVisit.Find(id);
             if (visit == null)
-                return NotFound($"visit with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Visit with id {id} not found");
 
             if (visit.IsLocked)
-                return BadRequest("Visit has already been finalized");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                    detail: "The visit has already been finalized.");
 
             if (User.IsInRole("Staff"))
             {
                 if (visit.IsLocked)
-                    return BadRequest("Appointment is Locked");
+                    return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                        detail: "The visit has already been finalized.");
             }
 
             if (clsVisit.Delete(id))
                 return NoContent();
 
-            return BadRequest("Invalid visit data");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The visit could not be deleted.");
         }
 
         private static DateTimeOffset AsUtc(DateTime stored) => new DateTimeOffset(DateTime.SpecifyKind(stored, DateTimeKind.Utc), TimeSpan.Zero);

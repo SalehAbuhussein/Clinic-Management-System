@@ -16,6 +16,8 @@ namespace Clinic_Management_System.Controllers
         [HttpGet(Name = "GetDoctors")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public ActionResult<DoctorDTO> GetDoctors([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
             perPage = Math.Clamp(perPage, 1, 10);
@@ -42,17 +44,21 @@ namespace Clinic_Management_System.Controllers
         [Authorize(Roles = "Admin")]
         [HttpGet("{id}", Name = "GetDoctorByID")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<DoctorDTO> GetDoctorByID([Range(1, int.MaxValue)] int id)
         {
             clsDoctor? doctor = clsDoctor.Find(id);
             if (doctor == null)
-                return NotFound($"Doctor with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Doctor with id {id} not found");
 
             clsUser? user = doctor.UserInfo;
             if (user == null)
-                return NotFound($"Doctor with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Doctor with id {id} not found");
 
             DoctorDTO doctorDTO = new DoctorDTO
             {
@@ -71,6 +77,9 @@ namespace Clinic_Management_System.Controllers
         [HttpPost(Name = "AddDoctor")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public ActionResult<DoctorDTO> AddDoctor(CreateDoctorDTO addDoctorDTO)
         {
             clsDoctor newDoctor = new clsDoctor();
@@ -104,27 +113,35 @@ namespace Clinic_Management_System.Controllers
                 return CreatedAtRoute("GetDoctorByID", new { id = newDoctor.DoctorID }, newDoctorDTO);
             }
 
-            return BadRequest("Invalid doctor data.");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The doctor could not be created. Check the person details and credentials.");
         }
 
         [Authorize(Roles = "Admin")]
         [HttpPut("{id}", Name = "UpdateDoctor")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public ActionResult UpdateDoctor(int id, UpdateDoctorDTO updatedDoctor)
         {
             clsDoctor? doctor = clsDoctor.Find(id);
             if (doctor == null)
-                return NotFound($"Doctor with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Doctor with id {id} not found");
 
             clsPerson? person = doctor.UserInfo?.PersonInfo; 
             if (person == null)
-                return BadRequest("Invalid doctor data");
+                return Problem(statusCode: StatusCodes.Status500InternalServerError,
+                    detail: $"Doctor {id} is missing its linked person record.");
 
             clsUser? user = doctor.UserInfo;
             if (user != null && !user.Active)
-                return NotFound($"Doctor with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Doctor with id {id} not found");
 
             doctor.Specialization = updatedDoctor.Specialization;
             doctor.MedicalSchool = updatedDoctor.MedicalSchool;
@@ -142,28 +159,35 @@ namespace Clinic_Management_System.Controllers
             if (doctor.Save())
                 return NoContent();
 
-            return BadRequest("Invalid doctor data");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The doctor could not be saved. Check the person details and specialization.");
         }
 
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}", Name = "DeleteDoctor")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public ActionResult DeleteDoctor([Range(1, int.MaxValue)] int id)
         {
             clsDoctor? doctor = clsDoctor.Find(id);
             if (doctor == null)
-                return NotFound($"doctor with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Doctor with id {id} not found");
 
             clsUser? user = doctor.UserInfo;
             if (user != null && !user.Active)
-                return NotFound($"doctor with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Doctor with id {id} not found");
 
             if (clsDoctor.DeleteDoctor(id))
                 return NoContent();
 
-            return BadRequest("Invalid doctor data");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The doctor could not be deleted.");
         }
     }
 }

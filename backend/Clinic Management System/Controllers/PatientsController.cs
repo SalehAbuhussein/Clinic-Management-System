@@ -50,7 +50,8 @@ namespace Clinic_Management_System.Controllers
         {
             clsPatient? patient = clsPatient.FindPatient(id);
             if (patient == null)
-                return NotFound($"Patient with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Patient with id {id} not found");
 
             PatientDTO patientDTO = new PatientDTO
             {
@@ -68,10 +69,14 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public ActionResult<PatientDTO> AddPatient(CreatePatientDTO patientDTO)
         {
             if (clsPatient.FindPatientByNationalNo(patientDTO.NationalNo) != null)
-                return BadRequest("Invalid patient data");
+                return Problem(statusCode: StatusCodes.Status409Conflict,
+                    detail: "A patient with this national number already exists.");
 
             clsPatient newPatient = new clsPatient();
             newPatient.EmergencyContactNumber = patientDTO.EmergencyContactNumber;
@@ -98,7 +103,8 @@ namespace Clinic_Management_System.Controllers
                 return CreatedAtRoute("GetPatientByID", new { id = newPatient.PatientID }, newPatientDTO);
             }
 
-            return BadRequest("Invalid patient data");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The patient could not be saved. Check the name, phone, national number and date of birth.");
         }
 
         [Authorize(Roles = "Admin,Staff")]
@@ -106,13 +112,16 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public ActionResult UpdatePatient(int id, UpdatePatientDTO updatedPatient)
         {
             clsPatient? patient = clsPatient.FindPatient(id);
 
             if (patient == null)
-                return NotFound($"Patient with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Patient with id {id} not found");
 
             patient.EmergencyContactNumber = updatedPatient.EmergencyContactNumber;
             patient.EmergencyContactName = updatedPatient.EmergencyContactName;
@@ -127,7 +136,8 @@ namespace Clinic_Management_System.Controllers
             if (patient.Save())
                 return NoContent();
 
-            return BadRequest("Invalid patient data");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The patient could not be saved. Check the name, phone, national number and date of birth.");
         }
 
         [Authorize(Roles = "Admin")]
@@ -135,17 +145,21 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public ActionResult DeletePatient([Range(1, int.MaxValue)] int id)
         {
             clsPatient? patient = clsPatient.FindPatient(id);
             if (patient == null)
-                return NotFound($"Patient with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Patient with id {id} not found");
 
             if (clsPatient.DeletePatient(id))
                 return NoContent();
 
-            return BadRequest("Invalid patient data");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The patient could not be deleted.");
         }
     }
 }

@@ -27,20 +27,22 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult Login([FromBody] LoginRequest request)
         {
             // Step 1: Find User by Email
             var user = clsUser.FindByEmail(request.Email);
 
             if (user == null)
-                return Unauthorized("Invalid credentials");
+                return Problem(statusCode: StatusCodes.Status401Unauthorized,
+                    detail: "Invalid credentials");
 
             // Step 2: Verify the provided password against the stored hash
             bool isValidPassword = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
 
             if (!isValidPassword)
-                return Unauthorized("Invalid credentials");
+                return Problem(statusCode: StatusCodes.Status401Unauthorized,
+                    detail: "Invalid credentials");
 
             if (!user.Active)
                 return Problem(statusCode: 403, detail: "Account inactive, please contact an admin");
@@ -97,33 +99,40 @@ namespace Clinic_Management_System.Controllers
                 });
             }
 
-            return BadRequest("Invalid data.");
+            return Problem(statusCode: StatusCodes.Status500InternalServerError,
+                detail: "The session could not be created. Please try again.");
         }
 
         [HttpPost("refresh")]
         [EnableRateLimiting("AuthLimiter")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult Refresh([FromBody] RefreshRequest request)
         {
             clsUser? user = clsUser.FindByEmail(request.Email);
 
             if (user == null)
-                return Unauthorized("Invalid refresh request.");
+                return Problem(statusCode: StatusCodes.Status401Unauthorized,
+                    detail: "Invalid refresh request.");
 
             if (user.RefreshTokenRevokedAt != null)
-                return Unauthorized("Refresh token is revoked.");
+                return Problem(statusCode: StatusCodes.Status401Unauthorized,
+                    detail: "Refresh token is revoked.");
 
             if (user.RefreshTokenExpiresAt == null || user.RefreshTokenExpiresAt <= DateTime.UtcNow)
-                return Unauthorized("Refresh token expired.");
+                return Problem(statusCode: StatusCodes.Status401Unauthorized,
+                    detail: "Refresh token expired.");
 
             if (string.IsNullOrEmpty(user.RefreshTokenHash))
-                return BadRequest("Invalid refresh token hash");
+                return Problem(statusCode: StatusCodes.Status401Unauthorized,
+                    detail: "Invalid refresh request.");
 
             bool refreshValid = BCrypt.Net.BCrypt.Verify(request.RefreshToken, user.RefreshTokenHash);
             if (!refreshValid)
-                return Unauthorized("Invalid refresh token");
+                return Problem(statusCode: StatusCodes.Status401Unauthorized,
+                    detail: "Invalid refresh token");
 
             if (!user.Active)
                 return Problem(statusCode: 403, detail: "Account inactive, please contact an admin");
@@ -163,7 +172,8 @@ namespace Clinic_Management_System.Controllers
                     RefreshToken = newRefreshToken
                 });
 
-            return BadRequest("Invalid data.");
+            return Problem(statusCode: StatusCodes.Status500InternalServerError,
+                detail: "The session could not be refreshed. Please try again.");
         }
 
         [HttpPost("logout")]
@@ -196,10 +206,15 @@ namespace Clinic_Management_System.Controllers
         [EnableRateLimiting("AuthLimiter")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public IActionResult Register([FromBody] RegisterRequest request)
         {
             if (clsUser.FindByEmail(request.Email) != null)
-                return BadRequest("Invalid registeration email");
+                return Problem(statusCode: StatusCodes.Status409Conflict,
+                    detail: "A user with this email already exists.");
 
             clsUser user = new clsUser();
             clsPerson person = new clsPerson();
@@ -224,7 +239,8 @@ namespace Clinic_Management_System.Controllers
             if (user.Save())
                 return CreatedAtRoute("GetUser", new { id = user.UserID }, null);
 
-            return BadRequest("Invalid registeration Data");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The user could not be created. Check the name, phone, national number and date of birth.");
         }
 
         private static string GenerateRefreshToken()

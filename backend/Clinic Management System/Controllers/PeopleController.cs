@@ -15,6 +15,8 @@ namespace Clinic_Management_System.Controllers
         [HttpGet(Name = "GetPeople")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public ActionResult<List<PersonDTO>> GetPeople([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
             perPage = Math.Clamp(perPage, 1, 10);
@@ -44,8 +46,10 @@ namespace Clinic_Management_System.Controllers
         [Authorize]
         [HttpGet("{id}", Name = "GetPersonById")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<PersonDTO>> GetPersonById(
             [Range(1, int.MaxValue)] int id,
             [FromServices] IAuthorizationService authorizationService
@@ -54,7 +58,8 @@ namespace Clinic_Management_System.Controllers
             clsPerson? person = clsPerson.Find(id);
 
             if (person == null)
-                return NotFound($"Person with id {id} not found.");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Person with id {id} not found");
 
             var authResult = await authorizationService.AuthorizeAsync(
                 User,
@@ -84,18 +89,23 @@ namespace Clinic_Management_System.Controllers
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}", Name = "DeletePerson")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public ActionResult DeletePerson([Range(1, int.MaxValue)] int id)
         {
             clsPerson? person = clsPerson.Find(id);
             if (person == null)
-                return NotFound($"Person with ID {id} not found.");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Person with id {id} not found");
 
             if (clsPerson.Delete(id))
                 return NoContent();
 
-            return BadRequest($"Something went wrong with deletion of person {id}");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The person could not be deleted.");
         }
     }
 }

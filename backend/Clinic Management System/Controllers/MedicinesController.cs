@@ -15,6 +15,8 @@ namespace Clinic_Management_System.Controllers
         [HttpGet(Name = "GetMedicines")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public ActionResult<MedicineDTO> GetMedicines([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
             perPage = Math.Clamp(perPage, 1, 10);
@@ -41,12 +43,16 @@ namespace Clinic_Management_System.Controllers
         [Authorize(Roles = "Admin")]
         [HttpGet("{id}", Name = "GetMedicineByID")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<MedicineDTO> GetMedicineByID([Range(1, int.MaxValue)] int id)
         {
             clsMedicine? medicine = clsMedicine.Find(id);
             if (medicine == null)
-                return NotFound($"Medicine with id {id} not found!");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Medicine with id {id} not found");
 
             MedicineDTO medicineDTO = new MedicineDTO
             {
@@ -66,6 +72,9 @@ namespace Clinic_Management_System.Controllers
         [HttpPost(Name = "AddMedicine")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public ActionResult<MedicineDTO> AddMedicine(CreateMedicineDTO medicineDTO)
         {
             clsMedicine newMedicine = new clsMedicine();
@@ -89,19 +98,24 @@ namespace Clinic_Management_System.Controllers
                 return CreatedAtRoute("GetMedicineByID", new { id = newMedicine.MedicineID }, newMedicineDTO);
             }
 
-            return BadRequest("Invalid medicine data.");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The medicine could not be saved. Check RxCUI, generic name, form and strength.");
         }
 
         [Authorize(Roles = "Admin")]
         [HttpPut("{id}", Name = "UpdateMedicine")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public ActionResult UpdateMedicine(int id, UpdateMedicineDTO updatedMedicine)
         {
             clsMedicine? medicine = clsMedicine.Find(id);
             if (medicine == null)
-                return NotFound($"Medicine with id {id} not found.");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Medicine with id {id} not found");
 
             medicine.Genericname = updatedMedicine.Genericname;
             medicine.Brandname = updatedMedicine.Brandname;
@@ -111,7 +125,8 @@ namespace Clinic_Management_System.Controllers
             if (medicine.Save())
                 return NoContent();
 
-            return BadRequest("Invalid medicine data.");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The medicine could not be saved. Check RxCUI, generic name, form and strength.");
         }
 
         [Authorize(Roles = "Admin")]
@@ -119,17 +134,21 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public ActionResult DeleteMedicine([Range(1, int.MaxValue)] int id)
         {
             clsMedicine? medicine = clsMedicine.Find(id);
             if (medicine == null)
-                return NotFound($"Medicine with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Medicine with id {id} not found");
 
             if (clsMedicine.Delete(id))
                 return NoContent();
 
-            return BadRequest("Invalid medicine id");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The medicine could not be deleted.");
         }
     }
 }

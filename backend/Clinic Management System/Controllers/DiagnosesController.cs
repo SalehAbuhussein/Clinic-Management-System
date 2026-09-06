@@ -15,11 +15,14 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<DiagnosisDTO> GetDiagnosisByID([Range(1, int.MaxValue)] int id)
         {
             clsDiagnosis? diagnosis = clsDiagnosis.Find(id);
             if (diagnosis == null)
-                return NotFound($"Diagnosis with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Diagnosis with id {id} not found");
 
             return new DiagnosisDTO
             {
@@ -34,18 +37,24 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public ActionResult<DiagnosisDTO> AddDiagnoses(CreateDiagnosesDTO createDiagnosesDTO)
         {
             if (clsDiagnosis.IsExistByVisitID(createDiagnosesDTO.VisitID))
-                return Conflict($"Visit {createDiagnosesDTO.VisitID} already has a diagnosis");
+                return Problem(statusCode: StatusCodes.Status409Conflict,
+                    detail: $"Visit {createDiagnosesDTO.VisitID} already has a diagnosis");
 
             clsVisit? visit = clsVisit.Find(createDiagnosesDTO.VisitID);
             if (visit == null)
-                return NotFound($"Visit with id {createDiagnosesDTO.VisitID} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Visit with id {createDiagnosesDTO.VisitID} not found");
 
             if (visit.IsLocked)
-                return BadRequest("Visit has been locked edits are not allowed");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                    detail: "The visit is locked, so its diagnosis cannot be changed.");
 
             clsDiagnosis diagnosis = new clsDiagnosis();
             diagnosis.VisitID = createDiagnosesDTO.VisitID;
@@ -61,7 +70,8 @@ namespace Clinic_Management_System.Controllers
                         Notes = diagnosis.Notes
                     });
 
-            return BadRequest("Invalid Diagnosis data");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The diagnosis could not be saved. Check the diagnosis text.");
         }
 
         [Authorize(Roles = "Admin,Doctor")]
@@ -69,15 +79,19 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public ActionResult UpdateDiagnosis([Range(1, int.MaxValue)] int id, UpdateDiagnosesDTO updateDiagnosesDTO)
         {
             clsDiagnosis? diagnosis = clsDiagnosis.Find(id);
             if (diagnosis == null)
-                return NotFound($"Diagnosis with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Diagnosis with id {id} not found");
 
             if (clsVisit.HasCheckedout(diagnosis.VisitID))
-                return BadRequest("Linked Visit has been already locked");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                    detail: "The visit is locked, so its diagnosis cannot be changed.");
 
             diagnosis.Diagnosis = updateDiagnosesDTO.Diagnosis;
             diagnosis.Notes = updateDiagnosesDTO.Notes;
@@ -85,7 +99,8 @@ namespace Clinic_Management_System.Controllers
             if (diagnosis.Save())
                 return NoContent();
 
-            return BadRequest("Invalid diagnosis data");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The diagnosis could not be saved. Check the diagnosis text.");
         }
     }
 }

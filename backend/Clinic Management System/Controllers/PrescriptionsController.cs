@@ -61,7 +61,10 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public async Task<ActionResult> AddPrescriptionItems(
             int visitId,
             CreatePrescriptionDTO request,
@@ -80,22 +83,26 @@ namespace Clinic_Management_System.Controllers
             // 1- Check if medicines list id are valid
             List<string> medicineIds = request.Items.Select(item => item.MedicineID.ToString()).ToList();
             if (!clsMedicine.IsValidMedicines(medicineIds))
-                return BadRequest("Invalid medicine ids");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: "One or more of the medicines referenced does not exist.");
 
             // 2- If Visit has been checked out refuse.
             if (clsVisit.HasCheckedout(visitId))
-                return BadRequest("Invalid operation, Visit has already ended");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                    detail: "The visit has already ended, so its prescription cannot be changed.");
 
             // 3- If Visit has existing Prescription refuse (will be making endpoint to update).
             if (clsPrescriptionItem.HasPrescriptionByVisitID(visitId))
-                return BadRequest("Invalid operation, existing prescription exist");
+                return Problem(statusCode: StatusCodes.Status409Conflict,
+                    detail: "This visit already has a prescription.");
 
             var items = request.Items.Select(item => (visitId, item.MedicineID, item.Dosage, item.Frequency, item.Duration)).ToList();
 
             if (clsPrescriptionItem.CreatePrescriptionItems(items))
                 return CreatedAtRoute("GetVisitPrescriptionItems", new { visitId }, null);
 
-            return BadRequest("Invalid Prescription data");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The prescription could not be saved.");
         }
 
         [Authorize]
@@ -103,6 +110,9 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public async Task<ActionResult> UpdatePrescriptionItems(
             int visitId,
             CreatePrescriptionDTO request,
@@ -121,21 +131,25 @@ namespace Clinic_Management_System.Controllers
             // 1- Check if medicines list id are valid
             List<string> medicineIds = request.Items.Select(item => item.MedicineID.ToString()).ToList();
             if (!clsMedicine.IsValidMedicines(medicineIds))
-                return BadRequest("Invalid medicine ids");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: "One or more of the medicines referenced does not exist.");
 
             // 2- If Visit has been checked out refuse.
             if (clsVisit.HasCheckedout(visitId))
-                return BadRequest("Invalid operation, Visit has already ended");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                    detail: "The visit has already ended, so its prescription cannot be changed.");
 
             // 3- Make sure Prescription Exist.
             if (!clsPrescriptionItem.HasPrescriptionByVisitID(visitId))
-                return BadRequest("Invalid operation, No existing prescription");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: "This visit has no prescription to update.");
 
             var items = request.Items.Select(item => (visitId, item.MedicineID, item.Dosage, item.Frequency, item.Duration)).ToList();
             if (clsPrescriptionItem.UpdatePrescriptionItems(items) > 0)
                 return NoContent();
 
-            return BadRequest("Invalid Prescription data");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The prescription could not be saved.");
         }
     }
 }

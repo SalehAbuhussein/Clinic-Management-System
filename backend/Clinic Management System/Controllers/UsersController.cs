@@ -46,11 +46,13 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<UserDTO> GetUser([Range(1, int.MaxValue)] int id)
         {
             clsUser? user = clsUser.FindUser(id);
             if (user == null)
-                return NotFound($"User with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"User with id {id} not found");
 
             UserDTO userDTO = new UserDTO
             {
@@ -70,16 +72,21 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public ActionResult UpdateUser([Range(1, int.MaxValue)] int id, UpdateUserDTO updatedUserDTO)
         {
             clsUser? user = clsUser.FindUser(id);
             if (user == null)
-                return NotFound($"User with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"User with id {id} not found");
 
             clsUser? existingEmailUser = clsUser.FindByEmail(updatedUserDTO.Email);
             bool isEmailTakenByAnotherUser = existingEmailUser != null && existingEmailUser.UserID != id;
             if (isEmailTakenByAnotherUser)
-                return BadRequest("Email Already in use");
+                return Problem(statusCode: StatusCodes.Status409Conflict,
+                    detail: "That email is already in use by another user.");
 
             user.Email = updatedUserDTO.Email; // TODO Check if the email is assigned to another user to return error
             user.Role = updatedUserDTO.Role ?? user.Role; // TODO: Check who really can change the role
@@ -88,7 +95,8 @@ namespace Clinic_Management_System.Controllers
             if (user.Save())
                 return NoContent();
 
-            return BadRequest("Invalid user data");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The user could not be saved.");
         }
 
         [Authorize(Roles = "Admin")]
@@ -97,21 +105,26 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public ActionResult DeactivateUser([Range(1, int.MaxValue)] int id)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
             if (userId == id)
-                return BadRequest("Invalid operation");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                    detail: "You cannot deactivate your own account.");
 
             clsUser? user = clsUser.FindUser(id);
             if (user == null)
-                return NotFound($"User with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"User with id {id} not found");
 
             if (user.Deactivate())
                 return NoContent();
 
-            return BadRequest("Invalid user data");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The user could not be deactivated.");
         }
 
         [Authorize(Roles = "Admin")]
@@ -120,16 +133,20 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public ActionResult Activate([Range(1, int.MaxValue)] int id)
         {
             clsUser? user = clsUser.FindUser(id);
             if (user == null)
-                return NotFound($"User with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"User with id {id} not found");
 
             if (user.Activate())
                 return NoContent();
 
-            return BadRequest("Invalid user data");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The user could not be activated.");
         }
     }
 }

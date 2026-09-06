@@ -17,7 +17,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public ActionResult<List<AppointmentDTO>> GetAppointments(
             int? doctorId,
             int? patientId,
@@ -53,6 +53,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<AppointmentDTO>> GetAppointmentByID(
             [Range(1, int.MaxValue)] int id,
@@ -61,7 +62,8 @@ namespace Clinic_Management_System.Controllers
         {
             clsAppointment? appointment = clsAppointment.Find(id);
             if (appointment == null)
-                return NotFound($"Appointment with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Appointment with id {id} not found");
 
             var authResult = await authorizationService.AuthorizeAsync(
                 User,
@@ -91,16 +93,23 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public ActionResult<AppointmentDTO> AddAppointment(CreateAppointmentDTO appointmentDTO)
         {
             if (!clsDoctor.IsDoctorExist(appointmentDTO.DoctorID) || !clsPatient.IsPatientExist(appointmentDTO.PatientID))
-                return BadRequest("Invalid ids");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: "The doctor or patient referenced by this appointment does not exist.");
 
             if (clsAppointment.HasPatientExistingAppointment(appointmentDTO.PatientID, appointmentDTO.StartAt.UtcDateTime, appointmentDTO.EndAt.UtcDateTime))
-                return BadRequest("Patient has existing appointment in the given time");
+                return Problem(statusCode: StatusCodes.Status409Conflict,
+                    detail: "The patient already has an appointment in that time slot.");
 
             if (clsAppointment.HasDoctorExistingAppointment(appointmentDTO.DoctorID, appointmentDTO.StartAt.UtcDateTime, appointmentDTO.EndAt.UtcDateTime))
-                return BadRequest("Doctor has existing appointment in the given time");
+                return Problem(statusCode: StatusCodes.Status409Conflict,
+                    detail: "The doctor already has an appointment in that time slot.");
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -130,45 +139,57 @@ namespace Clinic_Management_System.Controllers
                 return CreatedAtRoute("GetAppointmentByID", new { id = newAppointment.AppointmentID }, newAppointmentDTO);
             }
 
-            return BadRequest("Invalid appointment data");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The appointment could not be saved. Check the doctor, patient and time range.");
         }
 
         [Authorize(Roles = "Admin,Staff")]
         [HttpPut("{id}", Name = "UpdateAppointment")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public ActionResult UpdateAppointment([Range(1, int.MaxValue)] int id, UpdateAppointmentDTO updatedAppointmentDTO)
         {
             clsAppointment? appointment = clsAppointment.Find(id);
 
             if (appointment == null)
-                return NotFound($"Appointment with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Appointment with id {id} not found");
 
             if (!clsDoctor.IsDoctorExist(appointment.DoctorID))
-                return NotFound($"Appointment with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"The doctor on appointment {id} no longer exists.");
 
             if (!appointment.IsValid())
-                return BadRequest("Invalid appointment data");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                    detail: "The appointment is not in a valid state to be updated.");
 
             DateTime newStart = updatedAppointmentDTO.StartAt.UtcDateTime;
             DateTime newEnd = updatedAppointmentDTO.EndAt.UtcDateTime;
 
             if (newEnd <= newStart)
-                return BadRequest("EndAt must be after StartAt");
+                return Problem(statusCode: StatusCodes.Status400BadRequest,
+                    detail: "EndAt must be after StartAt.");
 
             bool timeWindowChanged = newStart != appointment.StartAt || newEnd != appointment.EndAt;
 
             if (timeWindowChanged)
             {
                 if (newStart < DateTime.UtcNow)
-                    return BadRequest("An appointment cannot be rescheduled into the past");
+                    return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                        detail: "An appointment cannot be rescheduled into the past.");
 
                 if (clsAppointment.HasPatientExistingAppointment(appointment.PatientID, newStart, newEnd, id))
-                    return BadRequest("Patient has exsting appointment in the given time");
+                    return Problem(statusCode: StatusCodes.Status409Conflict,
+                        detail: "The patient already has an appointment in that time slot.");
 
                 if (clsAppointment.HasDoctorExistingAppointment(appointment.DoctorID, newStart, newEnd, id))
-                    return BadRequest("Doctor has existing appointment in the given time");
+                    return Problem(statusCode: StatusCodes.Status409Conflict,
+                        detail: "The doctor already has an appointment in that time slot.");
             }
 
             appointment.StartAt = newStart;
@@ -178,14 +199,17 @@ namespace Clinic_Management_System.Controllers
             if (appointment.Save())
                 return NoContent();
 
-            return BadRequest("Invalid appointment data");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The appointment could not be saved. Check the doctor, patient and time range.");
         }
 
         [Authorize]
         [HttpGet("doctor/{doctorId}", Name = "GetDoctorAppointments")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<List<AppointmentDTO>>> GetDoctorAppointments(
             int doctorId,
             [FromServices] IAuthorizationService authorizationService,
@@ -196,7 +220,8 @@ namespace Clinic_Management_System.Controllers
             perPage = Math.Clamp(perPage, 1, 10);
 
             if (clsDoctor.Find(doctorId) == null)
-                return NotFound($"Doctor with id {doctorId} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Doctor with id {doctorId} not found");
 
             var authResult = await authorizationService.AuthorizeAsync(
                 User,
@@ -232,26 +257,33 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public ActionResult AttendAppointment([Range(1, int.MaxValue)] int id)
         {
             clsAppointment? appointment = clsAppointment.Find(id);
             if (appointment == null)
-                return NotFound($"Appointment with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Appointment with id {id} not found");
 
             if (appointment.IsCancelled())
-                return BadRequest("Appointment has already been cancelled");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                    detail: "The appointment has already been cancelled.");
 
             if (appointment.IsAttended())
-                return BadRequest("Appointment has already been attended before");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                    detail: "The appointment has already been marked attended.");
 
             if (appointment.IsNotAttended())
-                return BadRequest("Appointment date has run by");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                    detail: "The appointment date has passed.");
 
             if (appointment.AttendAppointment())
                 return NoContent();
 
-            return BadRequest("Invalid Appointment data");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The appointment could not be marked attended.");
         }
 
         [Authorize(Roles = "Admin,Staff")]
@@ -259,26 +291,33 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public ActionResult UnattendAppointment([Range(1, int.MaxValue)] int id)
         {
             clsAppointment? appointment = clsAppointment.Find(id);
             if (appointment == null)
-                return NotFound($"Appointment with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Appointment with id {id} not found");
 
             if (appointment.IsCancelled())
-                return BadRequest("Appointment has already been cancelled");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                    detail: "The appointment has already been cancelled.");
 
             if (appointment.IsNotAttended())
-                return BadRequest("Appointment is already not attended");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                    detail: "The appointment is already marked as not attended.");
 
             if (appointment.IsAttended())
-                return BadRequest("Appointment is already attended");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                    detail: "The appointment has already been marked attended.");
 
             if (appointment.UnattendAppointment())
                 return NoContent();
 
-            return BadRequest("Invalid Appointment data");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The appointment could not be marked as not attended.");
         }
 
         [Authorize(Roles = "Admin,Staff")]
@@ -286,43 +325,55 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public ActionResult CancelAppointment([Range(1, int.MaxValue)] int id)
         {
             clsAppointment? appointment = clsAppointment.Find(id);
             if (appointment == null)
-                return NotFound($"Appointment with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Appointment with id {id} not found");
 
             if (appointment.IsCancelled())
-                return BadRequest("Appointment has already been cancelled");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                    detail: "The appointment has already been cancelled.");
 
             if (appointment.IsNotAttended())
-                return BadRequest("Appointment is already not attended");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                    detail: "The appointment is already marked as not attended.");
 
             if (appointment.IsAttended())
-                return BadRequest("Appointment is already attended");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                    detail: "The appointment has already been marked attended.");
 
             if (appointment.CancelAppointment())
                 return NoContent();
 
-            return BadRequest("Invalid Appointment data");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The appointment could not be cancelled.");
         }
 
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}", Name = "DeleteAppointment")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public ActionResult DeleteAppointment([Range(1, int.MaxValue)] int id)
         {
             clsAppointment? appointment = clsAppointment.Find(id);
             if (appointment == null)
-                return NotFound($"Appointment with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound,
+                    detail: $"Appointment with id {id} not found");
 
             if (clsAppointment.Delete(id))
                 return NoContent();
 
-            return BadRequest("Invalid medicine id");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
+                detail: "The appointment could not be deleted.");
         }
 
         // Stored appointment times are UTC, but datetime2 carries no Kind, so the value
