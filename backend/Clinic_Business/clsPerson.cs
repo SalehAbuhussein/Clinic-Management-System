@@ -90,6 +90,27 @@ namespace Clinic_Business
             return clsPersonDA.Delete(id);
         }
 
+        /// <summary>
+        /// Maps the People columns out of any joined row. Shared by every loader that
+        /// brings a person along with it, so a new column is added in one place.
+        /// </summary>
+        internal static clsPerson MapPerson(DataRow row)
+        {
+            return new clsPerson
+            {
+                PersonID = row.Field<int>("PersonID"),
+                Firstname = row.Field<string>("Firstname") ?? string.Empty,
+                Midname = row.Field<string>("Midname") ?? string.Empty,
+                Thirdname = row.Field<string>("Thirdname"),
+                Lastname = row.Field<string>("Lastname") ?? string.Empty,
+                NationalNo = row.Field<string>("NationalNo") ?? string.Empty,
+                Phone = row.Field<string>("Phone") ?? string.Empty,
+                Gender = row.Field<bool>("Gender"),
+                DateOfBirth = row.Field<DateTime>("DateOfBirth"),
+                ProfileImage = row.Field<string>("ProfileImage")
+            };
+        }
+
         public bool IsValid()
         {
             return this != null && PersonValidators.ValidateFields(this);

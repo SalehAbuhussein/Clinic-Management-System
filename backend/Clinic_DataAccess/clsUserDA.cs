@@ -49,207 +49,59 @@ namespace Clinic_DataAccess
             return dt;
         }
 
-        public static bool Find(
-            int? id,
-            ref string passwordHash,
-            ref string role,
-            ref string email,
-            ref bool active,
-            ref int personID,
-            ref string? refreshTokenHash,
-            ref DateTime? refreshTokenExpiresAt,
-            ref DateTime? refreshTokenRevokedAt
-        )
+        /// <summary>
+        /// A user with its person, in one round trip. The three public loaders differ only
+        /// in their WHERE, so they share this query. The column name is a compile-time
+        /// literal from the callers below and never comes from a request.
+        /// </summary>
+        private static DataRow? _FindBy(string whereColumn, object value)
         {
-            if (!id.HasValue)
-                return false;
-
-            bool isFound = false;
+            DataTable dt = new DataTable();
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
                 connection.Open();
 
-                string query = @"SELECT 
-                    [UserID]
-                    ,[PasswordHash]
-                    ,[Role]
-                    ,[Email]
-                    ,[Active]
-                    ,[PersonID]
-                    ,[RefreshTokenHash]
-                    ,[RefreshTokenExpiresAt]
-                    ,[RefreshTokenRevokedAt]
-                FROM [dbo].[Users]
-                WHERE UserID = @UserID";
+                string query = $@"SELECT
+                    U.UserID, U.PasswordHash, U.Role, U.Email, U.Active, U.PersonID,
+                    U.RefreshTokenHash, U.RefreshTokenExpiresAt, U.RefreshTokenRevokedAt,
+                    P.Firstname, P.Midname, P.Thirdname, P.Lastname,
+                    P.NationalNo, P.Phone, P.Gender, P.DateOfBirth, P.ProfileImage
+                FROM Users U
+                INNER JOIN People P ON P.PersonID = U.PersonID
+                WHERE {whereColumn} = @Value";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
-                    command.Parameters.AddWithValue("@UserID", id);
+                    command.Parameters.AddWithValue("@Value", value);
 
                     using (SqlDataReader reader = command.ExecuteReader())
                     {
-                        if (reader.Read())
-                        {
-                            isFound = true;
-
-                            passwordHash = reader["PasswordHash"].ToString() ?? "";
-                            role = reader["Role"].ToString() ?? "";
-                            email = reader["Email"].ToString() ?? "";
-                            active = (bool)reader["Active"];
-                            personID = (int)reader["PersonID"];
-                            refreshTokenHash = reader["RefreshTokenHash"] == DBNull.Value ? null : reader["RefreshTokenHash"].ToString();
-                            if (reader["RefreshTokenExpiresAt"] != DBNull.Value)
-                                refreshTokenExpiresAt = (DateTime)reader["RefreshTokenExpiresAt"];
-                            else
-                                refreshTokenExpiresAt = null;
-
-                            if (reader["RefreshTokenRevokedAt"] != DBNull.Value)
-                                refreshTokenRevokedAt = (DateTime)reader["RefreshTokenRevokedAt"];
-                            else
-                                refreshTokenRevokedAt = null;
-                        }
+                        if (reader.HasRows)
+                            dt.Load(reader);
                     }
                 }
             }
 
-            return isFound;
+            return dt.Rows.Count > 0 ? dt.Rows[0] : null;
         }
 
-        public static bool FindByEmail(
-            string email,
-            ref string passwordHash,
-            ref string role,
-            ref int id,
-            ref bool active,
-            ref int personID,
-            ref string? refreshTokenHash,
-            ref DateTime? refreshTokenExpiresAt,
-            ref DateTime? refreshTokenRevokedAt
-        )
+        public static DataRow? Find(int? id)
         {
-            if (string.IsNullOrEmpty(email))
-                return false;
-
-            bool isFound = false;
-
-            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
-            {
-                connection.Open();
-
-                string query = @"SELECT 
-                    [UserID]
-                    ,[PasswordHash]
-                    ,[Role]
-                    ,[Email]
-                    ,[Active]
-                    ,[PersonID]
-                    ,[RefreshTokenHash]
-                    ,[RefreshTokenExpiresAt]
-                    ,[RefreshTokenRevokedAt]
-                FROM [dbo].[Users]
-                WHERE Email = @Email";
-
-                using (SqlCommand command = new SqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@Email", email);
-
-                    using (SqlDataReader reader = command.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            isFound = true;
-
-                            id = (int)reader["UserID"];
-                            passwordHash = reader["PasswordHash"].ToString() ?? "";
-                            role = reader["Role"].ToString() ?? "";
-                            email = reader["Email"].ToString() ?? "";
-                            active = (bool)reader["Active"];
-                            personID = (int)reader["PersonID"];
-                            refreshTokenHash = reader["RefreshTokenHash"] == DBNull.Value ? null : reader["RefreshTokenHash"].ToString();
-                            if (reader["RefreshTokenExpiresAt"] != DBNull.Value)
-                                refreshTokenExpiresAt = (DateTime)reader["RefreshTokenExpiresAt"];
-                            else
-                                refreshTokenExpiresAt = null;
-
-                            if (reader["RefreshTokenRevokedAt"] != DBNull.Value)
-                                refreshTokenRevokedAt = (DateTime)reader["RefreshTokenRevokedAt"];
-                            else
-                                refreshTokenRevokedAt = null;
-                        }
-                    }
-                }
-            }
-
-            return isFound;
+            return id.HasValue ? _FindBy("U.UserID", id.Value) : null;
         }
 
-        public static bool FindByPersonID(
-            int? personID,
-            ref string passwordHash,
-            ref string role,
-            ref int id,
-            ref bool active,
-            ref string email,
-            ref string? refreshTokenHash,
-            ref DateTime? refreshTokenExpiresAt,
-            ref DateTime? refreshTokenRevokedAt
-        )
+        public static DataRow? FindByEmail(string email)
         {
-            if (!personID.HasValue)
-                return false;
-
-            bool isFound = false;
-
-            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
-            {
-                connection.Open();
-
-                string query = @"SELECT 
-                    [UserID]
-                    ,[PasswordHash]
-                    ,[Role]
-                    ,[Email]
-                    ,[Active]
-                    ,[PersonID]
-                    ,[RefreshTokenHash]
-                    ,[RefreshTokenExpiresAt]
-                    ,[RefreshTokenRevokedAt]
-                FROM [dbo].[Users]
-                WHERE PersonID = @PersonID";
-
-                using (SqlCommand command = new SqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@PersonID", personID);
-
-                    using (SqlDataReader reader = command.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            isFound = true;
-
-                            id = (int)reader["UserID"];
-                            passwordHash = reader["PasswordHash"].ToString() ?? "";
-                            role = reader["Role"].ToString() ?? "";
-                            email = reader["Email"].ToString() ?? "";
-                            active = (bool)reader["Active"];
-                            refreshTokenHash = reader["RefreshTokenHash"] == DBNull.Value ? null : reader["RefreshTokenHash"].ToString();
-                            if (reader["RefreshTokenExpiresAt"] != DBNull.Value)
-                                refreshTokenExpiresAt = (DateTime)reader["RefreshTokenExpiresAt"];
-                            else
-                                refreshTokenExpiresAt = null;
-
-                            if (reader["RefreshTokenRevokedAt"] != DBNull.Value)
-                                refreshTokenRevokedAt = (DateTime)reader["RefreshTokenRevokedAt"];
-                            else
-                                refreshTokenRevokedAt = null;
-                        }
-                    }
-                }
-            }
-
-            return isFound;
+            return string.IsNullOrEmpty(email) ? null : _FindBy("U.Email", email);
         }
+
+        public static DataRow? FindByPersonID(int? personID)
+        {
+            return personID.HasValue ? _FindBy("U.PersonID", personID.Value) : null;
+        }
+
+
 
         public static int? Create(
             string firstname,

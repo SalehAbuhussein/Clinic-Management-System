@@ -79,19 +79,7 @@ namespace Clinic_Business
         /// </summary>
         private static clsDoctor _MapDoctor(DataRow row)
         {
-            clsPerson person = new clsPerson
-            {
-                PersonID = row.Field<int>("PersonID"),
-                Firstname = row.Field<string>("Firstname") ?? string.Empty,
-                Midname = row.Field<string>("Midname") ?? string.Empty,
-                Thirdname = row.Field<string>("Thirdname"),
-                Lastname = row.Field<string>("Lastname") ?? string.Empty,
-                NationalNo = row.Field<string>("NationalNo") ?? string.Empty,
-                Phone = row.Field<string>("Phone") ?? string.Empty,
-                Gender = row.Field<bool>("Gender"),
-                DateOfBirth = row.Field<DateTime>("DateOfBirth"),
-                ProfileImage = row.Field<string>("ProfileImage")
-            };
+            clsPerson person = clsPerson.MapPerson(row);
 
             clsUser user = new clsUser
             {

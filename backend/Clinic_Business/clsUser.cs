@@ -58,7 +58,9 @@ namespace Clinic_Business
             RefreshTokenRevokedAt = refreshTokenRevokedAt;
             PersonID = personID;
 
-            PersonInfo = clsPerson.Find(PersonID) ?? new clsPerson();
+            // PersonInfo comes from MapUser's joined row, not a second query here.
+            // An empty one keeps the non-null invariant for users built by hand.
+            PersonInfo = new clsPerson();
         }
 
         public static DataTable FindUsers(int pageNumber = 1, int pageSize = 10)
@@ -68,128 +70,49 @@ namespace Clinic_Business
 
         public static clsUser? FindUser(int? id)
         {
-            string passwordHash = string.Empty;
-            string role = string.Empty;
-            string email = string.Empty;
-            bool active = false;
-            int personID = int.MinValue;
-            string? refreshTokenHash = null;
-            DateTime? refreshTokenExpiresAt = null;
-            DateTime? refreshTokenRevokedAt = null;
+            DataRow? row = clsUserDA.Find(id);
 
-            if (clsUserDA.Find(
-                id, 
-                ref passwordHash, 
-                ref role, 
-                ref email, 
-                ref active, 
-                ref personID,
-                ref refreshTokenHash,
-                ref refreshTokenExpiresAt,
-                ref refreshTokenRevokedAt
-                )
-            )
-            {
-                return new clsUser(
-                    id,
-                    passwordHash,
-                    role,
-                    email,
-                    active,
-                    refreshTokenHash,
-                    refreshTokenExpiresAt,
-                    refreshTokenRevokedAt,
-                    personID
-                );
-            }
-
-            return null;
+            return row == null ? null : MapUser(row);
         }
 
         public static clsUser? FindByEmail(string email)
         {
-            string passwordHash = string.Empty;
-            string role = string.Empty;
-            bool active = false;
-            int personID = int.MinValue;
-            int userID = int.MinValue;
-            string? refreshTokenHash = null;
-            DateTime? refreshTokenExpiresAt = null;
-            DateTime? refreshTokenRevokedAt = null;
+            DataRow? row = clsUserDA.FindByEmail(email);
 
-            if (clsUserDA.FindByEmail(
-                email, 
-                ref passwordHash, 
-                ref role, 
-                ref userID, 
-                ref active, 
-                ref personID,
-                ref refreshTokenHash,
-                ref refreshTokenExpiresAt,
-                ref refreshTokenRevokedAt
-                )
-            )
-            {
-                clsPerson? person = clsPerson.Find(personID);
-
-                if (person != null)
-                {
-                    return new clsUser(
-                        userID,
-                        passwordHash,
-                        role,
-                        email,
-                        active,
-                        refreshTokenHash,
-                        refreshTokenExpiresAt,
-                        refreshTokenRevokedAt,
-                        personID
-                    );
-                }
-            }
-
-            return null;
+            return row == null ? null : MapUser(row);
         }
 
         public static clsUser? FindByPersonID(int? personID)
         {
-            string passwordHash = string.Empty;
-            string role = string.Empty;
-            bool active = false;
-            string email = string.Empty;
-            int userID = int.MinValue;
-            string? refreshTokenHash = null;
-            DateTime? refreshTokenExpiresAt = null;
-            DateTime? refreshTokenRevokedAt = null;
+            DataRow? row = clsUserDA.FindByPersonID(personID);
 
-            if (clsUserDA.FindByPersonID(
-                personID,
-                ref passwordHash,
-                ref role,
-                ref userID,
-                ref active,
-                ref email,
-                ref refreshTokenHash,
-                ref refreshTokenExpiresAt,
-                ref refreshTokenRevokedAt
-                )
-            )
-            {
-                return new clsUser(
-                    userID,
-                    passwordHash,
-                    role,
-                    email,
-                    active,
-                    refreshTokenHash,
-                    refreshTokenExpiresAt,
-                    refreshTokenRevokedAt,
-                    personID
-                );
-            }
-
-            return null;
+            return row == null ? null : MapUser(row);
         }
+
+        /// <summary>
+        /// Builds the user and its person from the single joined row. Users and People are
+        /// one entity across two tables, so they load together. Internal because clsDoctor
+        /// maps the same columns out of its own three-table join.
+        /// </summary>
+        internal static clsUser MapUser(DataRow row)
+        {
+            clsPerson person = clsPerson.MapPerson(row);
+
+            return new clsUser(
+                row.Field<int>("UserID"),
+                row.Field<string>("PasswordHash") ?? string.Empty,
+                row.Field<string>("Role") ?? string.Empty,
+                row.Field<string>("Email") ?? string.Empty,
+                row.Field<bool>("Active"),
+                row.Field<string>("RefreshTokenHash"),
+                row.Field<DateTime?>("RefreshTokenExpiresAt"),
+                row.Field<DateTime?>("RefreshTokenRevokedAt"),
+                row.Field<int>("PersonID")
+            )
+            { PersonInfo = person };
+        }
+
+
 
         public static bool DeleteUser(int? id)
         {
