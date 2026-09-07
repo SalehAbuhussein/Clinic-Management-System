@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Authorization;
 using Clinic_Management_System.Authorization.Appointment;
 using Clinic_DataAccess;
 using Clinic_Management_System.Authorization.Prescription;
+using Clinic_Business;
+using Clinic_Business.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is not configured. run dotnet user-secrets set.");
@@ -80,6 +82,7 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddSingleton<IAuthorizationHandler, PersonOwnerOrAuthorizedHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, CanDoctorViewAppointmentHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, ManagePrescriptionHandler>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 builder.Services.AddProblemDetails();
 // ✅ NEW

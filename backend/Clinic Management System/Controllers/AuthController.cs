@@ -1,4 +1,5 @@
 ﻿using Clinic_Business;
+using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,11 +16,13 @@ namespace Clinic_Management_System.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IConfiguration _configuration; 
+        private readonly IConfiguration _configuration;
+        private readonly IUserRepository _userRepository;
 
-        public AuthController(IConfiguration configuration)
+        public AuthController(IConfiguration configuration, IUserRepository userRepository)
         {
             _configuration = configuration;
+            _userRepository = userRepository;
         }
 
         [HttpPost("login")]
@@ -31,7 +34,7 @@ namespace Clinic_Management_System.Controllers
         public IActionResult Login([FromBody] LoginRequest request)
         {
             // Step 1: Find User by Email
-            var user = clsUser.FindByEmail(request.Email);
+            var user = _userRepository.FindByEmail(request.Email);
 
             if (user == null)
                 return Problem(statusCode: StatusCodes.Status401Unauthorized,
@@ -111,7 +114,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult Refresh([FromBody] RefreshRequest request)
         {
-            clsUser? user = clsUser.FindByEmail(request.Email);
+            clsUser? user = _userRepository.FindByEmail(request.Email);
 
             if (user == null)
                 return Problem(statusCode: StatusCodes.Status401Unauthorized,
@@ -182,7 +185,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult Logout([FromBody] LogoutRequest request)
         {
-            clsUser? user = clsUser.FindByEmail(request.Email);
+            clsUser? user = _userRepository.FindByEmail(request.Email);
             if (user == null)
                 return NoContent();
 
@@ -212,7 +215,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public IActionResult Register([FromBody] RegisterRequest request)
         {
-            if (clsUser.FindByEmail(request.Email) != null)
+            if (_userRepository.FindByEmail(request.Email) != null)
                 return Problem(statusCode: StatusCodes.Status409Conflict,
                     detail: "A user with this email already exists.");
 
