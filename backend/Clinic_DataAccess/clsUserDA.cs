@@ -54,13 +54,13 @@ namespace Clinic_DataAccess
         /// in their WHERE, so they share this query. The column name is a compile-time
         /// literal from the callers below and never comes from a request.
         /// </summary>
-        private static DataRow? _FindBy(string whereColumn, object value)
+        private static async Task<DataRow?> _FindByAsync(string whereColumn, object value)
         {
             DataTable dt = new DataTable();
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = $@"SELECT
                     U.UserID, U.PasswordHash, U.Role, U.Email, U.Active, U.PersonID,
@@ -75,7 +75,7 @@ namespace Clinic_DataAccess
                 {
                     command.Parameters.AddWithValue("@Value", value);
 
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         if (reader.HasRows)
                             dt.Load(reader);
@@ -86,22 +86,11 @@ namespace Clinic_DataAccess
             return dt.Rows.Count > 0 ? dt.Rows[0] : null;
         }
 
-        public static DataRow? Find(int? id)
-        {
-            return id.HasValue ? _FindBy("U.UserID", id.Value) : null;
-        }
+        public static Task<DataRow?> Find(int? id) => id.HasValue ? _FindByAsync("U.UserID", id.Value) : Task.FromResult<DataRow?>(null);
 
-        public static DataRow? FindByEmail(string email)
-        {
-            return string.IsNullOrEmpty(email) ? null : _FindBy("U.Email", email);
-        }
+        public static Task<DataRow?> FindByEmailAsync(string email) => string.IsNullOrEmpty(email) ? Task.FromResult<DataRow?>(null) : _FindByAsync("U.Email", email);
 
-        public static DataRow? FindByPersonID(int? personID)
-        {
-            return personID.HasValue ? _FindBy("U.PersonID", personID.Value) : null;
-        }
-
-
+        public static Task<DataRow?> FindByPersonIDAsync(int? personID) => personID.HasValue ? _FindByAsync("U.PersonID", personID.Value) : Task.FromResult<DataRow?>(null);
 
         public static int? Create(
             string firstname,

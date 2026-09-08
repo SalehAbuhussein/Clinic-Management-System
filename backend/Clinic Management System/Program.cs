@@ -79,7 +79,7 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("ManagePrescription",
         policy => policy.Requirements.Add(new ManagePrescriptionRequirement()));
 });
-builder.Services.AddSingleton<IAuthorizationHandler, PersonOwnerOrAuthorizedHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, PersonOwnerOrAuthorizedHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, CanDoctorViewAppointmentHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, ManagePrescriptionHandler>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();

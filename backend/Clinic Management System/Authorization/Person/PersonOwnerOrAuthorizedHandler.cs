@@ -1,4 +1,5 @@
 ﻿using Clinic_Business;
+using Clinic_Business.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
@@ -6,14 +7,21 @@ namespace Clinic_Management_System.Authorization.People
 {
     public class PersonOwnerOrAuthorizedHandler : AuthorizationHandler<PersonOwnerOrAuthorizedRequirement, int>
     {
-        protected override Task HandleRequirementAsync(
+        private readonly IUserRepository _userRepository;
+
+        public PersonOwnerOrAuthorizedHandler(IUserRepository userRepository)
+        {
+            _userRepository = userRepository;
+        }
+
+        protected override async Task HandleRequirementAsync(
             AuthorizationHandlerContext context,
             PersonOwnerOrAuthorizedRequirement requirement,
             int personId
         )
         {
             var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            clsUser? userPerson = clsUser.FindByPersonID(personId);
+            clsUser? userPerson = await _userRepository.FindByPersonIDAsync(personId);
 
             if (context.User.IsInRole("Admin") || context.User.IsInRole("Staff"))
                 context.Succeed(requirement);
@@ -26,8 +34,6 @@ namespace Clinic_Management_System.Authorization.People
             {
                 context.Succeed(requirement);
             }
-
-            return Task.CompletedTask;
         }
     }
 }

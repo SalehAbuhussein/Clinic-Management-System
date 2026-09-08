@@ -59,23 +59,23 @@ namespace Clinic_Business
             return clsUserDA.FindUsers(pageNumber, pageSize);
         }
 
-        public static clsUser? FindUser(int? id)
+        public static async Task<clsUser?> FindUserAsync(int? id)
         {
-            DataRow? row = clsUserDA.Find(id);
+            DataRow? row = await clsUserDA.Find(id);
 
             return row == null ? null : MapUser(row);
         }
 
-        public static clsUser? FindByEmail(string email)
+        public static async Task<clsUser?> FindByEmailAsync(string email)
         {
-            DataRow? row = clsUserDA.FindByEmail(email);
+            DataRow? row = await clsUserDA.FindByEmailAsync(email);
 
             return row == null ? null : MapUser(row);
         }
 
-        public static clsUser? FindByPersonID(int? personID)
+        public static async Task<clsUser?> FindByPersonIDAsync(int? personID)
         {
-            DataRow? row = clsUserDA.FindByPersonID(personID);
+            DataRow? row = await clsUserDA.FindByPersonIDAsync(personID);
 
             return row == null ? null : MapUser(row);
         }

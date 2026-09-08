@@ -4,9 +4,21 @@ namespace Clinic_Business
 {
     public class UserRepository : IUserRepository
     {
-        public clsUser? FindByEmail(string email)
+        private static int _count;
+
+        public UserRepository()
         {
-            return clsUser.FindByEmail(email);
+            Console.WriteLine($"  [repo] constructed #{++_count}  {Guid.NewGuid().ToString()[..8]}");
+        }
+
+        public Task<clsUser?> FindByEmailAsync(string email)
+        {
+            return clsUser.FindByEmailAsync(email);
+        }
+
+        Task<clsUser?> IUserRepository.FindByPersonIDAsync(int? personID)
+        {
+            return clsUser.FindByPersonIDAsync(personID);
         }
     }
 }
