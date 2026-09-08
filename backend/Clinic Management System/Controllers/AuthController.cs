@@ -91,7 +91,7 @@ namespace Clinic_Management_System.Controllers
             user.RefreshTokenExpiresAt = DateTime.UtcNow.AddDays(7);
             user.RefreshTokenRevokedAt = null;
 
-            if (user.Save())
+            if (user.Update())
             {
                 // Step 10: Return the serialized JWT token to the client.
                 // The client will send this token with future requests.
@@ -168,7 +168,7 @@ namespace Clinic_Management_System.Controllers
             user.RefreshTokenExpiresAt = DateTime.UtcNow.AddDays(7);
             user.RefreshTokenRevokedAt = null;
 
-            if (user.Save())
+            if (user.Update())
                 return Ok(new TokenResponse
                 {
                     AccessToken = newAccessToken,
@@ -198,7 +198,7 @@ namespace Clinic_Management_System.Controllers
 
             user.RefreshTokenRevokedAt = DateTime.UtcNow;
 
-            if (!user.Save())
+            if (!user.Update())
                 return NoContent();
 
             return NoContent();
@@ -239,7 +239,7 @@ namespace Clinic_Management_System.Controllers
             //user.RefreshTokenRevokedAt = null;
             //user.RefreshTokenHash = BCrypt.Net.BCrypt.HashPassword(GenerateRefreshToken());
 
-            if (user.Save())
+            if (user.Create())
                 return CreatedAtRoute("GetUser", new { id = user.UserID }, null);
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,

@@ -92,7 +92,7 @@ namespace Clinic_Management_System.Controllers
             user.Role = updatedUserDTO.Role ?? user.Role; // TODO: Check who really can change the role
             user.Active = updatedUserDTO.Active ?? user.Active;
 
-            if (user.Save())
+            if (user.Update())
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
