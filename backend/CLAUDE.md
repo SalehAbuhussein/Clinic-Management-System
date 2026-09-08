@@ -30,28 +30,85 @@ Classic three-tier, 3-layer naming (`clsX` / `clsXDA`). Data access is **raw ADO
 — `SqlConnection` / `SqlCommand` / `SqlParameter`, no EF Core, and that is a deliberate
 choice. Don't propose EF Core.
 
-Business classes are static-entry (`clsUser.FindByEmail(...)`) with an `enMode.Add/Update`
-save pattern: `Save()` calls `base.Save()` for the Person row first, then `_CreateUser()`
-or `_UpdateUser()`. Two consequences worth remembering:
+Business classes are **active record** (Fowler's term, and a deliberate pattern rather than
+debt): the object wraps a row, holds its own `Save()`, and carries its own `IsValid()`.
+`Save()` gates on `IsValid()` and then switches on a private `enMode _Mode` field — `Add`
+calls `_CreateUser()`, `Update` calls `_UpdateUser()`. `_Mode` is set to `Add` by the public
+constructor and to `Update` by the private one that only `MapUser` uses, so an object loaded
+from the database updates and an object built by hand inserts.
 
-- A failure in the user insert leaves an **orphan `Person` row**, because the person was
-  already committed.
-- `Find`-style methods use `ref` parameters, which is why they can't be made `async`
-  without changing shape first.
+Mostly static-entry (`clsUser.FindByEmail(...)`), with one exception described under
+*Dependency injection* below.
 
-Every `*DA` method wraps its exception in `try/catch` and `Console.WriteLine`s it, so SQL
-errors surface to the API as a plain `false`/`null` and a generic `BadRequest`. When
-something fails inexplicably, suspect a swallowed `SqlException`.
+Two things worth remembering:
+
+- `clsUser._CreateUser()` writes **both** the `People` and `Users` rows in a single
+  `CreateUser` stored-procedure call, so there is no two-step orphan-row window in C#.
+  Whether the procedure itself is transactional cannot be verified from this repo — see
+  the note about unscripted procedures below.
+- Most `Find`-style methods pass results back through `ref` parameters, which is why they
+  can't be made `async` without changing shape first. **`clsUser` and `clsUserDA` are the
+  exception** — they pass a `DataRow?` and map it, so the user path is already async-able.
+  The eight-`ref` signatures live in `clsPerson`, `clsAppointment`, `clsVisit`,
+  `clsDiagnosis`, `clsMedicine` and `clsPrescriptionItem`.
+
+**The data-access layer no longer swallows exceptions.** All 52 `try/catch` +
+`Console.WriteLine` blocks were removed, and `Clinic_DataAccess` now contains zero `catch`
+statements. A `SqlException` propagates to `UseExceptionHandler` and becomes a 500
+`ProblemDetails` with the exception in the log. So a `false`/`null` return now means
+"validation failed" or "zero rows", not "something threw" — which is what makes the
+distinction between 422 and 500 in the controllers meaningful.
+
+## Dependency injection
+
+`Program.cs` is the composition root. Registered there: three
+`AddSingleton<IAuthorizationHandler, …>` handlers, and
+`AddScoped<IUserRepository, UserRepository>()` at line 85.
+
+`IUserRepository` (in `Clinic_Business/Interfaces/`, implemented by
+`Clinic_Business/UserRepository.cs`) is the **only** interface in either library and the only
+constructor-injected service of its kind. It has one member, `FindByEmail`, and
+`AuthController` receives it through its constructor. The implementation currently delegates
+to the static `clsUser.FindByEmail` **on purpose**: `UsersController` and
+`PersonOwnerOrAuthorizedHandler` still call that static, and two independent copies of the
+load logic would let the injected and static paths drift. Inline the `clsUserDA` call once
+the last static caller is gone.
+
+`user.Save()` is still called directly on the object in all four `AuthController` actions.
+Persistence ownership — active record versus repository — is an open question, not an
+oversight; see the roadmap.
 
 ## Database facts not visible in the code
 
 - `dbo.Users.Role` **defaults to `'Staff'`** — `clsUserDA.Create` deliberately omits the
-  column. An admin promotes a user to `'Admin'` afterwards; there's no endpoint for it yet.
-- Role names in use are `'Admin'` and `'Staff'` (see `[Authorize(Roles = ...)]` on
-  Doctors, Patients, Visits).
-- Connection string is hardcoded in `clsDataAccessSettings.ConnectionString`.
-- The JWT signing key is hardcoded in three places: `Program.cs`, and `Login` and
-  `Refresh` in `AuthController`. Changing one silently breaks token validation.
+  column. An admin promotes a user afterwards through `PUT /api/Users/{id}`, whose
+  `UpdateUserDTO.Role` is constrained by
+  `[AllowedValues(null, "Admin", "Doctor", "Staff")]`. The `null` in that list is
+  load-bearing: `[AllowedValues]` rejects `null` unless `null` is listed, and `Role` is
+  nullable because the update is partial.
+- Three roles are in use: `'Admin'`, `'Staff'` and `'Doctor'`. Note the attribute strings
+  are written five different ways across the controllers (`"Admin,Staff"`,
+  `"Admin, Staff"`, `"Admin,Staff,Doctor"`, `"Admin,Doctor,Staff"`, `"Admin,Doctor"`) —
+  inconsistent, and worth normalising.
+- **Eight stored procedures and one trigger exist only inside the running database.** There
+  is no `.sql` file anywhere in the three projects, so they cannot be read, reviewed, or
+  restored from this repo. Scripting them to a `Database/` folder is an open roadmap item.
+  A trigger or a procedure also invalidates a row count, which is why every procedure call
+  now reads its own `RETURN` value rather than `rowsAffected`.
+
+## Configuration
+
+Both secrets come from configuration and the app **refuses to start** without either:
+
+- `Jwt:Key` — read once in `Program.cs:18` and once each in `AuthController`'s `Login` and
+  `Refresh` (via the injected `IConfiguration`). All three read the same key; there is no
+  hardcoded copy left.
+- `ConnectionStrings:Clinic` — read in `Program.cs:19` and assigned to the static
+  `clsDataAccessSettings.ConnectionString` at line 21, which is how the data-access layer
+  still reaches it.
+
+Both live in user-secrets, which load **only in Development**. For any other environment use
+environment variables, where `:` becomes `__` (`ConnectionStrings__Clinic`).
 
 ## Current focus
 
