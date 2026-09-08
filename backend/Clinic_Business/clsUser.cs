@@ -105,34 +105,34 @@ namespace Clinic_Business
 
 
 
-        public static bool DeleteUser(int? id)
+        public static Task<bool> DeleteUser(int? id)
         {
             return clsUserDA.Delete(id);
         }
 
-        public static bool DeactivateUser(int? id)
+        public static Task<bool> DeactivateUser(int? id)
         {
             return clsUserDA.Deactivate(id);
         }
 
-        public bool Deactivate()
+        public Task<bool> Deactivate()
         {
             return DeactivateUser(UserID);
         }
 
-        public static bool ActivateUser(int? id)
+        public static Task<bool> ActivateUser(int? id)
         {
             return clsUserDA.Activate(id);
         }
 
-        public bool Activate()
+        public Task<bool> Activate()
         {
             return ActivateUser(UserID);
         }
 
-        private bool _CreateUser()
+        private async Task<bool> _CreateUser()
         {
-            UserID = clsUserDA.Create(
+            UserID = await clsUserDA.Create(
                 PersonInfo.Firstname,
                 PersonInfo.Midname,
                 PersonInfo.Thirdname,
@@ -151,12 +151,12 @@ namespace Clinic_Business
             return UserID.HasValue;
         }
 
-        private bool _UpdateUser()
+        private Task<bool> _UpdateUser()
         {
             return clsUserDA.Update(UserID, PasswordHash, Role, Email, Active, PersonID, RefreshTokenHash, RefreshTokenExpiresAt, RefreshTokenRevokedAt);
         }
 
-        public bool Create()
+        public async Task<bool> Create()
         {
             if (!_HasCredintals() || PersonInfo?.IsValid() != true)
                 return false;
@@ -164,15 +164,15 @@ namespace Clinic_Business
             if (UserID.HasValue)
                 return false;
 
-            return _CreateUser();
+            return await _CreateUser();
         }
 
-        public bool Update()
+        public async Task<bool> Update()
         {
             if (!_HasCredintals() || !(PersonID > 0))
                 return false;
 
-            return _UpdateUser();
+            return await _UpdateUser();
         }
 
         private bool _HasCredintals() => !string.IsNullOrEmpty(PasswordHash) && !string.IsNullOrEmpty(Email);

@@ -91,7 +91,7 @@ namespace Clinic_Management_System.Controllers
             user.RefreshTokenExpiresAt = DateTime.UtcNow.AddDays(7);
             user.RefreshTokenRevokedAt = null;
 
-            if (user.Update())
+            if (await user.Update())
             {
                 // Step 10: Return the serialized JWT token to the client.
                 // The client will send this token with future requests.
@@ -168,7 +168,7 @@ namespace Clinic_Management_System.Controllers
             user.RefreshTokenExpiresAt = DateTime.UtcNow.AddDays(7);
             user.RefreshTokenRevokedAt = null;
 
-            if (user.Update())
+            if (await user.Update())
                 return Ok(new TokenResponse
                 {
                     AccessToken = newAccessToken,
@@ -198,7 +198,7 @@ namespace Clinic_Management_System.Controllers
 
             user.RefreshTokenRevokedAt = DateTime.UtcNow;
 
-            if (!user.Update())
+            if (!await user.Update())
                 return NoContent();
 
             return NoContent();
@@ -213,7 +213,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public IActionResult Register([FromBody] RegisterRequest request)
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
             if (_userRepository.FindByEmailAsync(request.Email) != null)
                 return Problem(statusCode: StatusCodes.Status409Conflict,
@@ -239,7 +239,7 @@ namespace Clinic_Management_System.Controllers
             //user.RefreshTokenRevokedAt = null;
             //user.RefreshTokenHash = BCrypt.Net.BCrypt.HashPassword(GenerateRefreshToken());
 
-            if (user.Create())
+            if (await user.Create())
                 return CreatedAtRoute("GetUser", new { id = user.UserID }, null);
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,

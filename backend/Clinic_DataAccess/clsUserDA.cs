@@ -92,7 +92,7 @@ namespace Clinic_DataAccess
 
         public static Task<DataRow?> FindByPersonIDAsync(int? personID) => personID.HasValue ? _FindByAsync("U.PersonID", personID.Value) : Task.FromResult<DataRow?>(null);
 
-        public static int? Create(
+        public static async Task<int?> Create(
             string firstname,
             string midname,
             string? thirdname,
@@ -113,7 +113,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 using (SqlCommand command = new SqlCommand("CreateUser", connection))
                 {
@@ -141,7 +141,7 @@ namespace Clinic_DataAccess
                     userId.Direction = ParameterDirection.Output;
                     command.Parameters.Add(userId);
 
-                    command.ExecuteNonQuery();
+                    await command.ExecuteNonQueryAsync();
 
                     id = (int)userId.Value;
                 }
@@ -150,7 +150,7 @@ namespace Clinic_DataAccess
             return id;
         }
 
-        public static bool Update(
+        public static async Task<bool> Update(
             int? id,
             string passwordHash,
             string role,
@@ -169,7 +169,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"UPDATE [dbo].[Users]
                     SET [PasswordHash] = @PasswordHash
@@ -194,14 +194,14 @@ namespace Clinic_DataAccess
                     command.Parameters.AddWithValue("@RefreshTokenExpiresAt", refreshTokenExpiresAt == null ? DBNull.Value : refreshTokenExpiresAt);
                     command.Parameters.AddWithValue("@RefreshTokenRevokedAt", refreshTokenRevokedAt == null ? DBNull.Value : refreshTokenRevokedAt);
 
-                    rowsAffected = command.ExecuteNonQuery();
+                    rowsAffected = await command.ExecuteNonQueryAsync();
                 }
             }
 
             return rowsAffected > 0;
         }
 
-        public static bool Delete(int? id)
+        public static async Task<bool> Delete(int? id)
         {
             if (!id.HasValue)
                 return false;
@@ -210,7 +210,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"DELETE FROM [dbo].[Users] WHERE UserID = @UserID";
 
@@ -218,14 +218,14 @@ namespace Clinic_DataAccess
                 {
                     command.Parameters.AddWithValue("@UserID", id);
 
-                    rowsAffected = command.ExecuteNonQuery();
+                    rowsAffected = await command.ExecuteNonQueryAsync();
                 }
             }
 
             return rowsAffected > 0;
         }
 
-        public static bool Deactivate(int? id)
+        public static async Task<bool> Deactivate(int? id)
         {
             if (!id.HasValue)
                 return false;
@@ -234,7 +234,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"UPDATE [dbo].[Users]
                     SET
@@ -248,14 +248,14 @@ namespace Clinic_DataAccess
                 {
                     command.Parameters.AddWithValue("@UserID", id);
 
-                    rowsAffected = command.ExecuteNonQuery();
+                    rowsAffected = await command.ExecuteNonQueryAsync();
                 }
             }
 
             return rowsAffected > 0;
         }
 
-        public static bool Activate(int? id)
+        public static async Task<bool> Activate(int? id)
         {
             if (!id.HasValue)
                 return false;
@@ -264,7 +264,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"UPDATE [dbo].[Users]
                     SET [Active] = 1
@@ -274,7 +274,7 @@ namespace Clinic_DataAccess
                 {
                     command.Parameters.AddWithValue("@UserID", id);
 
-                    rowsAffected = command.ExecuteNonQuery();
+                    rowsAffected = await command.ExecuteNonQueryAsync();
                 }
             }
 
