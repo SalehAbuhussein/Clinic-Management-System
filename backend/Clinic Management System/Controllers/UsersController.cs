@@ -92,7 +92,7 @@ namespace Clinic_Management_System.Controllers
             user.Role = updatedUserDTO.Role ?? user.Role; // TODO: Check who really can change the role
             user.Active = updatedUserDTO.Active ?? user.Active;
 
-            if (user.Update())
+            if (await user.Update())
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
@@ -120,7 +120,7 @@ namespace Clinic_Management_System.Controllers
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"User with id {id} not found");
 
-            if (user.Deactivate())
+            if (await user.Deactivate())
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
@@ -142,7 +142,7 @@ namespace Clinic_Management_System.Controllers
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"User with id {id} not found");
 
-            if (user.Activate())
+            if (await user.Activate())
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
