@@ -4,6 +4,8 @@ namespace Clinic_Management_System.Options
 {
     public class JwtOptions
     {
+        public const string SectionName = "jwt";
+
         [Required]
         [MinLength(32)]
         public string Key { get; set; } = string.Empty;

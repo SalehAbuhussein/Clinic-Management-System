@@ -16,7 +16,7 @@ using Clinic_Business.Interfaces;
 using Clinic_Management_System.Options;
 
 var builder = WebApplication.CreateBuilder(args);
-var jwtOptions = builder.Configuration.GetSection("jwt").Get<JwtOptions>() ?? throw new InvalidOperationException("The Jwt configuration section is missing.");
+var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? throw new InvalidOperationException("The Jwt configuration section is missing.");
 var connectionString = builder.Configuration.GetConnectionString("Clinic") ?? throw new InvalidOperationException("ConnectionStrings:Clinic is not configured. run dotnet user-secrets set.");
 
 clsDataAccessSettings.ConnectionString = connectionString;
@@ -26,7 +26,7 @@ clsDataAccessSettings.ConnectionString = connectionString;
 // ===============================
 
 builder.Services.AddOptions<JwtOptions>()
-    .Bind(builder.Configuration.GetSection("jwt"))
+    .Bind(builder.Configuration.GetSection(JwtOptions.SectionName))
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
@@ -59,7 +59,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
             // The secret key used to validate the JWT signature.
             // This must be the same key used when generating the token.
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key!))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key))
         };
     });
 
