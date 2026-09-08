@@ -1,9 +1,11 @@
 ﻿using Clinic_Business;
 using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Auth;
+using Clinic_Management_System.Options;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -16,13 +18,13 @@ namespace Clinic_Management_System.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IConfiguration _configuration;
+        private readonly JwtOptions _jwt;
         private readonly IUserRepository _userRepository;
 
-        public AuthController(IConfiguration configuration, IUserRepository userRepository)
+        public AuthController(IOptions<JwtOptions> jwtOptions, IUserRepository userRepository)
         {
-            _configuration = configuration;
             _userRepository = userRepository;
+            _jwt = jwtOptions.Value;
         }
 
         [HttpPost("login")]
@@ -61,7 +63,7 @@ namespace Clinic_Management_System.Controllers
 
             // Step 4: Create the symmetric security key used to sign the JWT.
             // This key must match the key used in JWT validation middleware.
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Key));
 
             // Step 5: Define the signing credentials.
             // This specifies the algorithm used to sign the token.
@@ -147,7 +149,7 @@ namespace Clinic_Management_System.Controllers
                 new Claim(ClaimTypes.Role, user.Role)
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Key));
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 

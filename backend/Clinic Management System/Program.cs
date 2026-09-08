@@ -13,12 +13,22 @@ using Clinic_DataAccess;
 using Clinic_Management_System.Authorization.Prescription;
 using Clinic_Business;
 using Clinic_Business.Interfaces;
+using Clinic_Management_System.Options;
 
 var builder = WebApplication.CreateBuilder(args);
-var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is not configured. run dotnet user-secrets set.");
+var jwtOptions = builder.Configuration.GetSection("jwt").Get<JwtOptions>() ?? throw new InvalidOperationException("The Jwt configuration section is missing.");
 var connectionString = builder.Configuration.GetConnectionString("Clinic") ?? throw new InvalidOperationException("ConnectionStrings:Clinic is not configured. run dotnet user-secrets set.");
 
 clsDataAccessSettings.ConnectionString = connectionString;
+
+// ===============================
+// 0) Options 
+// ===============================
+
+builder.Services.AddOptions<JwtOptions>()
+    .Bind(builder.Configuration.GetSection("jwt"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 
 // ===============================
 // 1) Authentication (JWT Bearer)
@@ -42,14 +52,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
 
             // The expected issuer value (must match the issuer used when creating the JWT).
-            ValidIssuer = "ClinicApi",
+            ValidIssuer = jwtOptions.Issuer,
 
             // The expected audience value (must match the audience used when creating the JWT).
-            ValidAudience = "ClinicApiUsers",
+            ValidAudience = jwtOptions.Audience,
 
             // The secret key used to validate the JWT signature.
             // This must be the same key used when generating the token.
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey!))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key!))
         };
     });
 
