@@ -4,7 +4,6 @@ using Clinic_Management_System.DTOs.Models.Visits;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
-using System.Data;
 
 namespace Clinic_Management_System.Controllers
 {
@@ -13,10 +12,12 @@ namespace Clinic_Management_System.Controllers
     public class VisitsController : ControllerBase
     {
         private readonly IAppointmentRepository _appointmentRepository;
+        private readonly IVisitRepository _visitRepository;
 
-        public VisitsController(IAppointmentRepository appointmentRepository)
+        public VisitsController(IAppointmentRepository appointmentRepository, IVisitRepository visitRepository)
         {
             _appointmentRepository = appointmentRepository;
+            _visitRepository = visitRepository;
         }
 
         [Authorize(Roles = "Admin,Staff")]
@@ -25,24 +26,19 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public ActionResult<VisitDTO> GetVisits([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
+        public async Task<ActionResult<List<VisitDTO>>> GetVisits([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
             perPage = Math.Clamp(perPage, 1, 10);
 
-            DataTable table = clsVisit.FindAll(page, perPage);
-            List<VisitDTO> visitsList = new List<VisitDTO>();
-
-            foreach (DataRow row in table.Rows)
-            {
-                visitsList.Add(new VisitDTO
+            List<VisitDTO> visitsList = (await _visitRepository.FindAllAsync(page, perPage))
+                .Select(visit => new VisitDTO
                 {
-                    Id = row.Field<int>("VisitID"),
-                    AppointmentID = row.Field<int>("AppointmentID"),
-                    CheckinTime = AsUtc(row.Field<DateTime>("CheckinTime")),
-                    CheckoutTime = AsUtc(row.Field<DateTime?>("CheckoutTime")),
-                    Notes = row.Field<string>("Notes"),
-                });
-            }
+                    Id = visit.VisitID ?? 0,
+                    AppointmentID = visit.AppointmentID,
+                    CheckinTime = AsUtc(visit.CheckinTime),
+                    CheckoutTime = AsUtc(visit.CheckoutTime),
+                    Notes = visit.Notes,
+                }).ToList();
 
             return Ok(visitsList);
         }
@@ -54,9 +50,9 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<VisitDTO> GetVisitByID([Range(1, int.MaxValue)] int id)
+        public async Task<ActionResult<VisitDTO>> GetVisitByID([Range(1, int.MaxValue)] int id)
         {
-            clsVisit? visit = clsVisit.Find(id);
+            clsVisit? visit = await _visitRepository.FindByIdAsync(id);
             if (visit == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Visit with id {id} not found");
@@ -84,7 +80,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public async Task<ActionResult<VisitDTO>> AddVisit(CreateVisitDTO visitDTO)
         {
-            if (clsVisit.IsExistByAppointmentID(visitDTO.AppointmentID))
+            if (await _visitRepository.ExistsByAppointmentIdAsync(visitDTO.AppointmentID))
                 return Problem(statusCode: StatusCodes.Status409Conflict,
                     detail: $"Appointment {visitDTO.AppointmentID} already has a visit.");
 
@@ -110,7 +106,7 @@ namespace Clinic_Management_System.Controllers
             newVisit.CheckinTime = checkinTimeUtc;
             newVisit.Notes = visitDTO.Notes;
 
-            if (newVisit.Save())
+            if (await newVisit.SaveAsync())
                 return CreatedAtRoute("GetVisitByID", new { id = newVisit.VisitID }, new VisitDTO
                 {
                     Id = newVisit.VisitID,
@@ -132,9 +128,9 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public ActionResult UpdateVisit([Range(1, int.MaxValue)] int id, UpdateVisitDTO visitDTO)
+        public async Task<ActionResult> UpdateVisit([Range(1, int.MaxValue)] int id, UpdateVisitDTO visitDTO)
         {
-            clsVisit? visit = clsVisit.Find(id);
+            clsVisit? visit = await _visitRepository.FindByIdAsync(id);
             if (visit == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Visit with id {id} not found");
@@ -167,7 +163,7 @@ namespace Clinic_Management_System.Controllers
             visit.CheckinTime = checkinTimeUtc;
             visit.Notes = visitDTO.Notes;
 
-            if (visit.Save())
+            if (await visit.SaveAsync())
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
@@ -182,9 +178,9 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public ActionResult CheckoutVisit([Range(1, int.MaxValue)] int id)
+        public async Task<ActionResult> CheckoutVisit([Range(1, int.MaxValue)] int id)
         {
-            clsVisit? visit = clsVisit.Find(id);
+            clsVisit? visit = await _visitRepository.FindByIdAsync(id);
             if (visit == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Visit with id {id} not found");
@@ -201,7 +197,7 @@ namespace Clinic_Management_System.Controllers
             visit.CheckoutTime = DateTime.UtcNow;
             visit.IsLocked = true;
 
-            if (visit.Save())
+            if (await visit.SaveAsync())
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
@@ -216,9 +212,9 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public ActionResult DeleteVisit([Range(1, int.MaxValue)] int id)
+        public async Task<ActionResult> DeleteVisit([Range(1, int.MaxValue)] int id)
         {
-            clsVisit? visit = clsVisit.Find(id);
+            clsVisit? visit = await _visitRepository.FindByIdAsync(id);
             if (visit == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Visit with id {id} not found");
@@ -234,7 +230,7 @@ namespace Clinic_Management_System.Controllers
                         detail: "The visit has already been finalized.");
             }
 
-            if (clsVisit.Delete(id))
+            if (await _visitRepository.DeleteAsync(id))
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,

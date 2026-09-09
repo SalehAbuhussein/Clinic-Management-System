@@ -49,70 +49,66 @@ namespace Clinic_Business
             IsLocked = isLocked;
         }
 
-        public static DataTable FindAll(int pageNumber = 1, int pageSize = 10)
+        public static async Task<List<clsVisit>> FindAllAsync(int pageNumber = 1, int pageSize = 10)
         {
-            return clsVisitDA.FindAll(pageNumber, pageSize);
+            DataTable table = await clsVisitDA.FindAllAsync(pageNumber, pageSize);
+
+            return table.AsEnumerable().Select(MapVisit).ToList();
         }
 
-        public static clsVisit? Find(int? id)
+        public static async Task<clsVisit?> FindAsync(int? id)
         {
-            int appointmentID = int.MinValue;
-            DateTime checkinTime = DateTime.MinValue;
-            DateTime? checkoutTime = null;
-            string? notes = null;
-            bool isLocked = false;
+            DataRow? row = await clsVisitDA.FindAsync(id);
 
-            if (clsVisitDA.Find(id, ref appointmentID, ref checkinTime, ref checkoutTime, ref notes, ref isLocked))
-            {
-                return new clsVisit(id, appointmentID, checkinTime, checkoutTime, notes, isLocked);
-            }
-
-            return null;
+            return row == null ? null : MapVisit(row);
         }
 
-        public static clsVisit? FindByAppointmentID(int id)
+        public static async Task<clsVisit?> FindByAppointmentIDAsync(int? id)
         {
-            int visitID = int.MinValue;
-            DateTime checkinTime = DateTime.MinValue;
-            DateTime? checkoutTime = null;
-            string? notes = null;
-            bool isLocked = false;
+            DataRow? row = await clsVisitDA.FindByAppointmentIDAsync(id);
 
-            if (clsVisitDA.FindByAppointmentID(id, ref visitID, ref checkinTime, ref checkoutTime, ref notes, ref isLocked))
-            {
-                return new clsVisit(visitID, id, checkinTime, checkoutTime, notes, isLocked);
-            }
-
-            return null;
+            return row == null ? null : MapVisit(row);
         }
 
-        public static bool IsExistByAppointmentID(int id)
+        internal static clsVisit MapVisit(DataRow row)
         {
-            return clsVisitDA.IsExistByAppointmentID(id);
+            return new clsVisit(
+                row.Field<int>("VisitID"),
+                row.Field<int>("AppointmentID"),
+                row.Field<DateTime>("CheckinTime"),
+                row.Field<DateTime?>("CheckoutTime"),
+                row.Field<string>("Notes"),
+                row.Field<bool>("IsLocked")
+            );
         }
 
-        public static bool HasCheckedout(int? id)
+        public static Task<bool> IsExistByAppointmentIDAsync(int id)
         {
-            return clsVisitDA.HasCheckedout(id);
+            return clsVisitDA.IsExistByAppointmentIDAsync(id);
         }
 
-        public static bool Delete(int? id)
+        public static Task<bool> HasCheckedoutAsync(int? id)
         {
-            return clsVisitDA.Delete(id);
+            return clsVisitDA.HasCheckedoutAsync(id);
         }
 
-        private bool _CreateVisit()
+        public static Task<bool> DeleteAsync(int? id)
         {
-            VisitID = clsVisitDA.Create(AppointmentID, CheckinTime, CheckoutTime, Notes);
+            return clsVisitDA.DeleteAsync(id);
+        }
+
+        private async Task<bool> _CreateVisitAsync()
+        {
+            VisitID = await clsVisitDA.CreateAsync(AppointmentID, CheckinTime, CheckoutTime, Notes);
             return VisitID.HasValue;
         }
 
-        private bool _UpdateVisit()
+        private Task<bool> _UpdateVisitAsync()
         {
-            return clsVisitDA.Update(VisitID, AppointmentID, CheckinTime, CheckoutTime, Notes, IsLocked);
+            return clsVisitDA.UpdateAsync(VisitID, AppointmentID, CheckinTime, CheckoutTime, Notes, IsLocked);
         }
 
-        public bool Save()
+        public async Task<bool> SaveAsync()
         {
             if (!IsValid())
                 return false;
@@ -120,7 +116,7 @@ namespace Clinic_Business
             switch (_Mode)
             {
                 case enMode.Add:
-                    if (_CreateVisit())
+                    if (await _CreateVisitAsync())
                     {
                         _Mode = enMode.Update;
                         return true;
@@ -128,7 +124,7 @@ namespace Clinic_Business
 
                     return false;
                 case enMode.Update:
-                    return _UpdateVisit();
+                    return await _UpdateVisitAsync();
             }
 
             return false;

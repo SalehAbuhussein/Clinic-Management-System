@@ -1,4 +1,5 @@
 ﻿using Clinic_Business;
+using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Diagnoses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +11,13 @@ namespace Clinic_Management_System.Controllers
     [ApiController]
     public class DiagnosesController : ControllerBase
     {
+        private readonly IVisitRepository _visitRepository;
+
+        public DiagnosesController(IVisitRepository visitRepository)
+        {
+            _visitRepository = visitRepository;
+        }
+
         [Authorize(Roles = "Admin,Doctor")]
         [HttpGet("{id}",Name = "GetDiagnosisByID")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -41,13 +49,13 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public ActionResult<DiagnosisDTO> AddDiagnoses(CreateDiagnosesDTO createDiagnosesDTO)
+        public async Task<ActionResult<DiagnosisDTO>> AddDiagnoses(CreateDiagnosesDTO createDiagnosesDTO)
         {
             if (clsDiagnosis.IsExistByVisitID(createDiagnosesDTO.VisitID))
                 return Problem(statusCode: StatusCodes.Status409Conflict,
                     detail: $"Visit {createDiagnosesDTO.VisitID} already has a diagnosis");
 
-            clsVisit? visit = clsVisit.Find(createDiagnosesDTO.VisitID);
+            clsVisit? visit = await _visitRepository.FindByIdAsync(createDiagnosesDTO.VisitID);
             if (visit == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Visit with id {createDiagnosesDTO.VisitID} not found");
@@ -82,14 +90,14 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public ActionResult UpdateDiagnosis([Range(1, int.MaxValue)] int id, UpdateDiagnosesDTO updateDiagnosesDTO)
+        public async Task<ActionResult> UpdateDiagnosis([Range(1, int.MaxValue)] int id, UpdateDiagnosesDTO updateDiagnosesDTO)
         {
             clsDiagnosis? diagnosis = clsDiagnosis.Find(id);
             if (diagnosis == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Diagnosis with id {id} not found");
 
-            if (clsVisit.HasCheckedout(diagnosis.VisitID))
+            if (await _visitRepository.HasCheckedOutAsync(diagnosis.VisitID))
                 return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
                     detail: "The visit is locked, so its diagnosis cannot be changed.");
 

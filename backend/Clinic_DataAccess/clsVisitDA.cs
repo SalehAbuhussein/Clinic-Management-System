@@ -11,13 +11,13 @@ namespace Clinic_DataAccess
 {
     public class clsVisitDA
     {
-        public static DataTable FindAll(int pageNumber = 1, int pageSize = 10)
+        public static async Task<DataTable> FindAllAsync(int pageNumber = 1, int pageSize = 10)
         {
             DataTable dt = new DataTable();
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"SELECT *
                 FROM Visits
@@ -30,7 +30,7 @@ namespace Clinic_DataAccess
                     command.Parameters.AddWithValue("@PageNumber", pageNumber);
                     command.Parameters.AddWithValue("@PageSize", pageSize);
 
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         if (reader.HasRows)
                         {
@@ -43,23 +43,17 @@ namespace Clinic_DataAccess
             return dt;
         }
 
-        public static bool Find(
-            int? id,
-            ref int appointmentID,
-            ref DateTime checkinTime,
-            ref DateTime? checkoutTime,
-            ref string? notes,
-            ref bool isLocked
-        )
+        /// <summary>Returns the row; ref parameters cannot cross an await (CS1988).</summary>
+        public static async Task<DataRow?> FindAsync(int? id)
         {
             if (!id.HasValue)
-                return false;
+                return null;
 
-            bool isFound = false;
+            DataTable dt = new DataTable();
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"SELECT [VisitID]
                     ,[AppointmentID]
@@ -74,41 +68,27 @@ namespace Clinic_DataAccess
                 {
                     command.Parameters.AddWithValue("@VisitID", id);
 
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
-                        if (reader.Read())
-                        {
-                            isFound = true;
-                            appointmentID = (int)reader["AppointmentID"];
-                            checkinTime = (DateTime)reader["CheckinTime"];
-                            checkoutTime = reader["CheckoutTime"] == DBNull.Value ? null : (DateTime)reader["CheckoutTime"];
-                            notes = reader["Notes"] == DBNull.Value ? null : reader["Notes"].ToString();
-                            isLocked = (bool)reader["IsLocked"];
-                        }
+                        if (reader.HasRows)
+                            dt.Load(reader);
                     }
                 }
             }
 
-            return isFound;
+            return dt.Rows.Count > 0 ? dt.Rows[0] : null;
         }
 
-        public static bool FindByAppointmentID(
-            int? id,
-            ref int visitID,
-            ref DateTime checkinTime,
-            ref DateTime? checkoutTime,
-            ref string? notes,
-            ref bool isLocked
-        )
+        public static async Task<DataRow?> FindByAppointmentIDAsync(int? id)
         {
             if (!id.HasValue)
-                return false;
+                return null;
 
-            bool isFound = false;
+            DataTable dt = new DataTable();
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"SELECT [VisitID]
                     ,[AppointmentID]
@@ -123,25 +103,18 @@ namespace Clinic_DataAccess
                 {
                     command.Parameters.AddWithValue("@AppointmentID", id);
 
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
-                        if (reader.Read())
-                        {
-                            isFound = true;
-                            visitID = (int)reader["VisitID"];
-                            checkinTime = (DateTime)reader["CheckinTime"];
-                            checkoutTime = reader["CheckoutTime"] == DBNull.Value ? null : (DateTime)reader["CheckoutTime"];
-                            notes = reader["Notes"] == DBNull.Value ? null : reader["Notes"].ToString();
-                            isLocked = (bool)reader["IsLocked"];
-                        }
+                        if (reader.HasRows)
+                            dt.Load(reader);
                     }
                 }
             }
 
-            return isFound;
+            return dt.Rows.Count > 0 ? dt.Rows[0] : null;
         }
 
-        public static bool IsExistByAppointmentID(int? id)
+        public static async Task<bool> IsExistByAppointmentIDAsync(int? id)
         {
             if (!id.HasValue)
                 return false;
@@ -150,7 +123,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"SELECT true=1 FROM [dbo].[Visits] WHERE AppointmentID = @AppointmentID";
 
@@ -158,7 +131,7 @@ namespace Clinic_DataAccess
                 {
                     command.Parameters.AddWithValue("@AppointmentID", id);
 
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         isFound = reader.HasRows;
                     }
@@ -168,7 +141,7 @@ namespace Clinic_DataAccess
             return isFound;
         }
 
-        public static bool HasCheckedout(int? id)
+        public static async Task<bool> HasCheckedoutAsync(int? id)
         {
             if (!id.HasValue)
                 return false;
@@ -177,7 +150,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"SELECT true=1 FROM Visits WHERE VisitID = @VisitID AND IsLocked = 1 AND CheckoutTime IS NOT NULL";
 
@@ -185,7 +158,7 @@ namespace Clinic_DataAccess
                 {
                     command.Parameters.AddWithValue("@VisitID", id);
 
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         hasCheckedout = reader.HasRows;
                     }
@@ -195,7 +168,7 @@ namespace Clinic_DataAccess
             return hasCheckedout;
         }
 
-        public static int? Create(
+        public static async Task<int?> CreateAsync(
             int appointmentID,
             DateTime checkinTime,
             DateTime? checkoutTime,
@@ -206,7 +179,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"UPDATE [dbo].[Appointments]
 	            SET [Status] = 1
@@ -231,7 +204,7 @@ namespace Clinic_DataAccess
                     command.Parameters.AddWithValue("@CheckoutTime", checkoutTime == null ? DBNull.Value : checkoutTime);
                     command.Parameters.AddWithValue("@Notes", string.IsNullOrEmpty(notes) ? DBNull.Value : notes);
 
-                    object result = command.ExecuteScalar();
+                    object result = await command.ExecuteScalarAsync();
 
                     if (result != null && int.TryParse(result.ToString(), out int insertedId))
                     {
@@ -243,7 +216,7 @@ namespace Clinic_DataAccess
             return id;
         }
 
-        public static bool Update(
+        public static async Task<bool> UpdateAsync(
             int? id,
             int appointmentID,
             DateTime checkinTime,
@@ -259,7 +232,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"UPDATE [dbo].[Visits]
                 SET [AppointmentID] = @AppointmentID
@@ -278,14 +251,14 @@ namespace Clinic_DataAccess
                     command.Parameters.AddWithValue("@Notes", string.IsNullOrEmpty(notes) ? DBNull.Value : notes);
                     command.Parameters.AddWithValue("@IsLocked", isLocked);
 
-                    rowsAffected = command.ExecuteNonQuery();
+                    rowsAffected = await command.ExecuteNonQueryAsync();
                 }
             }
 
             return rowsAffected > 0;
         }
 
-        public static bool Delete(int? id)
+        public static async Task<bool> DeleteAsync(int? id)
         {
             if (!id.HasValue)
                 return false;
@@ -294,7 +267,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 using (SqlCommand command = new SqlCommand("DeleteVisit", connection))
                 {
@@ -306,7 +279,7 @@ namespace Clinic_DataAccess
                     returnValue.Direction = ParameterDirection.ReturnValue;
                     command.Parameters.Add(returnValue);
 
-                    command.ExecuteNonQuery();
+                    await command.ExecuteNonQueryAsync();
 
                     int result = (int)returnValue.Value;
 

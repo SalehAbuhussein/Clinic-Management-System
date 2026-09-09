@@ -1,4 +1,5 @@
 ﻿using Clinic_Business;
+using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Prescriptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +14,13 @@ namespace Clinic_Management_System.Controllers
     [ApiController]
     public class PrescriptionsController : ControllerBase
     {
+        private readonly IVisitRepository _visitRepository;
+
+        public PrescriptionsController(IVisitRepository visitRepository)
+        {
+            _visitRepository = visitRepository;
+        }
+
         [Authorize]
         [HttpGet(Name = "GetVisitPrescriptionItems")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -87,7 +95,7 @@ namespace Clinic_Management_System.Controllers
                     detail: "One or more of the medicines referenced does not exist.");
 
             // 2- If Visit has been checked out refuse.
-            if (clsVisit.HasCheckedout(visitId))
+            if (await _visitRepository.HasCheckedOutAsync(visitId))
                 return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
                     detail: "The visit has already ended, so its prescription cannot be changed.");
 
@@ -135,7 +143,7 @@ namespace Clinic_Management_System.Controllers
                     detail: "One or more of the medicines referenced does not exist.");
 
             // 2- If Visit has been checked out refuse.
-            if (clsVisit.HasCheckedout(visitId))
+            if (await _visitRepository.HasCheckedOutAsync(visitId))
                 return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
                     detail: "The visit has already ended, so its prescription cannot be changed.");
 

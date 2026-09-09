@@ -4,7 +4,6 @@ using Clinic_Management_System.DTOs.Models.Doctors;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
-using System.Data;
 using System.Security.Claims;
 
 namespace Clinic_Management_System.Controllers
