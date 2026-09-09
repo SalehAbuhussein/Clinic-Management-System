@@ -73,22 +73,30 @@ namespace Clinic_Business
             base.NationalNo = nationalNo;
         }
 
-        public static DataTable FindPatients(int pageNumber = 1, int pageSize = 10)
+        public record PatientItem(int Id, string? EmergencyContactName, string? EmergencyContactNumber, int PersonID);
+
+        public static async Task<List<PatientItem>> FindPatientsAsync(int pageNumber = 1, int pageSize = 10)
         {
-            return clsPatientDA.FindAll(pageNumber, pageSize);
+            DataTable table = await clsPatientDA.FindAllAsync(pageNumber, pageSize);
+
+            return table.AsEnumerable().Select(row => new PatientItem(
+                row.Field<int>("PatientID"),
+                row.Field<string>("EmergencyContactName"),
+                row.Field<string>("EmergencyContactNumber"),
+                row.Field<int>("PersonID")
+            )).ToList();
         }
 
-
-        public static clsPatient? FindPatient(int? id)
+        public static async Task<clsPatient?> FindPatientAsync(int? id)
         {
-            DataRow? row = clsPatientDA.Find(id);
+            DataRow? row = await clsPatientDA.FindAsync(id);
 
             return row == null ? null : _MapPatient(row);
         }
 
-        public static clsPatient? FindPatientByNationalNo(string nationalNo)
+        public static async Task<clsPatient?> FindPatientByNationalNoAsync(string nationalNo)
         {
-            DataRow? row = clsPatientDA.FindByNationalNo(nationalNo);
+            DataRow? row = await clsPatientDA.FindByNationalNoAsync(nationalNo);
 
             return row == null ? null : _MapPatient(row);
         }
@@ -121,21 +129,21 @@ namespace Clinic_Business
         }
         
         
-        public static bool DeletePatient(int? id)
+        public static Task<bool> DeletePatientAsync(int? id)
         {
-            return clsPatientDA.Delete(id);
+            return clsPatientDA.DeleteAsync(id);
         }
 
-        public static bool IsPatientExist(int? id)
+        public static async Task<bool> IsPatientExistAsync(int? id)
         {
-            clsPatient? patient = FindPatient(id);
+            clsPatient? patient = await FindPatientAsync(id);
 
             return patient != null && patient.Active;
         }
 
-        private bool _CreatePatient()
+        private async Task<bool> _CreatePatientAsync()
         {
-            PatientID = clsPatientDA.Create(
+            PatientID = await clsPatientDA.CreateAsync(
                 EmergencyContactNumber, 
                 EmergencyContactName, 
                 CreatedAt, 
@@ -154,9 +162,9 @@ namespace Clinic_Business
             return PatientID.HasValue;
         }
 
-        private bool _UpdatePatient()
+        private Task<bool> _UpdatePatientAsync()
         {
-            return clsPatientDA.Update(
+            return clsPatientDA.UpdateAsync(
                 PatientID, 
                 EmergencyContactNumber, 
                 EmergencyContactName, 
@@ -172,7 +180,7 @@ namespace Clinic_Business
             );
         }
 
-        public bool Save()
+        public async Task<bool> SaveAsync()
         {
             if (!base.IsValid())
                 return false;
@@ -180,14 +188,14 @@ namespace Clinic_Business
             switch (_Mode)
             {
                 case enMode.Add:
-                    if (_CreatePatient())
+                    if (await _CreatePatientAsync())
                     {
                         _Mode = enMode.Update;
                         return true;
                     }
                     return false;
                 case enMode.Update:
-                    return _UpdatePatient();
+                    return await _UpdatePatientAsync();
             }
 
             return false;

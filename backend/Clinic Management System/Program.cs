@@ -95,6 +95,7 @@ builder.Services.AddSingleton<IAuthorizationHandler, ManagePrescriptionHandler>(
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IMedicineRepository, MedicineRepository>();
+builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 
 builder.Services.AddProblemDetails();
 // ✅ NEW

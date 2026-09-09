@@ -1,9 +1,9 @@
 ﻿using Clinic_Business;
+using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Patients;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
-using System.Data;
 using System.Security.Claims;
 
 namespace Clinic_Management_System.Controllers
@@ -12,29 +12,31 @@ namespace Clinic_Management_System.Controllers
     [ApiController]
     public class PatientsController : ControllerBase
     {
+        private readonly IPatientRepository _patientRepository;
+
+        public PatientsController(IPatientRepository patientRepository)
+        {
+            _patientRepository = patientRepository;
+        }
+
         [Authorize(Roles = "Admin,Staff")]
         [HttpGet(Name = "GetPatients")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public ActionResult<PatientDTO> GetPatients([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
+        public async Task<ActionResult<List<PatientDTO>>> GetPatients([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
             perPage = Math.Clamp(perPage, 1, 10);
 
-            DataTable table = clsPatient.FindPatients(page, perPage);
-            List<PatientDTO> patientsList = new List<PatientDTO>();
-
-            foreach (DataRow row in table.Rows)
-            {
-                patientsList.Add(new PatientDTO
+            List<PatientDTO> patientsList = (await _patientRepository.FindAllAsync(page, perPage))
+                .Select(patient => new PatientDTO
                 {
-                    Id = row.Field<int>("PatientID"),
-                    EmergencyContactName = row.Field<string>("EmergencyContactName"),
-                    EmergencyContactNumber = row.Field<string>("EmergencyContactNumber"),
-                    PersonID = row.Field<int>("PersonID")
-                });
-            }
+                    Id = patient.Id,
+                    EmergencyContactName = patient.EmergencyContactName,
+                    EmergencyContactNumber = patient.EmergencyContactNumber,
+                    PersonID = patient.PersonID
+                }).ToList();
 
             return Ok(patientsList);
         }
@@ -46,9 +48,9 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<PatientDTO> GetPatientByID([Range(1, int.MaxValue)] int id)
+        public async Task<ActionResult<PatientDTO>> GetPatientByID([Range(1, int.MaxValue)] int id)
         {
-            clsPatient? patient = clsPatient.FindPatient(id);
+            clsPatient? patient = await _patientRepository.FindByIdAsync(id);
             if (patient == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Patient with id {id} not found");
@@ -72,9 +74,9 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public ActionResult<PatientDTO> AddPatient(CreatePatientDTO patientDTO)
+        public async Task<ActionResult<PatientDTO>> AddPatient(CreatePatientDTO patientDTO)
         {
-            if (clsPatient.FindPatientByNationalNo(patientDTO.NationalNo) != null)
+            if (await _patientRepository.FindByNationalNoAsync(patientDTO.NationalNo) != null)
                 return Problem(statusCode: StatusCodes.Status409Conflict,
                     detail: "A patient with this national number already exists.");
 
@@ -91,7 +93,7 @@ namespace Clinic_Management_System.Controllers
             newPatient.Gender = patientDTO.Gender!.Value;
             newPatient.DateOfBirth = patientDTO.DateOfBirth!.Value;
 
-            if (newPatient.Save())
+            if (await newPatient.SaveAsync())
             {
                 PatientDTO newPatientDTO = new PatientDTO
                 {
@@ -115,9 +117,9 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public ActionResult UpdatePatient(int id, UpdatePatientDTO updatedPatient)
+        public async Task<ActionResult> UpdatePatient(int id, UpdatePatientDTO updatedPatient)
         {
-            clsPatient? patient = clsPatient.FindPatient(id);
+            clsPatient? patient = await _patientRepository.FindByIdAsync(id);
 
             if (patient == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
@@ -133,7 +135,7 @@ namespace Clinic_Management_System.Controllers
             patient.Gender = updatedPatient.Gender!.Value;
             patient.DateOfBirth = updatedPatient.DateOfBirth!.Value;
 
-            if (patient.Save())
+            if (await patient.SaveAsync())
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
@@ -148,14 +150,14 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public ActionResult DeletePatient([Range(1, int.MaxValue)] int id)
+        public async Task<ActionResult> DeletePatient([Range(1, int.MaxValue)] int id)
         {
-            clsPatient? patient = clsPatient.FindPatient(id);
+            clsPatient? patient = await _patientRepository.FindByIdAsync(id);
             if (patient == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Patient with id {id} not found");
 
-            if (clsPatient.DeletePatient(id))
+            if (await _patientRepository.DeleteAsync(id))
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,

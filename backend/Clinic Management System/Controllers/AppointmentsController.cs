@@ -1,4 +1,5 @@
 ﻿using Clinic_Business;
+using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Appointments;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +13,13 @@ namespace Clinic_Management_System.Controllers
     [ApiController]
     public class AppointmentsController : ControllerBase
     {
+        private readonly IPatientRepository _patientRepository;
+
+        public AppointmentsController(IPatientRepository patientRepository)
+        {
+            _patientRepository = patientRepository;
+        }
+
         [Authorize(Roles = "Admin,Staff")]
         [HttpGet(Name = "GetAppointments")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -97,9 +105,10 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public ActionResult<AppointmentDTO> AddAppointment(CreateAppointmentDTO appointmentDTO)
+        public async Task<ActionResult<AppointmentDTO>> AddAppointment(CreateAppointmentDTO appointmentDTO)
         {
-            if (!clsDoctor.IsDoctorExist(appointmentDTO.DoctorID) || !clsPatient.IsPatientExist(appointmentDTO.PatientID))
+            if (!clsDoctor.IsDoctorExist(appointmentDTO.DoctorID) ||
+                !await _patientRepository.ExistsAsync(appointmentDTO.PatientID))
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: "The doctor or patient referenced by this appointment does not exist.");
 
