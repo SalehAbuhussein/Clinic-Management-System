@@ -13,13 +13,13 @@ namespace Clinic_DataAccess
 {
     public class clsPrescriptionItemDA
     {
-        public static DataTable FindAllByVisitID(int visitID, int pageNumber, int pageSize)
+        public static async Task<DataTable> FindAllByVisitIDAsync(int visitID, int pageNumber, int pageSize)
         {
             DataTable dt = new DataTable();
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"SELECT *
                 FROM PrescriptionItems
@@ -34,7 +34,7 @@ namespace Clinic_DataAccess
                     command.Parameters.AddWithValue("@PageNumber", pageNumber);
                     command.Parameters.AddWithValue("@PageSize", pageSize);
 
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         if (reader.HasRows)
                         {
@@ -47,7 +47,7 @@ namespace Clinic_DataAccess
             return dt;
         }
 
-        public static bool HasPrescriptionByVisitID(int? id)
+        public static async Task<bool> HasPrescriptionByVisitIDAsync(int? id)
         {
             if (!id.HasValue)
                 return false;
@@ -56,7 +56,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"SELECT TOP 1 true=1 FROM PrescriptionItems WHERE VisitID = @VisitID;";
 
@@ -64,7 +64,7 @@ namespace Clinic_DataAccess
                 {
                     command.Parameters.AddWithValue("@VisitID", id);
 
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         hasPrescriptions = reader.HasRows;
                     }
@@ -74,46 +74,46 @@ namespace Clinic_DataAccess
             return hasPrescriptions;
         }
 
-        public static bool Find(int id, ref int visitID, ref int medicineID, ref string dosage, ref string frequency, ref string duration)
+        /// <summary>Returns the row; ref parameters cannot cross an await (CS1988).</summary>
+        public static async Task<DataRow?> FindAsync(int id)
         {
-            bool isFound = false;
+            DataTable dt = new DataTable();
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
-                string query = @"SELECT * FROM PrescriptionItems WHERE PrescriptionItemID = @PrescriptionItemID";
+                string query = @"SELECT [PrescriptionItemID]
+                    ,[VisitID]
+                    ,[MedicineID]
+                    ,[Dosage]
+                    ,[Frequency]
+                    ,[Duration]
+                FROM [dbo].[PrescriptionItems]
+                WHERE PrescriptionItemID = @PrescriptionItemID";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@PrescriptionItemID", id);
 
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
-                        if (reader.Read())
-                        {
-                            isFound = true;
-
-                            visitID = (int)reader["VisitID"];
-                            medicineID = (int)reader["MedicineID"];
-                            dosage = reader["Dosage"].ToString() ?? string.Empty;
-                            frequency = reader["Frequency"].ToString() ?? string.Empty;
-                            duration = reader["Duration"].ToString() ?? string.Empty;
-                        }
+                        if (reader.HasRows)
+                            dt.Load(reader);
                     }
                 }
             }
 
-            return isFound;
+            return dt.Rows.Count > 0 ? dt.Rows[0] : null;
         }
 
-        public static int? Create(int visitID, int medicineID, string dosage, string frequency, string duration)
+        public static async Task<int?> CreateAsync(int visitID, int medicineID, string dosage, string frequency, string duration)
         {
             int? id = null;
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"INSERT INTO [dbo].[PrescriptionItems]
                     ([VisitID]
@@ -136,7 +136,7 @@ namespace Clinic_DataAccess
                     command.Parameters.AddWithValue("@Frequency", frequency);
                     command.Parameters.AddWithValue("@Duration", duration);
 
-                    object result = command.ExecuteScalar();
+                    object? result = await command.ExecuteScalarAsync();
 
                     if (result != null && int.TryParse(result.ToString(), out int insertedId))
                     {
@@ -148,7 +148,7 @@ namespace Clinic_DataAccess
             return id;
         }
 
-        public static bool Update(int? id, int medicineID, string dosage, string frequency, string duration)
+        public static async Task<bool> UpdateAsync(int? id, int medicineID, string dosage, string frequency, string duration)
         {
             if (!id.HasValue)
                 return false;
@@ -157,7 +157,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"UPDATE [dbo].[PrescriptionItems]
                 SET [MedicineID] = @MedicineID
@@ -174,14 +174,14 @@ namespace Clinic_DataAccess
                     command.Parameters.AddWithValue("@Frequency", frequency);
                     command.Parameters.AddWithValue("@Duration", duration);
 
-                    rowsAffected = command.ExecuteNonQuery();
+                    rowsAffected = await command.ExecuteNonQueryAsync();
                 }
             }
 
             return rowsAffected > 0;
         }
 
-        public static bool Delete(int? id)
+        public static async Task<bool> DeleteAsync(int? id)
         {
             if (!id.HasValue)
                 return false;
@@ -190,7 +190,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"DELETE FROM [dbo].[PrescriptionItems] WHERE PrescriptionItemID = @PrescriptionItemID";
 
@@ -198,20 +198,20 @@ namespace Clinic_DataAccess
                 {
                     command.Parameters.AddWithValue("@PrescriptionItemID", id);
 
-                    rowsAffected = command.ExecuteNonQuery();
+                    rowsAffected = await command.ExecuteNonQueryAsync();
                 }
             }
 
             return rowsAffected > 0;
         }
 
-        public static bool CreatePrescriptionItems(List<(int visitID, int medicineID, string dosage, string frequency, string duration)> items)
+        public static async Task<bool> CreatePrescriptionItemsAsync(List<(int visitID, int medicineID, string dosage, string frequency, string duration)> items)
         {
             int rowsAffected = 0;
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"INSERT INTO [dbo].[PrescriptionItems]
                     ([VisitID]
@@ -247,21 +247,21 @@ namespace Clinic_DataAccess
                     command.CommandText = query;
                     command.Connection = connection;
 
-                    rowsAffected = command.ExecuteNonQuery();
+                    rowsAffected = await command.ExecuteNonQueryAsync();
                 }
             }
 
             return rowsAffected > 0;
         }
 
-        public static int UpdatePrescriptionItems(List<(int visitID, int medicineID, string dosage, string frequency, string duration)> items)
+        public static async Task<int> UpdatePrescriptionItemsAsync(List<(int visitID, int medicineID, string dosage, string frequency, string duration)> items)
         {
             if (items.Count == 0)
                 return 0;
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 using (SqlCommand command = new SqlCommand())
                 {
@@ -304,7 +304,7 @@ namespace Clinic_DataAccess
 
                     command.Connection = connection;
 
-                    return command.ExecuteNonQuery();
+                    return await command.ExecuteNonQueryAsync();
                 }
             }
         }

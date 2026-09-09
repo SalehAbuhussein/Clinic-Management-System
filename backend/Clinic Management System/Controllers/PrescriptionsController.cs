@@ -4,7 +4,6 @@ using Clinic_Management_System.DTOs.Models.Prescriptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
-using System.Data;
 
 namespace Clinic_Management_System.Controllers
 {
@@ -15,10 +14,14 @@ namespace Clinic_Management_System.Controllers
     public class PrescriptionsController : ControllerBase
     {
         private readonly IVisitRepository _visitRepository;
+        private readonly IPrescriptionItemRepository _prescriptionItemRepository;
 
-        public PrescriptionsController(IVisitRepository visitRepository)
+        public PrescriptionsController(
+            IVisitRepository visitRepository,
+            IPrescriptionItemRepository prescriptionItemRepository)
         {
             _visitRepository = visitRepository;
+            _prescriptionItemRepository = prescriptionItemRepository;
         }
 
         [Authorize]
@@ -45,19 +48,21 @@ namespace Clinic_Management_System.Controllers
             if (!authResult.Succeeded)
                 return Forbid();
 
-            DataTable items = clsPrescriptionItem.FindAllByVisitID(visitId, page, perPage);
+            List<clsPrescriptionItem> items =
+                await _prescriptionItemRepository.FindAllByVisitIdAsync(visitId, page, perPage);
+
             List<PrescriptionDTO> prescriptions = new List<PrescriptionDTO>();
 
-            foreach (DataRow row in items.Rows)
+            foreach (clsPrescriptionItem item in items)
             {
                 prescriptions.Add(new PrescriptionDTO
                 {
-                    Id = row.Field<int>("PrescriptionItemID"),
-                    VisitID = row.Field<int>("VisitID"),
-                    MedicineID = row.Field<int>("MedicineID"),
-                    Dosage = row.Field<string>("Dosage") ?? string.Empty,
-                    Frequency = row.Field<string>("Frequency") ?? string.Empty,
-                    Duration = row.Field<string>("Duration") ?? string.Empty,
+                    Id = item.PrescriptionItemID,
+                    VisitID = item.VisitID,
+                    MedicineID = item.MedicineID,
+                    Dosage = item.Dosage,
+                    Frequency = item.Frequency,
+                    Duration = item.Duration,
                 });
             }
 
@@ -100,13 +105,13 @@ namespace Clinic_Management_System.Controllers
                     detail: "The visit has already ended, so its prescription cannot be changed.");
 
             // 3- If Visit has existing Prescription refuse (will be making endpoint to update).
-            if (clsPrescriptionItem.HasPrescriptionByVisitID(visitId))
+            if (await _prescriptionItemRepository.HasPrescriptionByVisitIdAsync(visitId))
                 return Problem(statusCode: StatusCodes.Status409Conflict,
                     detail: "This visit already has a prescription.");
 
             var items = request.Items.Select(item => (visitId, item.MedicineID, item.Dosage, item.Frequency, item.Duration)).ToList();
 
-            if (clsPrescriptionItem.CreatePrescriptionItems(items))
+            if (await _prescriptionItemRepository.CreateManyAsync(items))
                 return CreatedAtRoute("GetVisitPrescriptionItems", new { visitId }, null);
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
@@ -148,12 +153,12 @@ namespace Clinic_Management_System.Controllers
                     detail: "The visit has already ended, so its prescription cannot be changed.");
 
             // 3- Make sure Prescription Exist.
-            if (!clsPrescriptionItem.HasPrescriptionByVisitID(visitId))
+            if (!await _prescriptionItemRepository.HasPrescriptionByVisitIdAsync(visitId))
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: "This visit has no prescription to update.");
 
             var items = request.Items.Select(item => (visitId, item.MedicineID, item.Dosage, item.Frequency, item.Duration)).ToList();
-            if (clsPrescriptionItem.UpdatePrescriptionItems(items) > 0)
+            if (await _prescriptionItemRepository.UpdateManyAsync(items) > 0)
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,

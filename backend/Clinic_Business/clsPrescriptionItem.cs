@@ -1,4 +1,4 @@
-﻿using Clinic_DataAccess;
+using Clinic_DataAccess;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -32,38 +32,44 @@ namespace Clinic_Business
             Duration = duration;
         }
 
-        public static DataTable FindAllByVisitID(int visitID, int pageNumber, int pageSize)
+        private static clsPrescriptionItem MapPrescriptionItem(DataRow row)
         {
-            return clsPrescriptionItemDA.FindAllByVisitID(visitID, pageNumber, pageSize);
+            return new clsPrescriptionItem(
+                (int)row["PrescriptionItemID"],
+                (int)row["VisitID"],
+                (int)row["MedicineID"],
+                (string)row["Dosage"],
+                (string)row["Frequency"],
+                (string)row["Duration"]);
         }
 
-        public static bool HasPrescriptionByVisitID(int? id)
+        public static async Task<List<clsPrescriptionItem>> FindAllByVisitIDAsync(int visitID, int pageNumber, int pageSize)
         {
-            return clsPrescriptionItemDA.HasPrescriptionByVisitID(id);
+            DataTable dt = await clsPrescriptionItemDA.FindAllByVisitIDAsync(visitID, pageNumber, pageSize);
+
+            return dt.AsEnumerable().Select(MapPrescriptionItem).ToList();
         }
 
-        public static bool CreatePrescriptionItems(List<(int visitID, int medicineID, string dosage, string frequency, string duration)> items)
+        public static Task<bool> HasPrescriptionByVisitIDAsync(int? id)
         {
-            return clsPrescriptionItemDA.CreatePrescriptionItems(items);
+            return clsPrescriptionItemDA.HasPrescriptionByVisitIDAsync(id);
         }
 
-        public static clsPrescriptionItem? Find(int id)
+        public static Task<bool> CreatePrescriptionItemsAsync(List<(int visitID, int medicineID, string dosage, string frequency, string duration)> items)
         {
-            int visitID = int.MinValue;
-            int medicineID = int.MinValue;
-            string dosage = string.Empty;
-            string frequency = string.Empty;
-            string duration = string.Empty;
-
-            if (clsPrescriptionItemDA.Find(id, ref visitID, ref medicineID, ref dosage, ref frequency, ref duration))
-                return new clsPrescriptionItem(id, visitID, medicineID, dosage, frequency, duration);
-
-            return null;
+            return clsPrescriptionItemDA.CreatePrescriptionItemsAsync(items);
         }
 
-        public static int UpdatePrescriptionItems(List<(int visitID, int medicineID, string dosage, string frequency, string duration)> items)
+        public static async Task<clsPrescriptionItem?> FindAsync(int id)
         {
-            return clsPrescriptionItemDA.UpdatePrescriptionItems(items);
+            DataRow? row = await clsPrescriptionItemDA.FindAsync(id);
+
+            return row is null ? null : MapPrescriptionItem(row);
+        }
+
+        public static Task<int> UpdatePrescriptionItemsAsync(List<(int visitID, int medicineID, string dosage, string frequency, string duration)> items)
+        {
+            return clsPrescriptionItemDA.UpdatePrescriptionItemsAsync(items);
         }
     }
 }

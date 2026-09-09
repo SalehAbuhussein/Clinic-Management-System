@@ -100,6 +100,7 @@ builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IVisitRepository, VisitRepository>();
 builder.Services.AddScoped<IDiagnosisRepository, DiagnosisRepository>();
+builder.Services.AddScoped<IPrescriptionItemRepository, PrescriptionItemRepository>();
 
 builder.Services.AddProblemDetails();
 // ✅ NEW
