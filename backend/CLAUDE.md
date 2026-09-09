@@ -133,6 +133,50 @@ the signature is worth revisiting even though the wiring is now right.
 Entity persistence is still called on the object (`user.Create()`, `appointment.SaveAsync()`).
 That is the recorded decision, not an oversight.
 
+## Logging
+
+`ILogger<T>` needs **no registration** — the host adds it to the container before user code
+runs. Coverage is deliberately scoped rather than everywhere, on three rules:
+
+1. **Never duplicate the framework.** `Microsoft.AspNetCore.Diagnostics` already logs
+   `"An unhandled exception has occurred…"` at **Error** with the full exception, so a
+   `SqlException` reaching `UseExceptionHandler` is logged without us writing anything. Adding
+   our own `LogError` there would report the same failure twice.
+2. **Log in the API layer only.** `clsX` and `clsXDA` are static-entry, so there is no
+   constructor to inject into, and the data layer throws rather than swallowing — failures
+   surface as exceptions the framework logs once at the top. Instrumenting those layers would
+   double-report and would require reshaping the classes first.
+3. **Log what the response deliberately hides, plus audit-worthy state changes.** Not ordinary
+   404s or validation failures: the caller already knows and it is noise.
+
+Applied, that is:
+
+| Where | Event | Level |
+|---|---|---|
+| `AuthController.Login` | unknown email; wrong password; success | Warning / Warning / Information |
+| `AuthController.Refresh` | revoked token used; hash mismatch | Warning |
+| `UsersController` | role/active change, deactivate, activate — with the acting admin's id | Information |
+| `Program.cs` `OnRejected` | rate-limit rejection | Warning |
+
+Levels are set per category in `appsettings.json`, matched by **prefix, most specific wins**:
+`Default` is `Warning`, while the `AuthController` category, `Clinic.RateLimiting` and
+`Microsoft.AspNetCore.Authorization` stay at `Information`. That last one matters — the broad
+`Microsoft.AspNetCore: Warning` entry was **hiding every authorization failure**, because the
+framework logs those at Information. `appsettings.Development.json` overrides `Default` back
+to `Information` locally.
+
+Two things to keep in mind:
+
+- **Always message templates, never interpolation.** `LogWarning("… {Email}", email)` records a
+  named property; `$"… {email}"` flattens it into an unqueryable string.
+- **The login failure paths return an identical 401 on purpose** (anti-enumeration) **but log
+  different messages.** Responses are for the caller, logs are for us; they need not agree.
+  Deliberately *not* logged: an unknown email on `Refresh`, which is indistinguishable from a
+  stale client, and which `Login` already covers for enumeration purposes.
+
+Still open: no log scopes, so nothing carries a correlation id across a request — the
+`traceId` now on every `ProblemDetails` is the value a scope would carry.
+
 ## Database facts not visible in the code
 
 - `dbo.Users.Role` **defaults to `'Staff'`** — `clsUserDA.Create` deliberately omits the

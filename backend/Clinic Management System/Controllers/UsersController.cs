@@ -13,10 +13,14 @@ namespace Clinic_Management_System.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
+        private readonly ILogger<UsersController> _logger;
 
-        public UsersController(IUserRepository userRepository)
+        public UsersController(
+            IUserRepository userRepository,
+            ILogger<UsersController> logger)
         {
             _userRepository = userRepository;
+            _logger = logger;
         }
 
         [Authorize(Roles = "Admin")]
@@ -90,12 +94,22 @@ namespace Clinic_Management_System.Controllers
                 return Problem(statusCode: StatusCodes.Status409Conflict,
                     detail: "That email is already in use by another user.");
 
+            string previousRole = user.Role;
+            bool previousActive = user.Active;
+
             user.Email = updatedUserDTO.Email; // TODO Check if the email is assigned to another user to return error
             user.Role = updatedUserDTO.Role ?? user.Role; // TODO: Check who really can change the role
             user.Active = updatedUserDTO.Active ?? user.Active;
 
             if (await user.Update())
+            {
+                _logger.LogInformation(
+                    "Admin {ActorId} updated user {UserId}: role {PreviousRole} -> {Role}, active {PreviousActive} -> {Active}",
+                    User.FindFirstValue(ClaimTypes.NameIdentifier), id,
+                    previousRole, user.Role, previousActive, user.Active);
+
                 return NoContent();
+            }
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
                 detail: "The user could not be saved.");
@@ -123,7 +137,11 @@ namespace Clinic_Management_System.Controllers
                     detail: $"User with id {id} not found");
 
             if (await user.Deactivate())
+            {
+                _logger.LogInformation("Admin {ActorId} deactivated user {UserId}", userId, id);
+
                 return NoContent();
+            }
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
                 detail: "The user could not be deactivated.");
@@ -145,7 +163,12 @@ namespace Clinic_Management_System.Controllers
                     detail: $"User with id {id} not found");
 
             if (await user.Activate())
+            {
+                _logger.LogInformation("Admin {ActorId} activated user {UserId}",
+                    User.FindFirstValue(ClaimTypes.NameIdentifier), id);
+
                 return NoContent();
+            }
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
                 detail: "The user could not be activated.");

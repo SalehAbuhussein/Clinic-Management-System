@@ -45,8 +45,12 @@ namespace Clinic_Management_System.Controllers
             var user = await _userRepository.FindByEmailAsync(request.Email);
 
             if (user == null)
+            {
+                _logger.LogWarning("Failed login for unknown email {Email}", request.Email);
+
                 return Problem(statusCode: StatusCodes.Status401Unauthorized,
                     detail: "Invalid credentials");
+            }
 
             // Step 2: Verify the provided password against the stored hash
             bool isValidPassword = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
@@ -137,8 +141,14 @@ namespace Clinic_Management_System.Controllers
                     detail: "Invalid refresh request.");
 
             if (user.RefreshTokenRevokedAt != null)
+            {
+                _logger.LogWarning(
+                    "Refresh attempted with a revoked token for user {UserId}, revoked at {RevokedAt}",
+                    user.UserID, user.RefreshTokenRevokedAt);
+
                 return Problem(statusCode: StatusCodes.Status401Unauthorized,
                     detail: "Refresh token is revoked.");
+            }
 
             if (user.RefreshTokenExpiresAt == null || user.RefreshTokenExpiresAt <= DateTime.UtcNow)
                 return Problem(statusCode: StatusCodes.Status401Unauthorized,
@@ -150,8 +160,13 @@ namespace Clinic_Management_System.Controllers
 
             bool refreshValid = BCrypt.Net.BCrypt.Verify(request.RefreshToken, user.RefreshTokenHash);
             if (!refreshValid)
+            {
+                _logger.LogWarning(
+                    "Refresh token did not match the stored hash for user {UserId}", user.UserID);
+
                 return Problem(statusCode: StatusCodes.Status401Unauthorized,
                     detail: "Invalid refresh token");
+            }
 
             if (!user.Active)
                 return Problem(statusCode: 403, detail: "Account inactive, please contact an admin");
