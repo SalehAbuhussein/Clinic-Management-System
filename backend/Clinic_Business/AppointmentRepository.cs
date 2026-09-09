@@ -1,0 +1,29 @@
+﻿using Clinic_Business.Interfaces;
+
+namespace Clinic_Business
+{
+    public class AppointmentRepository : IAppointmentRepository
+    {
+        public Task<clsAppointment?> FindByIdAsync(int id) => clsAppointment.FindAsync(id);
+
+        public Task<List<clsAppointment>> FindAllAsync(
+            int? doctorId,
+            int? patientId,
+            DateTime? date,
+            int pageNumber = 1,
+            int pageSize = 10)
+            => clsAppointment.FindAllAsync(doctorId, patientId, date, pageNumber, pageSize);
+
+        public Task<bool> ExistsAsync(int? id) => clsAppointment.IsExistByIDAsync(id);
+
+        public Task<bool> DeleteAsync(int id) => clsAppointment.DeleteAsync(id);
+
+        public Task<bool> IsCancelledAsync(int? id) => clsAppointment.IsAppointmentCancelledAsync(id);
+
+        public Task<bool> HasDoctorConflictAsync(int? doctorId, DateTime startAt, DateTime endAt, int? excludeAppointmentID = null)
+            => clsAppointment.HasDoctorExistingAppointmentAsync(doctorId, startAt, endAt, excludeAppointmentID);
+
+        public Task<bool> HasPatientConflictAsync(int patientId, DateTime startAt, DateTime endAt, int? excludeAppointmentID = null)
+            => clsAppointment.HasPatientExistingAppointmentAsync(patientId, startAt, endAt, excludeAppointmentID);
+    }
+}

@@ -59,104 +59,113 @@ namespace Clinic_Business
             CreatedBy = createdBy;
         }
 
-        public static DataTable FindAll(
+        public static async Task<List<clsAppointment>> FindAllAsync(
             int? doctorId,
             int? patientId,
             DateTime? date,
             int pageNumber = 1,
             int pageSize = 10)
         {
-            return clsAppointmentDA.FindAll(doctorId, patientId, date, pageNumber, pageSize);
+            DataTable table = await clsAppointmentDA.FindAllAsync(doctorId, patientId, date, pageNumber, pageSize);
+
+            return table.AsEnumerable().Select(MapAppointment).ToList();
         }
 
-        public static clsAppointment? Find(int id)
+        public static async Task<clsAppointment?> FindAsync(int id)
         {
-            int doctorID = int.MinValue;
-            int patientID = int.MinValue;
-            DateTime startAt = DateTime.MinValue;
-            DateTime endAt = DateTime.MinValue;
-            byte status = byte.MinValue;
-            string? notes = null;
-            DateTime createdAt = DateTime.MinValue;
-            DateTime updatedAt = DateTime.MinValue;
-            int createdBy = int.MinValue;
+            DataRow? row = await clsAppointmentDA.FindAsync(id);
 
-            if (clsAppointmentDA.Find(id, ref doctorID, ref patientID, ref startAt, ref endAt, ref status, ref notes, ref createdAt, ref updatedAt, ref createdBy))
-            {
-                return new clsAppointment(id, doctorID, patientID, startAt, endAt, status, notes, createdAt, updatedAt, createdBy);
-            }
-
-            return null;
-        } 
-
-        public static bool IsExistByID(int? id)
-        {
-            return clsAppointmentDA.IsExistByID(id);
+            return row == null ? null : MapAppointment(row);
         }
 
-        public static bool Delete(int id)
+        /// <summary>
+        /// Builds an appointment from a row. Shared by the single fetch and the list, so the
+        /// two can never disagree about a column name.
+        /// </summary>
+        internal static clsAppointment MapAppointment(DataRow row)
         {
-            return clsAppointmentDA.Delete(id);
+            return new clsAppointment(
+                row.Field<int>("AppointmentID"),
+                row.Field<int>("DoctorID"),
+                row.Field<int>("PatientID"),
+                row.Field<DateTime>("StartAt"),
+                row.Field<DateTime>("EndAt"),
+                row.Field<byte>("Status"),
+                row.Field<string>("Notes"),
+                row.Field<DateTime>("CreatedAt"),
+                row.Field<DateTime>("UpdatedAt"),
+                row.Field<int>("CreatedBy")
+            );
         }
 
-        public static bool HasDoctorExistingAppointment(int? doctorId, DateTime startAt, DateTime endAt, int? excludeAppointmentID = null)
+        public static Task<bool> IsExistByIDAsync(int? id)
         {
-            return clsAppointmentDA.HasDoctorExistingAppointment(doctorId, startAt, endAt, excludeAppointmentID);
+            return clsAppointmentDA.IsExistByIDAsync(id);
         }
 
-        public static bool HasPatientExistingAppointment(int patientId, DateTime startAt, DateTime endAt, int? excludeAppointmentID = null)
+        public static Task<bool> DeleteAsync(int id)
         {
-            return clsAppointmentDA.HasPatientExistingAppointment(patientId, startAt, endAt, excludeAppointmentID);
+            return clsAppointmentDA.DeleteAsync(id);
         }
 
-        public static bool IsAppointmentScheduled(int? id)
+        public static Task<bool> HasDoctorExistingAppointmentAsync(int? doctorId, DateTime startAt, DateTime endAt, int? excludeAppointmentID = null)
         {
-            return clsAppointmentDA.IsAppointmentScheduled(id);
+            return clsAppointmentDA.HasDoctorExistingAppointmentAsync(doctorId, startAt, endAt, excludeAppointmentID);
         }
 
-        public static bool IsAppointmentAttended(int? id)
+        public static Task<bool> HasPatientExistingAppointmentAsync(int patientId, DateTime startAt, DateTime endAt, int? excludeAppointmentID = null)
         {
-            return clsAppointmentDA.IsAppointmentAttended(id);
+            return clsAppointmentDA.HasPatientExistingAppointmentAsync(patientId, startAt, endAt, excludeAppointmentID);
         }
 
-        public static bool IsAppointmentCancelled(int? id)
+        public static Task<bool> IsAppointmentScheduledAsync(int? id)
         {
-            return clsAppointmentDA.IsAppointmentCancelled(id);
+            return clsAppointmentDA.IsAppointmentScheduledAsync(id);
         }
 
-        public static bool AttendAppointment(int? id)
+        public static Task<bool> IsAppointmentAttendedAsync(int? id)
         {
-            return clsAppointmentDA.AttendAppointment(id);
+            return clsAppointmentDA.IsAppointmentAttendedAsync(id);
         }
 
-        public bool AttendAppointment()
+        public static Task<bool> IsAppointmentCancelledAsync(int? id)
         {
-            return AttendAppointment(AppointmentID);
+            return clsAppointmentDA.IsAppointmentCancelledAsync(id);
         }
 
-        public static bool UnattendAppointment(int? id)
+        public static Task<bool> AttendAppointmentAsync(int? id)
         {
-            return clsAppointmentDA.UnattendAppointment(id);
+            return clsAppointmentDA.AttendAppointmentAsync(id);
         }
 
-        public bool UnattendAppointment()
+        public Task<bool> AttendAppointmentAsync()
         {
-            return UnattendAppointment(AppointmentID);
+            return AttendAppointmentAsync(AppointmentID);
         }
 
-        public static bool CancelAppointment(int? id)
+        public static Task<bool> UnattendAppointmentAsync(int? id)
         {
-            return clsAppointmentDA.CancelAppointment(id);
+            return clsAppointmentDA.UnattendAppointmentAsync(id);
         }
 
-        public bool CancelAppointment()
+        public Task<bool> UnattendAppointmentAsync()
         {
-            return CancelAppointment(AppointmentID);
+            return UnattendAppointmentAsync(AppointmentID);
         }
 
-        private bool _CreateAppointment()
+        public static Task<bool> CancelAppointmentAsync(int? id)
         {
-            int? newAppointmentID = clsAppointmentDA.Create(DoctorID, PatientID, StartAt, EndAt, Status, Notes, CreatedBy);
+            return clsAppointmentDA.CancelAppointmentAsync(id);
+        }
+
+        public Task<bool> CancelAppointmentAsync()
+        {
+            return CancelAppointmentAsync(AppointmentID);
+        }
+
+        private async Task<bool> _CreateAppointmentAsync()
+        {
+            int? newAppointmentID = await clsAppointmentDA.CreateAsync(DoctorID, PatientID, StartAt, EndAt, Status, Notes, CreatedBy);
 
             if (!newAppointmentID.HasValue)
                 return false;
@@ -165,12 +174,12 @@ namespace Clinic_Business
             return true;
         }
 
-        private bool _UpdateAppointment()
+        private Task<bool> _UpdateAppointmentAsync()
         {
-            return clsAppointmentDA.Update(AppointmentID, DoctorID, PatientID, StartAt, EndAt, Status, Notes);
+            return clsAppointmentDA.UpdateAsync(AppointmentID, DoctorID, PatientID, StartAt, EndAt, Status, Notes);
         }
 
-        public bool Save()
+        public async Task<bool> SaveAsync()
         {
             if (!IsValid())
                 return false;
@@ -178,7 +187,7 @@ namespace Clinic_Business
             switch (_Mode)
             {
                 case enMode.Add:
-                    if (_CreateAppointment())
+                    if (await _CreateAppointmentAsync())
                     {
                         _Mode = enMode.Update;
                         return true;
@@ -186,7 +195,7 @@ namespace Clinic_Business
 
                     return false;
                 case enMode.Update:
-                    return _UpdateAppointment();
+                    return await _UpdateAppointmentAsync();
             }
 
             return false;

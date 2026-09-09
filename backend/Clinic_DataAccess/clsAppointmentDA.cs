@@ -12,7 +12,7 @@ namespace Clinic_DataAccess
 {
     public class clsAppointmentDA
     {
-        public static DataTable FindAll(
+        public static async Task<DataTable> FindAllAsync(
             int? doctorId,
             int? patientId,
             DateTime? date,
@@ -24,7 +24,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"SELECT *
                 FROM Appointments";
@@ -66,7 +66,7 @@ namespace Clinic_DataAccess
 
                     command.CommandText = query;
 
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         if (reader.HasRows)
                         {
@@ -79,27 +79,21 @@ namespace Clinic_DataAccess
             return dt;
         }
 
-        public static bool Find(
-            int id,
-            ref int doctorID,
-            ref int patientID,
-            ref DateTime startAt,
-            ref DateTime endAt,
-            ref byte status,
-            ref string? notes,
-            ref DateTime createdAt,
-            ref DateTime updatedAt,
-            ref int createdBy
-        )
+        /// <summary>
+        /// Returns the row instead of filling ten ref parameters. ref cannot cross an await
+        /// (CS1988), and the caller no longer has to pre-declare ten locals seeded with
+        /// MinValue just to receive them.
+        /// </summary>
+        public static async Task<DataRow?> FindAsync(int id)
         {
             if (id == int.MinValue)
-                return false;
+                return null;
 
-            bool isFound = false;
+            DataTable dt = new DataTable();
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"SELECT [AppointmentID]
                     ,[DoctorID]
@@ -118,30 +112,18 @@ namespace Clinic_DataAccess
                 {
                     command.Parameters.AddWithValue("@AppointmentID", id);
 
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
-                        if (reader.Read())
-                        {
-                            isFound = true;
-
-                            doctorID = (int)reader["DoctorID"];
-                            patientID = (int)reader["PatientID"];
-                            startAt = (DateTime)reader["StartAt"];
-                            endAt = (DateTime)reader["EndAt"];
-                            status = (byte)reader["Status"];
-                            notes = reader["Notes"] == DBNull.Value ? null : reader["Notes"].ToString();
-                            createdAt = (DateTime)reader["CreatedAt"];
-                            updatedAt = (DateTime)reader["UpdatedAt"];
-                            createdBy = (int)reader["CreatedBy"];
-                        }
+                        if (reader.HasRows)
+                            dt.Load(reader);
                     }
                 }
             }
 
-            return isFound;
+            return dt.Rows.Count > 0 ? dt.Rows[0] : null;
         }
 
-        public static bool IsExistByID(int? id)
+        public static async Task<bool> IsExistByIDAsync(int? id)
         {
             if (!id.HasValue)
                 return false;
@@ -150,7 +132,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"SELECT true=1
                 FROM [ClinicManagementSystem].[dbo].[Appointments]
@@ -160,7 +142,7 @@ namespace Clinic_DataAccess
                 {
                     command.Parameters.AddWithValue("@AppointmentID", id);
 
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         isFound = reader.HasRows;
                     }
@@ -170,7 +152,7 @@ namespace Clinic_DataAccess
             return isFound;
         }
 
-        public static bool IsAppointmentScheduled(int? id)
+        public static async Task<bool> IsAppointmentScheduledAsync(int? id)
         {
             if (!id.HasValue)
                 return false;
@@ -179,7 +161,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"SELECT true=1
                 FROM [ClinicManagementSystem].[dbo].[Appointments]
@@ -189,7 +171,7 @@ namespace Clinic_DataAccess
                 {
                     command.Parameters.AddWithValue("@AppointmentID", id);
 
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         isFound = reader.HasRows;
                     }
@@ -199,7 +181,7 @@ namespace Clinic_DataAccess
             return isFound;
         }
 
-        public static bool IsAppointmentAttended(int? id)
+        public static async Task<bool> IsAppointmentAttendedAsync(int? id)
         {
             if (!id.HasValue)
                 return false;
@@ -208,7 +190,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"SELECT true=1
                 FROM [ClinicManagementSystem].[dbo].[Appointments]
@@ -218,7 +200,7 @@ namespace Clinic_DataAccess
                 {
                     command.Parameters.AddWithValue("@AppointmentID", id);
 
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         isFound = reader.HasRows;
                     }
@@ -228,7 +210,7 @@ namespace Clinic_DataAccess
             return isFound;
         }
 
-        public static bool IsAppointmentCancelled(int? id)
+        public static async Task<bool> IsAppointmentCancelledAsync(int? id)
         {
             if (id == int.MinValue)
                 return false;
@@ -237,7 +219,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"SELECT true=1
                 FROM [ClinicManagementSystem].[dbo].[Appointments]
@@ -247,7 +229,7 @@ namespace Clinic_DataAccess
                 {
                     command.Parameters.AddWithValue("@AppointmentID", id);
 
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         isFound = reader.HasRows;
                     }
@@ -257,7 +239,7 @@ namespace Clinic_DataAccess
             return isFound;
         }
 
-        public static int? Create(
+        public static async Task<int?> CreateAsync(
             int? doctorID,
             int patientID,
             DateTime startAt,
@@ -271,7 +253,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"INSERT INTO [dbo].[Appointments]
                     ([DoctorID]
@@ -300,7 +282,7 @@ namespace Clinic_DataAccess
                     command.Parameters.AddWithValue("@EndAt", endAt);
                     command.Parameters.AddWithValue("@CreatedBy", createdBy);
 
-                    object result = command.ExecuteScalar();
+                    object result = await command.ExecuteScalarAsync();
 
                     if (result != null && int.TryParse(result.ToString(), out int insertedId))
                     {
@@ -312,7 +294,7 @@ namespace Clinic_DataAccess
             return id;
         }
 
-        public static bool Update(
+        public static async Task<bool> UpdateAsync(
             int? id,
             int? doctorID,
             int patientID,
@@ -329,7 +311,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"UPDATE [dbo].[Appointments]
                 SET [DoctorID] = @DoctorID
@@ -350,14 +332,14 @@ namespace Clinic_DataAccess
                     command.Parameters.AddWithValue("@StartAt", startAt);
                     command.Parameters.AddWithValue("@EndAt", endAt);
 
-                    rowsAffected = command.ExecuteNonQuery();
+                    rowsAffected = await command.ExecuteNonQueryAsync();
                 }
             }
 
             return rowsAffected > 0;
         }
 
-        public static bool Delete(int? id)
+        public static async Task<bool> DeleteAsync(int? id)
         {
             if (!id.HasValue)
                 return false;
@@ -366,7 +348,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"DELETE FROM [dbo].[Appointments] WHERE AppointmentID = @AppointmentID";
 
@@ -374,14 +356,14 @@ namespace Clinic_DataAccess
                 {
                     command.Parameters.AddWithValue("@AppointmentID", id);
 
-                    rowsAffected = command.ExecuteNonQuery();
+                    rowsAffected = await command.ExecuteNonQueryAsync();
                 }
             }
 
             return rowsAffected > 0;
         }
 
-        public static bool HasDoctorExistingAppointment(int? doctorId, DateTime startAt, DateTime endAt, int? excludeAppointmentID = null)
+        public static async Task<bool> HasDoctorExistingAppointmentAsync(int? doctorId, DateTime startAt, DateTime endAt, int? excludeAppointmentID = null)
         {
             if (!doctorId.HasValue)
                 return false;
@@ -390,7 +372,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"SELECT true=1
                 FROM Appointments A
@@ -407,7 +389,7 @@ namespace Clinic_DataAccess
                     command.Parameters.AddWithValue("@EndAt", endAt);
                     command.Parameters.AddWithValue("@ExcludeAppointmentID", (object?)excludeAppointmentID ?? DBNull.Value);
 
-                    object result = command.ExecuteScalar();
+                    object result = await command.ExecuteScalarAsync();
 
                     hasOverlap = result != null;
                 }
@@ -416,13 +398,13 @@ namespace Clinic_DataAccess
             return hasOverlap;
         }
 
-        public static bool HasPatientExistingAppointment(int patientId, DateTime startAt, DateTime endAt, int? excludeAppointmentID = null)
+        public static async Task<bool> HasPatientExistingAppointmentAsync(int patientId, DateTime startAt, DateTime endAt, int? excludeAppointmentID = null)
         {
             bool hasOverlap = false;
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"SELECT true=1
                 FROM Appointments A
@@ -439,7 +421,7 @@ namespace Clinic_DataAccess
                     command.Parameters.AddWithValue("@EndAt", endAt);
                     command.Parameters.AddWithValue("@ExcludeAppointmentID", (object?)excludeAppointmentID ?? DBNull.Value);
 
-                    object result = command.ExecuteScalar();
+                    object result = await command.ExecuteScalarAsync();
 
                     hasOverlap = result != null;
                 }
@@ -448,7 +430,7 @@ namespace Clinic_DataAccess
             return hasOverlap;
         }
 
-        public static bool AttendAppointment(int? id)
+        public static async Task<bool> AttendAppointmentAsync(int? id)
         {
             if (!id.HasValue)
                 return false;
@@ -457,7 +439,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"UPDATE [dbo].[Appointments]
                 SET [Status] = 1
@@ -467,14 +449,14 @@ namespace Clinic_DataAccess
                 {
                     command.Parameters.AddWithValue("@AppointmentID", id);
 
-                    rowsAffected = command.ExecuteNonQuery();
+                    rowsAffected = await command.ExecuteNonQueryAsync();
                 }
             }
 
             return rowsAffected > 0;
         }
 
-        public static bool UnattendAppointment(int? id)
+        public static async Task<bool> UnattendAppointmentAsync(int? id)
         {
             if (!id.HasValue)
                 return false;
@@ -483,7 +465,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"UPDATE [dbo].[Appointments]
                 SET [Status] = 2
@@ -493,14 +475,14 @@ namespace Clinic_DataAccess
                 {
                     command.Parameters.AddWithValue("@AppointmentID", id);
 
-                    rowsAffected = command.ExecuteNonQuery();
+                    rowsAffected = await command.ExecuteNonQueryAsync();
                 }
             }
 
             return rowsAffected > 0;
         }
 
-        public static bool CancelAppointment(int? id)
+        public static async Task<bool> CancelAppointmentAsync(int? id)
         {
             if (!id.HasValue)
                 return false;
@@ -509,7 +491,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"UPDATE [dbo].[Appointments]
                 SET [Status] = 3
@@ -519,7 +501,7 @@ namespace Clinic_DataAccess
                 {
                     command.Parameters.AddWithValue("@AppointmentID", id);
 
-                    rowsAffected = command.ExecuteNonQuery();
+                    rowsAffected = await command.ExecuteNonQueryAsync();
                 }
             }
 

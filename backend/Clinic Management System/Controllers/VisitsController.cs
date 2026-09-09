@@ -1,4 +1,5 @@
 ﻿using Clinic_Business;
+using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Visits;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,6 +12,13 @@ namespace Clinic_Management_System.Controllers
     [ApiController]
     public class VisitsController : ControllerBase
     {
+        private readonly IAppointmentRepository _appointmentRepository;
+
+        public VisitsController(IAppointmentRepository appointmentRepository)
+        {
+            _appointmentRepository = appointmentRepository;
+        }
+
         [Authorize(Roles = "Admin,Staff")]
         [HttpGet(Name = "GetVisits")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -74,17 +82,17 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public ActionResult<VisitDTO> AddVisit(CreateVisitDTO visitDTO)
+        public async Task<ActionResult<VisitDTO>> AddVisit(CreateVisitDTO visitDTO)
         {
             if (clsVisit.IsExistByAppointmentID(visitDTO.AppointmentID))
                 return Problem(statusCode: StatusCodes.Status409Conflict,
                     detail: $"Appointment {visitDTO.AppointmentID} already has a visit.");
 
-            if (!clsAppointment.IsExistByID(visitDTO.AppointmentID))
+            if (!await _appointmentRepository.ExistsAsync(visitDTO.AppointmentID))
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Appointment with id {visitDTO.AppointmentID} not found");
 
-            if (clsAppointment.IsAppointmentCancelled(visitDTO.AppointmentID))
+            if (await _appointmentRepository.IsCancelledAsync(visitDTO.AppointmentID))
                 return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
                     detail: "The appointment has been cancelled, so no visit can be created for it.");
 

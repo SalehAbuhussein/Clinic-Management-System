@@ -4,7 +4,6 @@ using Clinic_Management_System.DTOs.Models.Appointments;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
-using System.Data;
 using System.Security.Claims;
 
 namespace Clinic_Management_System.Controllers
@@ -15,11 +14,16 @@ namespace Clinic_Management_System.Controllers
     {
         private readonly IPatientRepository _patientRepository;
         private readonly IDoctorRepository _doctorRepository;
+        private readonly IAppointmentRepository _appointmentRepository;
 
-        public AppointmentsController(IPatientRepository patientRepository, IDoctorRepository doctorRepository)
+        public AppointmentsController(
+            IPatientRepository patientRepository,
+            IDoctorRepository doctorRepository,
+            IAppointmentRepository appointmentRepository)
         {
             _patientRepository = patientRepository;
             _doctorRepository = doctorRepository;
+            _appointmentRepository = appointmentRepository;
         }
 
         [Authorize(Roles = "Admin,Staff")]
@@ -28,7 +32,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public ActionResult<List<AppointmentDTO>> GetAppointments(
+        public async Task<ActionResult<List<AppointmentDTO>>> GetAppointments(
             int? doctorId,
             int? patientId,
             DateTime? date,
@@ -38,22 +42,17 @@ namespace Clinic_Management_System.Controllers
         {
             perPage = Math.Clamp(perPage, 1, 10);
 
-            DataTable table = clsAppointment.FindAll(doctorId, patientId, date, page, perPage);
-            List<AppointmentDTO> appointmentsList = new List<AppointmentDTO>();
-
-            foreach (DataRow row in table.Rows)
-            {
-                appointmentsList.Add(new AppointmentDTO
+            List<AppointmentDTO> appointmentsList = (await _appointmentRepository.FindAllAsync(doctorId, patientId, date, page, perPage))
+                .Select(appointment => new AppointmentDTO
                 {
-                    Id = row.Field<int>("AppointmentID"),
-                    DoctorID = row.Field<int>("DoctorID"),
-                    PatientID = row.Field<int>("PatientID"),
-                    StartAt = AsUtc(row.Field<DateTime>("StartAt")),
-                    EndAt = AsUtc(row.Field<DateTime>("EndAt")),
-                    Status = row.Field<byte>("Status"),
-                    Notes = row.Field<string>("Notes")
-                });
-            }
+                    Id = appointment.AppointmentID,
+                    DoctorID = appointment.DoctorID,
+                    PatientID = appointment.PatientID,
+                    StartAt = AsUtc(appointment.StartAt),
+                    EndAt = AsUtc(appointment.EndAt),
+                    Status = appointment.Status,
+                    Notes = appointment.Notes
+                }).ToList();
 
             return Ok(appointmentsList);
         }
@@ -70,7 +69,7 @@ namespace Clinic_Management_System.Controllers
             [FromServices] IAuthorizationService authorizationService
         )
         {
-            clsAppointment? appointment = clsAppointment.Find(id);
+            clsAppointment? appointment = await _appointmentRepository.FindByIdAsync(id);
             if (appointment == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Appointment with id {id} not found");
@@ -114,11 +113,11 @@ namespace Clinic_Management_System.Controllers
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: "The doctor or patient referenced by this appointment does not exist.");
 
-            if (clsAppointment.HasPatientExistingAppointment(appointmentDTO.PatientID, appointmentDTO.StartAt.UtcDateTime, appointmentDTO.EndAt.UtcDateTime))
+            if (await _appointmentRepository.HasPatientConflictAsync(appointmentDTO.PatientID, appointmentDTO.StartAt.UtcDateTime, appointmentDTO.EndAt.UtcDateTime))
                 return Problem(statusCode: StatusCodes.Status409Conflict,
                     detail: "The patient already has an appointment in that time slot.");
 
-            if (clsAppointment.HasDoctorExistingAppointment(appointmentDTO.DoctorID, appointmentDTO.StartAt.UtcDateTime, appointmentDTO.EndAt.UtcDateTime))
+            if (await _appointmentRepository.HasDoctorConflictAsync(appointmentDTO.DoctorID, appointmentDTO.StartAt.UtcDateTime, appointmentDTO.EndAt.UtcDateTime))
                 return Problem(statusCode: StatusCodes.Status409Conflict,
                     detail: "The doctor already has an appointment in that time slot.");
 
@@ -135,7 +134,7 @@ namespace Clinic_Management_System.Controllers
             if (int.TryParse(userId, out int parsedUserID))
                 newAppointment.CreatedBy = parsedUserID;
 
-            if (newAppointment.Save())
+            if (await newAppointment.SaveAsync())
             {
                 AppointmentDTO newAppointmentDTO = new AppointmentDTO
                 {
@@ -165,7 +164,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public async Task<ActionResult> UpdateAppointment([Range(1, int.MaxValue)] int id, UpdateAppointmentDTO updatedAppointmentDTO)
         {
-            clsAppointment? appointment = clsAppointment.Find(id);
+            clsAppointment? appointment = await _appointmentRepository.FindByIdAsync(id);
 
             if (appointment == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
@@ -194,11 +193,11 @@ namespace Clinic_Management_System.Controllers
                     return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
                         detail: "An appointment cannot be rescheduled into the past.");
 
-                if (clsAppointment.HasPatientExistingAppointment(appointment.PatientID, newStart, newEnd, id))
+                if (await _appointmentRepository.HasPatientConflictAsync(appointment.PatientID, newStart, newEnd, id))
                     return Problem(statusCode: StatusCodes.Status409Conflict,
                         detail: "The patient already has an appointment in that time slot.");
 
-                if (clsAppointment.HasDoctorExistingAppointment(appointment.DoctorID, newStart, newEnd, id))
+                if (await _appointmentRepository.HasDoctorConflictAsync(appointment.DoctorID, newStart, newEnd, id))
                     return Problem(statusCode: StatusCodes.Status409Conflict,
                         detail: "The doctor already has an appointment in that time slot.");
             }
@@ -207,7 +206,7 @@ namespace Clinic_Management_System.Controllers
             appointment.EndAt = newEnd;
             appointment.Notes = updatedAppointmentDTO.Notes;
 
-            if (appointment.Save())
+            if (await appointment.SaveAsync())
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
@@ -243,22 +242,17 @@ namespace Clinic_Management_System.Controllers
             if (!authResult.Succeeded)
                 return Forbid();
 
-            DataTable table = clsAppointment.FindAll(doctorId, null, null, page, perPage);
-            List<AppointmentDTO> appointmentsList = new List<AppointmentDTO>();
-
-            foreach (DataRow row in table.Rows)
-            {
-                appointmentsList.Add(new AppointmentDTO
+            List<AppointmentDTO> appointmentsList = (await _appointmentRepository.FindAllAsync(doctorId, null, null, page, perPage))
+                .Select(appointment => new AppointmentDTO
                 {
-                    Id = row.Field<int>("AppointmentID"),
-                    DoctorID = row.Field<int>("DoctorID"),
-                    PatientID = row.Field<int>("PatientID"),
-                    StartAt = AsUtc(row.Field<DateTime>("StartAt")),
-                    EndAt = AsUtc(row.Field<DateTime>("EndAt")),
-                    Status = row.Field<byte>("Status"),
-                    Notes = row.Field<string>("Notes")
-                });
-            }
+                    Id = appointment.AppointmentID,
+                    DoctorID = appointment.DoctorID,
+                    PatientID = appointment.PatientID,
+                    StartAt = AsUtc(appointment.StartAt),
+                    EndAt = AsUtc(appointment.EndAt),
+                    Status = appointment.Status,
+                    Notes = appointment.Notes
+                }).ToList();
 
             return Ok(appointmentsList);
         }
@@ -271,9 +265,9 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public ActionResult AttendAppointment([Range(1, int.MaxValue)] int id)
+        public async Task<ActionResult> AttendAppointment([Range(1, int.MaxValue)] int id)
         {
-            clsAppointment? appointment = clsAppointment.Find(id);
+            clsAppointment? appointment = await _appointmentRepository.FindByIdAsync(id);
             if (appointment == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Appointment with id {id} not found");
@@ -290,7 +284,7 @@ namespace Clinic_Management_System.Controllers
                 return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
                     detail: "The appointment date has passed.");
 
-            if (appointment.AttendAppointment())
+            if (await appointment.AttendAppointmentAsync())
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
@@ -305,9 +299,9 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public ActionResult UnattendAppointment([Range(1, int.MaxValue)] int id)
+        public async Task<ActionResult> UnattendAppointment([Range(1, int.MaxValue)] int id)
         {
-            clsAppointment? appointment = clsAppointment.Find(id);
+            clsAppointment? appointment = await _appointmentRepository.FindByIdAsync(id);
             if (appointment == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Appointment with id {id} not found");
@@ -324,7 +318,7 @@ namespace Clinic_Management_System.Controllers
                 return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
                     detail: "The appointment has already been marked attended.");
 
-            if (appointment.UnattendAppointment())
+            if (await appointment.UnattendAppointmentAsync())
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
@@ -339,9 +333,9 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public ActionResult CancelAppointment([Range(1, int.MaxValue)] int id)
+        public async Task<ActionResult> CancelAppointment([Range(1, int.MaxValue)] int id)
         {
-            clsAppointment? appointment = clsAppointment.Find(id);
+            clsAppointment? appointment = await _appointmentRepository.FindByIdAsync(id);
             if (appointment == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Appointment with id {id} not found");
@@ -358,7 +352,7 @@ namespace Clinic_Management_System.Controllers
                 return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
                     detail: "The appointment has already been marked attended.");
 
-            if (appointment.CancelAppointment())
+            if (await appointment.CancelAppointmentAsync())
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
@@ -373,14 +367,14 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public ActionResult DeleteAppointment([Range(1, int.MaxValue)] int id)
+        public async Task<ActionResult> DeleteAppointment([Range(1, int.MaxValue)] int id)
         {
-            clsAppointment? appointment = clsAppointment.Find(id);
+            clsAppointment? appointment = await _appointmentRepository.FindByIdAsync(id);
             if (appointment == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Appointment with id {id} not found");
 
-            if (clsAppointment.Delete(id))
+            if (await _appointmentRepository.DeleteAsync(id))
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
