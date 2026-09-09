@@ -1,4 +1,5 @@
 ﻿using Clinic_DataAccess;
+using System.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,56 +42,58 @@ namespace Clinic_Business
             UpdatedAt = updatedAt;
         }
 
-        public static clsDiagnosis? Find(int id)
+        public static async Task<clsDiagnosis?> FindAsync(int id)
         {
-            int visitID = int.MinValue;
-            string diagnosis = string.Empty;
-            string? notes = null;
-            DateTime createdAt = DateTime.MinValue;
-            DateTime updatedAt = DateTime.MinValue;
+            DataRow? row = await clsDiagnosisDA.FindAsync(id);
 
-            if (clsDiagnosisDA.Find(id, ref visitID, ref diagnosis, ref notes, ref createdAt, ref updatedAt))
-                return new clsDiagnosis(id, visitID, diagnosis, notes, createdAt, updatedAt);
-
-            return null;
+            return row == null ? null : MapDiagnosis(row);
         }
 
-        public static clsDiagnosis? FindByVisitID(int? visitID)
+        public static async Task<clsDiagnosis?> FindByVisitIDAsync(int? visitID)
         {
-            int diagnosisID = int.MinValue;
-            string diagnosis = string.Empty;
-            string? notes = null;
-            DateTime createdAt = DateTime.MinValue;
-            DateTime updatedAt = DateTime.MinValue;
+            DataRow? row = await clsDiagnosisDA.FindByVisitIDAsync(visitID);
 
-            if (clsDiagnosisDA.FindByVisitID(visitID, ref diagnosisID, ref diagnosis, ref notes, ref createdAt, ref updatedAt))
-                return new clsDiagnosis(diagnosisID, visitID, diagnosis, notes, createdAt, updatedAt);
-
-            return null;
+            return row == null ? null : MapDiagnosis(row);
         }
 
-        public static bool IsExistByVisitID(int visitID)
+        /// <summary>
+        /// Builds a diagnosis from a row. Both lookups select the same six columns, so one
+        /// mapper serves them and neither can drift.
+        /// </summary>
+        internal static clsDiagnosis MapDiagnosis(DataRow row)
         {
-            return clsDiagnosisDA.IsExistByVisitID(visitID);
+            return new clsDiagnosis(
+                row.Field<int>("DiagnosesID"),
+                row.Field<int>("VisitID"),
+                row.Field<string>("Diagnosis") ?? string.Empty,
+                row.Field<string>("Notes"),
+                row.Field<DateTime>("CreatedAt"),
+                row.Field<DateTime>("UpdatedAt")
+            );
         }
 
-        public static bool Delete(int id)
+        public static Task<bool> IsExistByVisitIDAsync(int visitID)
         {
-            return clsDiagnosisDA.Delete(id);
+            return clsDiagnosisDA.IsExistByVisitIDAsync(visitID);
         }
 
-        private bool _Create()
+        public static Task<bool> DeleteAsync(int id)
         {
-            DiagnosesID = clsDiagnosisDA.Create(VisitID, Diagnosis, Notes);
+            return clsDiagnosisDA.DeleteAsync(id);
+        }
+
+        private async Task<bool> _CreateAsync()
+        {
+            DiagnosesID = await clsDiagnosisDA.CreateAsync(VisitID, Diagnosis, Notes);
             return DiagnosesID.HasValue;
         }
 
-        private bool _Update()
+        private Task<bool> _UpdateAsync()
         {
-            return clsDiagnosisDA.Update(DiagnosesID, Diagnosis, Notes);
+            return clsDiagnosisDA.UpdateAsync(DiagnosesID, Diagnosis, Notes);
         }
 
-        public bool Save()
+        public async Task<bool> SaveAsync()
         {
             if (!IsValid())
                 return false;
@@ -98,7 +101,7 @@ namespace Clinic_Business
             switch (_Mode)
             {
                 case enMode.Add:
-                    if (_Create())
+                    if (await _CreateAsync())
                     {
                         _Mode = enMode.Update;
                         return true;
@@ -107,7 +110,7 @@ namespace Clinic_Business
                         return false;
                     }
                 case enMode.Update:
-                    return _Update();
+                    return await _UpdateAsync();
             }
 
             return false;

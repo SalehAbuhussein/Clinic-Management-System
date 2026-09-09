@@ -12,10 +12,12 @@ namespace Clinic_Management_System.Controllers
     public class DiagnosesController : ControllerBase
     {
         private readonly IVisitRepository _visitRepository;
+        private readonly IDiagnosisRepository _diagnosisRepository;
 
-        public DiagnosesController(IVisitRepository visitRepository)
+        public DiagnosesController(IVisitRepository visitRepository, IDiagnosisRepository diagnosisRepository)
         {
             _visitRepository = visitRepository;
+            _diagnosisRepository = diagnosisRepository;
         }
 
         [Authorize(Roles = "Admin,Doctor")]
@@ -25,9 +27,9 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<DiagnosisDTO> GetDiagnosisByID([Range(1, int.MaxValue)] int id)
+        public async Task<ActionResult<DiagnosisDTO>> GetDiagnosisByID([Range(1, int.MaxValue)] int id)
         {
-            clsDiagnosis? diagnosis = clsDiagnosis.Find(id);
+            clsDiagnosis? diagnosis = await _diagnosisRepository.FindByIdAsync(id);
             if (diagnosis == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Diagnosis with id {id} not found");
@@ -51,7 +53,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public async Task<ActionResult<DiagnosisDTO>> AddDiagnoses(CreateDiagnosesDTO createDiagnosesDTO)
         {
-            if (clsDiagnosis.IsExistByVisitID(createDiagnosesDTO.VisitID))
+            if (await _diagnosisRepository.ExistsByVisitIdAsync(createDiagnosesDTO.VisitID))
                 return Problem(statusCode: StatusCodes.Status409Conflict,
                     detail: $"Visit {createDiagnosesDTO.VisitID} already has a diagnosis");
 
@@ -69,7 +71,7 @@ namespace Clinic_Management_System.Controllers
             diagnosis.Diagnosis = createDiagnosesDTO.Diagnosis;
             diagnosis.Notes = createDiagnosesDTO.Notes;
 
-            if (diagnosis.Save())
+            if (await diagnosis.SaveAsync())
                 return CreatedAtRoute("GetDiagnosisByID", new { id = diagnosis.DiagnosesID },
                     new DiagnosisDTO
                     {
@@ -92,7 +94,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public async Task<ActionResult> UpdateDiagnosis([Range(1, int.MaxValue)] int id, UpdateDiagnosesDTO updateDiagnosesDTO)
         {
-            clsDiagnosis? diagnosis = clsDiagnosis.Find(id);
+            clsDiagnosis? diagnosis = await _diagnosisRepository.FindByIdAsync(id);
             if (diagnosis == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Diagnosis with id {id} not found");
@@ -104,7 +106,7 @@ namespace Clinic_Management_System.Controllers
             diagnosis.Diagnosis = updateDiagnosesDTO.Diagnosis;
             diagnosis.Notes = updateDiagnosesDTO.Notes;
 
-            if (diagnosis.Save())
+            if (await diagnosis.SaveAsync())
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,

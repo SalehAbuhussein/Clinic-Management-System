@@ -12,16 +12,17 @@ namespace Clinic_DataAccess
 {
     public class clsDiagnosisDA
     {
-        public static bool Find(int? id, ref int visitID, ref string diagnosis, ref string? notes, ref DateTime createdAt, ref DateTime updatedAt)
+        /// <summary>Returns the row; ref parameters cannot cross an await (CS1988).</summary>
+        public static async Task<DataRow?> FindAsync(int? id)
         {
             if (!id.HasValue)
-                return false;
+                return null;
 
-            bool isFound = false;
+            DataTable dt = new DataTable();
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"SELECT [DiagnosesID]
                     ,[VisitID]
@@ -30,41 +31,33 @@ namespace Clinic_DataAccess
                     ,[CreatedAt]
                     ,[UpdatedAt]
                 FROM [ClinicManagementSystem].[dbo].[Diagnoses]
-                WHERE DiagnosesID = @DiagnosesID";
+                WHERE DiagnosesID = @Value";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
-                    command.Parameters.AddWithValue("@DiagnosesID", id);
+                    command.Parameters.AddWithValue("@Value", id);
 
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
-                        if (reader.Read())
-                        {
-                            isFound = true;
-
-                            visitID = (int)reader["VisitID"];
-                            diagnosis = reader["Diagnosis"].ToString() ?? string.Empty;
-                            notes = reader["Notes"] == DBNull.Value ? null : reader["Notes"].ToString();
-                            createdAt = (DateTime)reader["CreatedAt"];
-                            updatedAt = (DateTime)reader["UpdatedAt"];
-                        }
+                        if (reader.HasRows)
+                            dt.Load(reader);
                     }
                 }
             }
 
-            return isFound;
+            return dt.Rows.Count > 0 ? dt.Rows[0] : null;
         }
     
-        public static bool FindByVisitID(int? visitID, ref int diagnosisID, ref string diagnosis, ref string? notes, ref DateTime createdAt, ref DateTime updatedAt)
+        public static async Task<DataRow?> FindByVisitIDAsync(int? visitID)
         {
             if (!visitID.HasValue)
-                return false;
-
-            bool isFound = false;
+                return null;
+                
+            DataTable dt = new DataTable();
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"SELECT [DiagnosesID]
                     ,[VisitID]
@@ -73,32 +66,24 @@ namespace Clinic_DataAccess
                     ,[CreatedAt]
                     ,[UpdatedAt]
                 FROM [ClinicManagementSystem].[dbo].[Diagnoses]
-                WHERE VisitID = @VisitID";
+                WHERE VisitID = @Value";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
-                    command.Parameters.AddWithValue("@VisitID", visitID);
+                    command.Parameters.AddWithValue("@Value", visitID);
 
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
-                        if (reader.Read())
-                        {
-                            isFound = true;
-
-                            diagnosisID = (int)reader["DiagnosesID"];
-                            diagnosis = reader["Diagnosis"].ToString() ?? string.Empty;
-                            notes = reader["Notes"] == DBNull.Value ? null : reader["Notes"].ToString();
-                            createdAt = (DateTime)reader["CreatedAt"];
-                            updatedAt = (DateTime)reader["UpdatedAt"];
-                        }
+                        if (reader.HasRows)
+                            dt.Load(reader);
                     }
                 }
             }
 
-            return isFound;
+            return dt.Rows.Count > 0 ? dt.Rows[0] : null;
         }
 
-        public static bool IsExistByVisitID(int? visitID)
+        public static async Task<bool> IsExistByVisitIDAsync(int? visitID)
         {
             if (!visitID.HasValue)
                 return false;
@@ -107,7 +92,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"SELECT true=1
                 FROM [ClinicManagementSystem].[dbo].[Diagnoses]
@@ -117,7 +102,7 @@ namespace Clinic_DataAccess
                 {
                     command.Parameters.AddWithValue("@VisitID", visitID);
 
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         isFound = reader.HasRows;
                     }
@@ -127,13 +112,13 @@ namespace Clinic_DataAccess
             return isFound;
         }
 
-        public static int? Create(int? visitID, string diagnosis, string? notes)
+        public static async Task<int?> CreateAsync(int? visitID, string diagnosis, string? notes)
         {
             int? id = null;
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"INSERT INTO [dbo].[Diagnoses]
                     ([VisitID]
@@ -150,7 +135,7 @@ namespace Clinic_DataAccess
                     command.Parameters.AddWithValue("@Diagnosis", diagnosis);
                     command.Parameters.AddWithValue("@Notes", string.IsNullOrEmpty(notes) ? DBNull.Value : notes);
 
-                    object result = command.ExecuteScalar();
+                    object? result = await command.ExecuteScalarAsync();
 
                     if (result != null && int.TryParse(result.ToString(), out int insertedId))
                     {
@@ -162,7 +147,7 @@ namespace Clinic_DataAccess
             return id;
         }
 
-        public static bool Update(int? id, string diagnosis, string? notes)
+        public static async Task<bool> UpdateAsync(int? id, string diagnosis, string? notes)
         {
             if (!id.HasValue)
                 return false;
@@ -171,7 +156,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"UPDATE [dbo].[Diagnoses]
                 SET [Diagnosis] = @Diagnosis
@@ -184,14 +169,14 @@ namespace Clinic_DataAccess
                     command.Parameters.AddWithValue("@Diagnosis", diagnosis);
                     command.Parameters.AddWithValue("@Notes", string.IsNullOrEmpty(notes) ? DBNull.Value : notes);
 
-                    rowsAffected = command.ExecuteNonQuery();
+                    rowsAffected = await command.ExecuteNonQueryAsync();
                 }
             }
 
             return rowsAffected > 0;
         }
 
-        public static bool Delete(int? id)
+        public static async Task<bool> DeleteAsync(int? id)
         {
             if (!id.HasValue)
                 return false;
@@ -200,7 +185,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"DELETE FROM [dbo].[Diagnoses] WHERE DiagnosesID = @DiagnosesID";
 
@@ -208,7 +193,7 @@ namespace Clinic_DataAccess
                 {
                     command.Parameters.AddWithValue("@DiagnosesID", id);
 
-                    rowsAffected = command.ExecuteNonQuery();
+                    rowsAffected = await command.ExecuteNonQueryAsync();
                 }
             }
 

@@ -204,7 +204,7 @@ namespace Clinic_DataAccess
                     command.Parameters.AddWithValue("@CheckoutTime", checkoutTime == null ? DBNull.Value : checkoutTime);
                     command.Parameters.AddWithValue("@Notes", string.IsNullOrEmpty(notes) ? DBNull.Value : notes);
 
-                    object result = await command.ExecuteScalarAsync();
+                    object? result = await command.ExecuteScalarAsync();
 
                     if (result != null && int.TryParse(result.ToString(), out int insertedId))
                     {

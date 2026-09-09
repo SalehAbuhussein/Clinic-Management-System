@@ -13,11 +13,16 @@ namespace Clinic_Management_System.Controllers
     {
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly IVisitRepository _visitRepository;
+        private readonly IDiagnosisRepository _diagnosisRepository;
 
-        public VisitsController(IAppointmentRepository appointmentRepository, IVisitRepository visitRepository)
+        public VisitsController(
+            IAppointmentRepository appointmentRepository,
+            IVisitRepository visitRepository,
+            IDiagnosisRepository diagnosisRepository)
         {
             _appointmentRepository = appointmentRepository;
             _visitRepository = visitRepository;
+            _diagnosisRepository = diagnosisRepository;
         }
 
         [Authorize(Roles = "Admin,Staff")]
@@ -185,7 +190,7 @@ namespace Clinic_Management_System.Controllers
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Visit with id {id} not found");
 
-            clsDiagnosis? diagnosis = clsDiagnosis.FindByVisitID(id);
+            clsDiagnosis? diagnosis = await _diagnosisRepository.FindByVisitIdAsync(id);
             if (diagnosis == null)
                 return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
                     detail: "A visit must have a diagnosis before it can be checked out.");

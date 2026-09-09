@@ -282,7 +282,7 @@ namespace Clinic_DataAccess
                     command.Parameters.AddWithValue("@EndAt", endAt);
                     command.Parameters.AddWithValue("@CreatedBy", createdBy);
 
-                    object result = await command.ExecuteScalarAsync();
+                    object? result = await command.ExecuteScalarAsync();
 
                     if (result != null && int.TryParse(result.ToString(), out int insertedId))
                     {
@@ -389,7 +389,7 @@ namespace Clinic_DataAccess
                     command.Parameters.AddWithValue("@EndAt", endAt);
                     command.Parameters.AddWithValue("@ExcludeAppointmentID", (object?)excludeAppointmentID ?? DBNull.Value);
 
-                    object result = await command.ExecuteScalarAsync();
+                    object? result = await command.ExecuteScalarAsync();
 
                     hasOverlap = result != null;
                 }
@@ -421,7 +421,7 @@ namespace Clinic_DataAccess
                     command.Parameters.AddWithValue("@EndAt", endAt);
                     command.Parameters.AddWithValue("@ExcludeAppointmentID", (object?)excludeAppointmentID ?? DBNull.Value);
 
-                    object result = await command.ExecuteScalarAsync();
+                    object? result = await command.ExecuteScalarAsync();
 
                     hasOverlap = result != null;
                 }
