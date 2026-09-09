@@ -125,6 +125,13 @@ builder.Services.AddRateLimiter(options =>
         }
 
         var problemDetailsService = context.HttpContext.RequestServices.GetRequiredService<IProblemDetailsService>();
+        var logger = context.HttpContext.RequestServices
+        .GetRequiredService<ILoggerFactory>()
+        .CreateLogger("Clinic.RateLimiting");
+
+        logger.LogWarning("Rate limit hit for {Path} from {RemoteIp}",
+            context.HttpContext.Request.Path,
+            context.HttpContext.Connection.RemoteIpAddress);
 
         await problemDetailsService.WriteAsync(new ProblemDetailsContext
         {

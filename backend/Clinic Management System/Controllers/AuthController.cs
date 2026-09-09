@@ -20,11 +20,16 @@ namespace Clinic_Management_System.Controllers
     {
         private readonly JwtOptions _jwt;
         private readonly IUserRepository _userRepository;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(IOptions<JwtOptions> jwtOptions, IUserRepository userRepository)
+        public AuthController(
+            IOptions<JwtOptions> jwtOptions, 
+            IUserRepository userRepository,
+            ILogger<AuthController> logger)
         {
             _userRepository = userRepository;
             _jwt = jwtOptions.Value;
+            _logger = logger;
         }
 
         [HttpPost("login")]
@@ -32,6 +37,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
@@ -46,8 +52,12 @@ namespace Clinic_Management_System.Controllers
             bool isValidPassword = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
 
             if (!isValidPassword)
+            {
+                _logger.LogWarning("Failed login for {Email}", request.Email);
+
                 return Problem(statusCode: StatusCodes.Status401Unauthorized,
                     detail: "Invalid credentials");
+            }
 
             if (!user.Active)
                 return Problem(statusCode: 403, detail: "Account inactive, please contact an admin");
@@ -97,6 +107,9 @@ namespace Clinic_Management_System.Controllers
             {
                 // Step 10: Return the serialized JWT token to the client.
                 // The client will send this token with future requests.
+
+                _logger.LogInformation("Login succeeded for user {UserId}", user.UserID);
+
                 return Ok(new TokenResponse
                 {
                     AccessToken = accessToken,
@@ -113,6 +126,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
         {
@@ -185,6 +199,8 @@ namespace Clinic_Management_System.Controllers
         [EnableRateLimiting("AuthLimiter")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
         public async Task<IActionResult> Logout([FromBody] LogoutRequest request)
         {
             clsUser? user = await _userRepository.FindByEmailAsync(request.Email);
@@ -215,6 +231,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
             if (_userRepository.FindByEmailAsync(request.Email) != null)
