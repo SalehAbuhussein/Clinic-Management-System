@@ -157,13 +157,21 @@ Applied, that is:
 | `AuthController.Refresh` | revoked token used; hash mismatch | Warning |
 | `UsersController` | role/active change, deactivate, activate — with the acting admin's id | Information |
 | `Program.cs` `OnRejected` | rate-limit rejection | Warning |
+| the three authorization handlers | denial, with acting user and resource id | Warning |
 
 Levels are set per category in `appsettings.json`, matched by **prefix, most specific wins**:
-`Default` is `Warning`, while the `AuthController` category, `Clinic.RateLimiting` and
-`Microsoft.AspNetCore.Authorization` stay at `Information`. That last one matters — the broad
-`Microsoft.AspNetCore: Warning` entry was **hiding every authorization failure**, because the
-framework logs those at Information. `appsettings.Development.json` overrides `Default` back
-to `Information` locally.
+`Default` is `Warning`, while the `AuthController` category and `Clinic.RateLimiting` stay at
+`Information`. `appsettings.Development.json` overrides `Default` back to `Information` locally.
+
+**Authorization failures are logged by our own handlers, not by the framework.** Enabling the
+`Microsoft.AspNetCore.Authorization` category surfaces them (the broad `Microsoft.AspNetCore:
+Warning` entry hides them, since the framework logs them at Information), but that was tried
+and **reverted by decision** — it means taking the framework's verbosity and wording. Note the
+three handlers deny by *never calling* `context.Succeed`; none calls `Fail()`. So there is no
+failure branch, and the log sits behind `if (!context.HasSucceeded)` at the end of the method.
+That is only correct because each policy holds a single requirement — with several,
+`HasSucceeded` would reflect all of them. It needs no `appsettings.json` entry, because
+`LogWarning` already passes under `Default: Warning`.
 
 Two things to keep in mind:
 

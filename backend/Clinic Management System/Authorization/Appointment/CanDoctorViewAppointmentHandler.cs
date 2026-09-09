@@ -8,10 +8,14 @@ namespace Clinic_Management_System.Authorization.Appointment
     public class CanDoctorViewAppointmentHandler : AuthorizationHandler<CanDoctorViewAppointmentRequirement, int>
     {
         private readonly IDoctorRepository _doctorRepository;
+        private readonly ILogger<CanDoctorViewAppointmentHandler> _logger;
 
-        public CanDoctorViewAppointmentHandler(IDoctorRepository doctorRepository)
+        public CanDoctorViewAppointmentHandler(
+            IDoctorRepository doctorRepository,
+            ILogger<CanDoctorViewAppointmentHandler> logger)
         {
             _doctorRepository = doctorRepository;
+            _logger = logger;
         }
 
         protected override async Task HandleRequirementAsync(
@@ -42,6 +46,10 @@ namespace Clinic_Management_System.Authorization.Appointment
                 }
             }
 
+            if (!context.HasSucceeded)
+                _logger.LogWarning(
+                    "Authorization denied: user {UserId} may not view appointments of doctor {DoctorId}",
+                    context.User.FindFirstValue(ClaimTypes.NameIdentifier), doctorID);
         }
     }
 }
