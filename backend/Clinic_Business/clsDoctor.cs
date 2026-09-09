@@ -60,14 +60,25 @@ namespace Clinic_Business
             UserInfo = new clsUser();
         }
 
-        public static DataTable FindAllDoctors(int pageNumber = 1, int pageSize = 10)
+        public record DoctorItem(int Id, string Specialization, string MedicalSchool, ushort GraduationYear, int PersonID, bool Active);
+
+        public static async Task<List<DoctorItem>> FindAllDoctorsAsync(int pageNumber = 1, int pageSize = 10)
         {
-            return clsDoctorDA.FindAll(pageNumber, pageSize);
+            DataTable table = await clsDoctorDA.FindAllAsync(pageNumber, pageSize);
+
+            return table.AsEnumerable().Select(row => new DoctorItem(
+                row.Field<int>("DoctorID"),
+                row.Field<string>("Specialization") ?? string.Empty,
+                row.Field<string>("MedicalSchool") ?? string.Empty,
+                Convert.ToUInt16(row.Field<short>("GraduationYear")),
+                row.Field<int>("PersonID"),
+                row.Field<bool>("Active")
+            )).ToList();
         }
 
-        public static clsDoctor? Find(int? id)
+        public static async Task<clsDoctor?> FindAsync(int? id)
         {
-            DataRow? row = clsDoctorDA.Find(id);
+            DataRow? row = await clsDoctorDA.FindAsync(id);
 
             return row == null ? null : _MapDoctor(row);
         }
@@ -105,32 +116,33 @@ namespace Clinic_Business
             { UserInfo = user };
         }
 
-        public static clsDoctor? FindByUserID(int? userID)
+        public static async Task<clsDoctor?> FindByUserIDAsync(int? userID)
         {
-            DataRow? row = clsDoctorDA.FindByUserID(userID);
+            DataRow? row = await clsDoctorDA.FindByUserIDAsync(userID);
 
             return row == null ? null : _MapDoctor(row);
         }
 
-        public static bool DeleteDoctor(int? id)
+        public static Task<bool> DeleteDoctorAsync(int? id)
         {
-            return clsDoctorDA.Delete(id);
+            return clsDoctorDA.DeleteAsync(id);
         }
 
-        public static bool IsDoctorExist(int? id)
+        /// <summary>Exists *and* the linked user is active.</summary>
+        public static async Task<bool> IsDoctorExistAsync(int? id)
         {
-            clsDoctor? doctor = Find(id);
+            clsDoctor? doctor = await FindAsync(id);
             return doctor != null && doctor.UserInfo.Active;
         }
 
-        public static bool IsDoctorOfVisit(int? visitId, int? userId)
+        public static Task<bool> IsDoctorOfVisitAsync(int? visitId, int? userId)
         {
-            return clsDoctorDA.IsDoctorOfVisit(visitId, userId);
+            return clsDoctorDA.IsDoctorOfVisitAsync(visitId, userId);
         }
 
-        private bool _CreateDoctor()
+        private async Task<bool> _CreateDoctorAsync()
         {
-            (int? doctorId, int? personId, int? userId) = clsDoctorDA.Create(
+            (int? doctorId, int? personId, int? userId) = await clsDoctorDA.CreateAsync(
                 Specialization, 
                 MedicalSchool, 
                 GraduationYear, 
@@ -155,9 +167,9 @@ namespace Clinic_Business
             return doctorId.HasValue && personId.HasValue && userId.HasValue;
         }
 
-        private bool _UpdateDoctor()
+        private Task<bool> _UpdateDoctorAsync()
         {
-            return clsDoctorDA.Update(
+            return clsDoctorDA.UpdateAsync(
                 DoctorID,
                 UserInfo.PersonID,
                 Specialization, 
@@ -174,7 +186,7 @@ namespace Clinic_Business
             );
         }
 
-        public bool Save()
+        public async Task<bool> SaveAsync()
         {
             if (!IsValid())
                 return false;
@@ -182,14 +194,14 @@ namespace Clinic_Business
             switch (_Mode)
             {
                 case enMode.Add:
-                    if (_CreateDoctor())
+                    if (await _CreateDoctorAsync())
                     {
                         _Mode = enMode.Update;
                         return true;
                     }
                     return false;
                 case enMode.Update:
-                    return _UpdateDoctor();
+                    return await _UpdateDoctorAsync();
             }
 
             return false;

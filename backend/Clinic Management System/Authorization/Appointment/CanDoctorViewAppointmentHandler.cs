@@ -1,4 +1,5 @@
 ﻿using Clinic_Business;
+using Clinic_Business.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
@@ -6,7 +7,14 @@ namespace Clinic_Management_System.Authorization.Appointment
 {
     public class CanDoctorViewAppointmentHandler : AuthorizationHandler<CanDoctorViewAppointmentRequirement, int>
     {
-        protected override Task HandleRequirementAsync(
+        private readonly IDoctorRepository _doctorRepository;
+
+        public CanDoctorViewAppointmentHandler(IDoctorRepository doctorRepository)
+        {
+            _doctorRepository = doctorRepository;
+        }
+
+        protected override async Task HandleRequirementAsync(
             AuthorizationHandlerContext context, 
             CanDoctorViewAppointmentRequirement requirement,
             int doctorID
@@ -24,7 +32,7 @@ namespace Clinic_Management_System.Authorization.Appointment
 
                 if (int.TryParse(userId, out int authenticatedUserId))
                 {
-                    clsDoctor? doctor = clsDoctor.FindByUserID(authenticatedUserId);
+                    clsDoctor? doctor = await _doctorRepository.FindByUserIdAsync(authenticatedUserId);
 
                     if (doctor != null)
                     {
@@ -34,7 +42,6 @@ namespace Clinic_Management_System.Authorization.Appointment
                 }
             }
 
-            return Task.CompletedTask;
         }
     }
 }

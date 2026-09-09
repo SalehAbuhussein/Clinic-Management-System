@@ -90,12 +90,13 @@ builder.Services.AddAuthorization(options =>
         policy => policy.Requirements.Add(new ManagePrescriptionRequirement()));
 });
 builder.Services.AddScoped<IAuthorizationHandler, PersonOwnerOrAuthorizedHandler>();
-builder.Services.AddSingleton<IAuthorizationHandler, CanDoctorViewAppointmentHandler>();
-builder.Services.AddSingleton<IAuthorizationHandler, ManagePrescriptionHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, CanDoctorViewAppointmentHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, ManagePrescriptionHandler>();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IMedicineRepository, MedicineRepository>();
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
+builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
 
 builder.Services.AddProblemDetails();
 // ✅ NEW

@@ -10,15 +10,17 @@ namespace Clinic_DataAccess
 {
     public class clsDoctorDA
     {
-        public static DataTable FindAll(int pageNumber = 1, int pageSize = 10)
+        public static async Task<DataTable> FindAllAsync(int pageNumber = 1, int pageSize = 10)
         {
             DataTable dt = new DataTable();
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
-                string query = @"SELECT *
+                string query = @"SELECT
+                    D.DoctorID, D.Specialization, D.MedicalSchool, D.GraduationYear,
+                    U.PersonID, U.Active
                 FROM Doctors D
                 INNER JOIN Users U ON D.UserID = U.UserID
                 INNER JOIN People P ON P.PersonID = U.PersonID
@@ -31,7 +33,7 @@ namespace Clinic_DataAccess
                     command.Parameters.AddWithValue("@PageNumber", pageNumber);
                     command.Parameters.AddWithValue("@PageSize", pageSize);
 
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         if (reader.HasRows)
                         {
@@ -54,13 +56,13 @@ namespace Clinic_DataAccess
         /// differ only in their WHERE, so they share this query. The column name is a
         /// compile-time literal from the two callers below, never from a request.
         /// </summary>
-        private static DataRow? _FindBy(string whereColumn, object value)
+        private static async Task<DataRow?> _FindByAsync(string whereColumn, object value)
         {
             DataTable dt = new DataTable();
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = $@"SELECT
                     D.DoctorID, D.UserID, D.Specialization, D.MedicalSchool,
@@ -77,7 +79,7 @@ namespace Clinic_DataAccess
                 {
                     command.Parameters.AddWithValue("@Value", value);
 
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         if (reader.HasRows)
                             dt.Load(reader);
@@ -88,18 +90,18 @@ namespace Clinic_DataAccess
             return dt.Rows.Count > 0 ? dt.Rows[0] : null;
         }
 
-        public static DataRow? Find(int? id)
+        public static Task<DataRow?> FindAsync(int? id)
         {
-            return id.HasValue ? _FindBy("D.DoctorID", id.Value) : null;
+            return id.HasValue ? _FindByAsync("D.DoctorID", id.Value) : Task.FromResult<DataRow?>(null);
         }
 
-        public static DataRow? FindByUserID(int? userID)
+        public static Task<DataRow?> FindByUserIDAsync(int? userID)
         {
-            return userID.HasValue ? _FindBy("D.UserID", userID.Value) : null;
+            return userID.HasValue ? _FindByAsync("D.UserID", userID.Value) : Task.FromResult<DataRow?>(null);
         }
 
 
-        public static (int? doctorID, int? personID, int? userID) Create(
+        public static async Task<(int? doctorID, int? personID, int? userID)> CreateAsync(
             string specialization,
             string medicalSchool,
             ushort graduationYear,
@@ -123,7 +125,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 using (SqlCommand command = new SqlCommand("CreateDoctor", connection))
                 {
@@ -163,7 +165,7 @@ namespace Clinic_DataAccess
                     userIDOutput.Direction = ParameterDirection.Output;
                     command.Parameters.Add(userIDOutput);
 
-                    command.ExecuteNonQuery();
+                    await command.ExecuteNonQueryAsync();
                         
                     doctorID = (int)doctorIDOutput.Value;
                     personID = (int)personIDOutput.Value;
@@ -174,7 +176,7 @@ namespace Clinic_DataAccess
             return (doctorID, personID, userID);
         }
 
-        public static bool Update(
+        public static async Task<bool> UpdateAsync(
             int? id,
             int? personId,
             string specialization,
@@ -197,7 +199,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 using (SqlCommand command = new SqlCommand("UpdateDoctor", connection))
                 {
@@ -224,7 +226,7 @@ namespace Clinic_DataAccess
                     returnValue.Direction = ParameterDirection.ReturnValue;
                     command.Parameters.Add(returnValue);
 
-                    command.ExecuteNonQuery();
+                    await command.ExecuteNonQueryAsync();
 
                     int result = (int)returnValue.Value;
 
@@ -235,14 +237,14 @@ namespace Clinic_DataAccess
             return hasUpdated;
         }
 
-        public static bool Delete(int? id)
+        public static async Task<bool> DeleteAsync(int? id)
         {
             if (!id.HasValue)
                 return false;
 
             using (SqlConnection connection = new SqlConnection( clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 using (SqlCommand command = new SqlCommand("DeleteDoctor", connection))
                 {
@@ -254,7 +256,7 @@ namespace Clinic_DataAccess
                     returnValue.Direction = ParameterDirection.ReturnValue;
                     command.Parameters.Add(returnValue);
 
-                    command.ExecuteNonQuery();
+                    await command.ExecuteNonQueryAsync();
 
                     int result = (int)returnValue.Value;
 
@@ -263,14 +265,14 @@ namespace Clinic_DataAccess
             }
         }
 
-        public static bool IsDoctorOfVisit(int? visitId, int? userId)
+        public static async Task<bool> IsDoctorOfVisitAsync(int? visitId, int? userId)
         {
             if (!visitId.HasValue || !userId.HasValue)
                 return false;
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"SELECT 1
                 FROM Visits V
@@ -283,7 +285,7 @@ namespace Clinic_DataAccess
                     command.Parameters.AddWithValue("@VisitID", visitId);
                     command.Parameters.AddWithValue("@UserID", userId);
 
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
                         return reader.HasRows;
                 }
             }

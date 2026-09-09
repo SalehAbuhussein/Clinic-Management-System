@@ -1,4 +1,5 @@
 ﻿using Clinic_Business;
+using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Doctors;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,31 +13,33 @@ namespace Clinic_Management_System.Controllers
     [ApiController]
     public class DoctorsController : ControllerBase
     {
+        private readonly IDoctorRepository _doctorRepository;
+
+        public DoctorsController(IDoctorRepository doctorRepository)
+        {
+            _doctorRepository = doctorRepository;
+        }
+
         [Authorize(Roles = "Admin")]
         [HttpGet(Name = "GetDoctors")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public ActionResult<DoctorDTO> GetDoctors([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
+        public async Task<ActionResult<List<DoctorDTO>>> GetDoctors([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
             perPage = Math.Clamp(perPage, 1, 10);
 
-            DataTable table = clsDoctor.FindAllDoctors(page, perPage);
-            List<DoctorDTO> peopleList = new List<DoctorDTO>();
-
-            foreach (DataRow row in table.Rows)
-            {
-                peopleList.Add(new DoctorDTO
+            List<DoctorDTO> peopleList = (await _doctorRepository.FindAllAsync(page, perPage))
+                .Select(doctor => new DoctorDTO
                 {
-                    Id = row.Field<int>("DoctorID"),
-                    Specialization = row.Field<string>("Specialization") ?? string.Empty,
-                    MedicalSchool = row.Field<string>("MedicalSchool") ?? string.Empty,
-                    GraduationYear = checked((ushort)row.Field<short>("GraduationYear")),
-                    PersonID = row.Field<int>("PersonID"),
-                    Active = row.Field<bool>("Active")
-                });
-            }
+                    Id = doctor.Id,
+                    Specialization = doctor.Specialization,
+                    MedicalSchool = doctor.MedicalSchool,
+                    GraduationYear = doctor.GraduationYear,
+                    PersonID = doctor.PersonID,
+                    Active = doctor.Active
+                }).ToList();
 
             return Ok(peopleList);
         }
@@ -48,9 +51,9 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<DoctorDTO> GetDoctorByID([Range(1, int.MaxValue)] int id)
+        public async Task<ActionResult<DoctorDTO>> GetDoctorByID([Range(1, int.MaxValue)] int id)
         {
-            clsDoctor? doctor = clsDoctor.Find(id);
+            clsDoctor? doctor = await _doctorRepository.FindByIdAsync(id);
             if (doctor == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Doctor with id {id} not found");
@@ -80,7 +83,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public ActionResult<DoctorDTO> AddDoctor(CreateDoctorDTO addDoctorDTO)
+        public async Task<ActionResult<DoctorDTO>> AddDoctor(CreateDoctorDTO addDoctorDTO)
         {
             clsDoctor newDoctor = new clsDoctor();
             newDoctor.Specialization = addDoctorDTO.Specialization;
@@ -100,7 +103,7 @@ namespace Clinic_Management_System.Controllers
             newDoctor.UserInfo.Email = addDoctorDTO.Email;
             newDoctor.UserInfo.PasswordHash = BCrypt.Net.BCrypt.HashPassword(addDoctorDTO.Password);
 
-            if (newDoctor.Save())
+            if (await newDoctor.SaveAsync())
             {
                 DoctorDTO newDoctorDTO = new DoctorDTO
                 {
@@ -126,9 +129,9 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult UpdateDoctor(int id, UpdateDoctorDTO updatedDoctor)
+        public async Task<ActionResult> UpdateDoctor(int id, UpdateDoctorDTO updatedDoctor)
         {
-            clsDoctor? doctor = clsDoctor.Find(id);
+            clsDoctor? doctor = await _doctorRepository.FindByIdAsync(id);
             if (doctor == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Doctor with id {id} not found");
@@ -156,7 +159,7 @@ namespace Clinic_Management_System.Controllers
             person.DateOfBirth = updatedDoctor.DateOfBirth!.Value;
             person.ProfileImage = updatedDoctor.ProfileImage;
 
-            if (doctor.Save())
+            if (await doctor.SaveAsync())
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
@@ -171,9 +174,9 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public ActionResult DeleteDoctor([Range(1, int.MaxValue)] int id)
+        public async Task<ActionResult> DeleteDoctor([Range(1, int.MaxValue)] int id)
         {
-            clsDoctor? doctor = clsDoctor.Find(id);
+            clsDoctor? doctor = await _doctorRepository.FindByIdAsync(id);
             if (doctor == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Doctor with id {id} not found");
@@ -183,7 +186,7 @@ namespace Clinic_Management_System.Controllers
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Doctor with id {id} not found");
 
-            if (clsDoctor.DeleteDoctor(id))
+            if (await _doctorRepository.DeleteAsync(id))
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,

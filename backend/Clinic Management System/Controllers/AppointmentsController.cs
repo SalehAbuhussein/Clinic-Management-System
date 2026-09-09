@@ -14,10 +14,12 @@ namespace Clinic_Management_System.Controllers
     public class AppointmentsController : ControllerBase
     {
         private readonly IPatientRepository _patientRepository;
+        private readonly IDoctorRepository _doctorRepository;
 
-        public AppointmentsController(IPatientRepository patientRepository)
+        public AppointmentsController(IPatientRepository patientRepository, IDoctorRepository doctorRepository)
         {
             _patientRepository = patientRepository;
+            _doctorRepository = doctorRepository;
         }
 
         [Authorize(Roles = "Admin,Staff")]
@@ -107,7 +109,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public async Task<ActionResult<AppointmentDTO>> AddAppointment(CreateAppointmentDTO appointmentDTO)
         {
-            if (!clsDoctor.IsDoctorExist(appointmentDTO.DoctorID) ||
+            if (!await _doctorRepository.ExistsAsync(appointmentDTO.DoctorID) ||
                 !await _patientRepository.ExistsAsync(appointmentDTO.PatientID))
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: "The doctor or patient referenced by this appointment does not exist.");
@@ -161,7 +163,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public ActionResult UpdateAppointment([Range(1, int.MaxValue)] int id, UpdateAppointmentDTO updatedAppointmentDTO)
+        public async Task<ActionResult> UpdateAppointment([Range(1, int.MaxValue)] int id, UpdateAppointmentDTO updatedAppointmentDTO)
         {
             clsAppointment? appointment = clsAppointment.Find(id);
 
@@ -169,7 +171,7 @@ namespace Clinic_Management_System.Controllers
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Appointment with id {id} not found");
 
-            if (!clsDoctor.IsDoctorExist(appointment.DoctorID))
+            if (!await _doctorRepository.ExistsAsync(appointment.DoctorID))
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"The doctor on appointment {id} no longer exists.");
 
@@ -228,7 +230,7 @@ namespace Clinic_Management_System.Controllers
         {
             perPage = Math.Clamp(perPage, 1, 10);
 
-            if (clsDoctor.Find(doctorId) == null)
+            if (await _doctorRepository.FindByIdAsync(doctorId) == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Doctor with id {doctorId} not found");
 

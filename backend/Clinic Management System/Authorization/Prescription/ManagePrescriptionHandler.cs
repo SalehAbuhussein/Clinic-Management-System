@@ -1,4 +1,5 @@
 ﻿using Clinic_Business;
+using Clinic_Business.Interfaces;
 using Clinic_Management_System.Authorization.Appointment;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
@@ -7,7 +8,14 @@ namespace Clinic_Management_System.Authorization.Prescription
 {
     public class ManagePrescriptionHandler : AuthorizationHandler<ManagePrescriptionRequirement, int>
     {
-        protected override Task HandleRequirementAsync(
+        private readonly IDoctorRepository _doctorRepository;
+
+        public ManagePrescriptionHandler(IDoctorRepository doctorRepository)
+        {
+            _doctorRepository = doctorRepository;
+        }
+
+        protected override async Task HandleRequirementAsync(
             AuthorizationHandlerContext context,
             ManagePrescriptionRequirement requirement, 
             int visitId
@@ -20,11 +28,9 @@ namespace Clinic_Management_System.Authorization.Prescription
             {
                 var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-                if (int.TryParse(userId, out int authenticatedUserID) && clsDoctor.IsDoctorOfVisit(visitId, authenticatedUserID))
+                if (int.TryParse(userId, out int authenticatedUserID) && await _doctorRepository.IsDoctorOfVisitAsync(visitId, authenticatedUserID))
                     context.Succeed(requirement);
             }
-
-            return Task.CompletedTask;
         }
     }
 }
