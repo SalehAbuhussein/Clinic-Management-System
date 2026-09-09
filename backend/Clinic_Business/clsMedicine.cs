@@ -40,28 +40,35 @@ namespace Clinic_Business
             RxCUI = rxCUI;
         }
 
-        public static DataTable FindAll(int pageNumber = 1, int pageSize = 10)
+        public static async Task<List<clsMedicine>> FindAllAsync(int pageNumber = 1, int pageSize = 10)
         {
-            return clsMedicineDA.FindAll(pageNumber, pageSize);
+            List<clsMedicineDA.MedicineRow> rows = await clsMedicineDA.FindAllAsync(pageNumber, pageSize);
+
+            return rows.Select(MapMedicine).ToList();
         }
 
-        public static clsMedicine? Find(int id)
+        public static async Task<clsMedicine?> FindAsync(int id)
         {
-            int rxCUI = int.MinValue;
-            string genericname = string.Empty;
-            string brandname = string.Empty;
-            string form = string.Empty;
-            string strength = string.Empty;
+            clsMedicineDA.MedicineRow? row = await clsMedicineDA.FindAsync(id);
 
-            if (clsMedicineDA.Find(id, ref rxCUI, ref genericname, ref brandname, ref form, ref strength))
-                return new clsMedicine(id, rxCUI, genericname, brandname, form, strength);
-
-            return null;
+            return row == null ? null : MapMedicine(row);
         }
 
-        public static bool Delete(int id)
+        internal static clsMedicine MapMedicine(clsMedicineDA.MedicineRow row)
         {
-            return clsMedicineDA.Delete(id);
+            return new clsMedicine(
+                row.MedicineID,
+                row.RxCUI,
+                row.Genericname,
+                row.Brandname ?? string.Empty,
+                row.Form,
+                row.Strength
+            );
+        }
+
+        public static Task<bool> DeleteAsync(int id)
+        {
+            return clsMedicineDA.DeleteAsync(id);
         }
 
         public static bool IsValidMedicines(List<string> medicineIds)

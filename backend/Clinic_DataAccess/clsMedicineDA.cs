@@ -10,15 +10,15 @@ namespace Clinic_DataAccess
 {
     public class clsMedicineDA
     {
-        public static DataTable FindAll(int pageNumber = 1, int pageSize = 10)
+        public static async Task<List<MedicineRow>> FindAllAsync(int pageNumber = 1, int pageSize = 10)
         {
-            DataTable dt = new DataTable();
+            List<MedicineRow> rows = new List<MedicineRow>();
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
-                string query = @"SELECT *
+                string query = @"SELECT [MedicineID], [RxCUI], [Genericname], [Brandname], [Form], [Strength]
                 FROM Medicines
                 ORDER BY MedicineID
                 OFFSET (@PageNumber - 1) * @PageSize ROWS
@@ -29,43 +29,50 @@ namespace Clinic_DataAccess
                     command.Parameters.AddWithValue("@PageNumber", pageNumber);
                     command.Parameters.AddWithValue("@PageSize", pageSize);
 
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
-                        if (reader.HasRows)
+                        while (await reader.ReadAsync())
                         {
-                            dt.Load(reader);
+                            rows.Add(new MedicineRow(
+                                (int)reader["MedicineID"],
+                                (int)reader["RxCUI"],
+                                reader["Genericname"].ToString() ?? string.Empty,
+                                reader["Brandname"] as string,
+                                reader["Form"].ToString() ?? string.Empty,
+                                reader["Strength"].ToString() ?? string.Empty
+                            ));
                         }
                     }
                 }
             }
 
-            return dt;
+            return rows;
         }
 
-        public static bool Find(
-            int? id,
-            ref int rxCUI,
-            ref string genericName,
-            ref string brandName,
-            ref string form,
-            ref string strength
-        )
+        /// <summary>
+        /// One medicine as the database has it. A record rather than a DataRow so callers get
+        /// compile-time field names instead of reader["Genericname"], and rather than ref
+        /// parameters because ref cannot cross an await (CS1988).
+        /// </summary>
+        public record MedicineRow(
+            int MedicineID,
+            int RxCUI,
+            string Genericname,
+            string? Brandname,
+            string Form,
+            string Strength
+        );
+
+        public static async Task<MedicineRow?> FindAsync(int? id)
         {
             if (!id.HasValue)
-                return false;
-
-            bool isFound = false;
+                return null;
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
-                string query = @"SELECT [MedicineID]
-                    ,[RxCUI]
-                    ,[Genericname]
-	                ,[Brandname]
-	                ,[Form]
-	                ,[Strength]
+                string query = @"SELECT [MedicineID], [RxCUI], [Genericname], [Brandname], [Form], [Strength]
                 FROM [ClinicManagementSystem].[dbo].[Medicines]
                 WHERE MedicineID = @MedicineID";
 
@@ -73,23 +80,22 @@ namespace Clinic_DataAccess
                 {
                     command.Parameters.AddWithValue("@MedicineID", id);
 
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
-                        if (reader.Read())
-                        {
-                            isFound = true;
+                        if (!await reader.ReadAsync())
+                            return null;
 
-                            rxCUI = (int)reader["RxCUI"];
-                            genericName = reader["Genericname"].ToString() ?? "";
-                            brandName = reader["Brandname"].ToString() ?? "";
-                            form = reader["Form"].ToString() ?? "";
-                            strength = reader["Strength"].ToString() ?? "";
-                        }
+                        return new MedicineRow(
+                            (int)reader["MedicineID"],
+                            (int)reader["RxCUI"],
+                            reader["Genericname"].ToString() ?? string.Empty,
+                            reader["Brandname"] as string,
+                            reader["Form"].ToString() ?? string.Empty,
+                            reader["Strength"].ToString() ?? string.Empty
+                        );
                     }
                 }
             }
-
-            return isFound;
         }
 
         public static bool IsValidMedicines(List<string> medicineIds)
@@ -216,7 +222,7 @@ namespace Clinic_DataAccess
             return rowsAffected > 0;
         }
 
-        public static bool Delete(int? id)
+        public static async Task<bool> DeleteAsync(int? id)
         {
             if (!id.HasValue)
                 return false;
@@ -225,7 +231,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"DELETE FROM [dbo].[Medicines] WHERE MedicineID = @MedicineID";
 
@@ -233,7 +239,7 @@ namespace Clinic_DataAccess
                 {
                     command.Parameters.AddWithValue("@MedicineID", id);
 
-                    rowsAffected = command.ExecuteNonQuery();
+                    rowsAffected = await command.ExecuteNonQueryAsync();
                 }
             }
 

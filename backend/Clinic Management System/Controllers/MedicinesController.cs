@@ -1,9 +1,9 @@
 ﻿using Clinic_Business;
+using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Medicines;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
-using System.Data;
 
 namespace Clinic_Management_System.Controllers
 {
@@ -11,31 +11,31 @@ namespace Clinic_Management_System.Controllers
     [ApiController]
     public class MedicinesController : ControllerBase
     {
+        private readonly IMedicineRepository _medicineRepository;
+
+        public MedicinesController(IMedicineRepository medicineRepository)
+        {
+            _medicineRepository = medicineRepository;
+        }
+
         [Authorize(Roles = "Admin")]
         [HttpGet(Name = "GetMedicines")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public ActionResult<MedicineDTO> GetMedicines([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
+        public async Task<ActionResult<List<MedicineDTO>>> GetMedicines([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
-            perPage = Math.Clamp(perPage, 1, 10);
-
-            DataTable table = clsMedicine.FindAll(page, perPage);
-            List<MedicineDTO> medicinesList = new List<MedicineDTO>();
-
-            foreach (DataRow row in table.Rows)
-            {
-                medicinesList.Add(new MedicineDTO
+            List<MedicineDTO> medicinesList = (await _medicineRepository.FindAllAsync(page, perPage))
+                .Select(medicine => new MedicineDTO
                 {
-                    Id = row.Field<int>("MedicineID"),
-                    Genericname = row.Field<string>("Genericname") ?? string.Empty,
-                    Brandname = row.Field<string>("Brandname") ?? string.Empty,
-                    Form = row.Field<string>("Form") ?? string.Empty,
-                    Strength = row.Field<string>("Strength") ?? string.Empty,
-                    RxCUI = row.Field<int>("RxCUI"),
-                });
-            }
+                    Id = medicine.MedicineID ?? 0,
+                    Genericname = medicine.Genericname,
+                    Brandname = medicine.Brandname ?? string.Empty,
+                    Form = medicine.Form,
+                    Strength = medicine.Strength,
+                    RxCUI = medicine.RxCUI,
+                }).ToList();
 
             return Ok(medicinesList);
         }
@@ -47,9 +47,9 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<MedicineDTO> GetMedicineByID([Range(1, int.MaxValue)] int id)
+        public async Task<ActionResult<MedicineDTO>> GetMedicineByID([Range(1, int.MaxValue)] int id)
         {
-            clsMedicine? medicine = clsMedicine.Find(id);
+            clsMedicine? medicine = await _medicineRepository.FindByIdAsync(id);
             if (medicine == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Medicine with id {id} not found");
@@ -110,9 +110,9 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public ActionResult UpdateMedicine(int id, UpdateMedicineDTO updatedMedicine)
+        public async Task<ActionResult> UpdateMedicine(int id, UpdateMedicineDTO updatedMedicine)
         {
-            clsMedicine? medicine = clsMedicine.Find(id);
+            clsMedicine? medicine = await _medicineRepository.FindByIdAsync(id);
             if (medicine == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Medicine with id {id} not found");
@@ -137,14 +137,14 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public ActionResult DeleteMedicine([Range(1, int.MaxValue)] int id)
+        public async Task<ActionResult> DeleteMedicine([Range(1, int.MaxValue)] int id)
         {
-            clsMedicine? medicine = clsMedicine.Find(id);
+            clsMedicine? medicine = await _medicineRepository.FindByIdAsync(id);
             if (medicine == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Medicine with id {id} not found");
 
-            if (clsMedicine.Delete(id))
+            if (await _medicineRepository.DeleteAsync(id))
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,

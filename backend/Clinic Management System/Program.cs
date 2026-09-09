@@ -92,7 +92,9 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddScoped<IAuthorizationHandler, PersonOwnerOrAuthorizedHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, CanDoctorViewAppointmentHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, ManagePrescriptionHandler>();
+
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IMedicineRepository, MedicineRepository>();
 
 builder.Services.AddProblemDetails();
 // ✅ NEW
