@@ -71,23 +71,23 @@ namespace Clinic_Business.Entities
             return clsMedicineDA.DeleteAsync(id);
         }
 
-        public static bool IsValidMedicines(List<string> medicineIds)
+        public static Task<bool> AreValidMedicinesAsync(List<string> medicineIds)
         {
-            return clsMedicineDA.IsValidMedicines(medicineIds);
+            return clsMedicineDA.AreValidMedicinesAsync(medicineIds);
         }
 
-        private bool _CreateMedicine()
+        private async Task<bool> _CreateMedicineAsync()
         {
-            MedicineID = clsMedicineDA.Create(RxCUI, Genericname, Brandname, Form, Strength);
+            MedicineID = await clsMedicineDA.CreateAsync(RxCUI, Genericname, Brandname, Form, Strength);
             return MedicineID.HasValue;
         }
 
-        private bool _UpdateMedicine()
+        private Task<bool> _UpdateMedicineAsync()
         {
-            return clsMedicineDA.Update(MedicineID, RxCUI, Genericname, Brandname, Form, Strength);
+            return clsMedicineDA.UpdateAsync(MedicineID, RxCUI, Genericname, Brandname, Form, Strength);
         }
 
-        public bool Save()
+        public async Task<bool> SaveAsync()
         {
             if (!IsValid())
                 return false;
@@ -95,7 +95,7 @@ namespace Clinic_Business.Entities
             switch (_Mode)
             {
                 case enMode.Add:
-                    if (_CreateMedicine())
+                    if (await _CreateMedicineAsync())
                     {
                         _Mode = enMode.Update;
                         return true;
@@ -103,7 +103,7 @@ namespace Clinic_Business.Entities
 
                     return false;
                 case enMode.Update:
-                    return _UpdateMedicine();
+                    return await _UpdateMedicineAsync();
             }
 
             return false;

@@ -98,7 +98,7 @@ namespace Clinic_DataAccess
             }
         }
 
-        public static bool IsValidMedicines(List<string> medicineIds)
+        public static async Task<bool> AreValidMedicinesAsync(List<string> medicineIds)
         {
             bool isValid = false;
 
@@ -109,7 +109,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"SELECT MedicineCount = COUNT(DISTINCT MedicineID)
                 FROM Medicines
@@ -123,7 +123,7 @@ namespace Clinic_DataAccess
                     command.Parameters.AddWithValue("@MedicineIds", string.Join(",", medicineIdsArr));
                     command.Parameters.AddWithValue("@MedicineIdsCount", medicineIdsArr.Length);
 
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         isValid = reader.HasRows;
                     }
@@ -133,7 +133,7 @@ namespace Clinic_DataAccess
             return isValid;
         }
 
-        public static int? Create(
+        public static async Task<int?> CreateAsync(
             int rxCUI,
             string genericName,
             string? brandName,
@@ -145,7 +145,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"INSERT INTO [dbo].[Medicines]
                         ([RxCUI]
@@ -168,7 +168,7 @@ namespace Clinic_DataAccess
                     command.Parameters.AddWithValue("@Strength", strength);
                     command.Parameters.AddWithValue("@RxCUI", rxCUI);
 
-                    object result = command.ExecuteScalar();
+                    object? result = await command.ExecuteScalarAsync();
 
                     if (result != null && int.TryParse(result.ToString(), out int insertedId))
                     {
@@ -180,7 +180,7 @@ namespace Clinic_DataAccess
             return id;
         }
 
-        public static bool Update(
+        public static async Task<bool> UpdateAsync(
             int? id,
             int rxCUI,
             string genericName,
@@ -196,7 +196,7 @@ namespace Clinic_DataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"UPDATE [dbo].[Medicines]
                 SET [RxCUI] = @RxCUI
@@ -215,7 +215,7 @@ namespace Clinic_DataAccess
                     command.Parameters.AddWithValue("@Form", form);
                     command.Parameters.AddWithValue("@Strength", strength);
 
-                    rowsAffected = command.ExecuteNonQuery();
+                    rowsAffected = await command.ExecuteNonQueryAsync();
                 }
             }
 

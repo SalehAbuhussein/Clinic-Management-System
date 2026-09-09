@@ -19,5 +19,10 @@ namespace Clinic_Business.Repositories
         {
             return clsMedicine.DeleteAsync(id);
         }
+
+        public Task<bool> AreValidMedicinesAsync(List<string> medicineIds)
+        {
+            return clsMedicine.AreValidMedicinesAsync(medicineIds);
+        }
     }
 }

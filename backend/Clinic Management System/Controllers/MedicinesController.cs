@@ -76,7 +76,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public ActionResult<MedicineDTO> AddMedicine(CreateMedicineDTO medicineDTO)
+        public async Task<ActionResult<MedicineDTO>> AddMedicine(CreateMedicineDTO medicineDTO)
         {
             clsMedicine newMedicine = new clsMedicine();
             newMedicine.Genericname = medicineDTO.Genericname;
@@ -85,7 +85,7 @@ namespace Clinic_Management_System.Controllers
             newMedicine.Strength = medicineDTO.Strength;
             newMedicine.RxCUI = medicineDTO.RxCUI;
 
-            if (newMedicine.Save())
+            if (await newMedicine.SaveAsync())
             {
                 MedicineDTO newMedicineDTO = new MedicineDTO
                 {
@@ -123,7 +123,7 @@ namespace Clinic_Management_System.Controllers
             medicine.Form = updatedMedicine.Form;
             medicine.Strength = updatedMedicine.Strength;
 
-            if (medicine.Save())
+            if (await medicine.SaveAsync())
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,

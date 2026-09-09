@@ -15,13 +15,16 @@ namespace Clinic_Management_System.Controllers
     {
         private readonly IVisitRepository _visitRepository;
         private readonly IPrescriptionItemRepository _prescriptionItemRepository;
+        private readonly IMedicineRepository _medicineRepository;
 
         public PrescriptionsController(
             IVisitRepository visitRepository,
-            IPrescriptionItemRepository prescriptionItemRepository)
+            IPrescriptionItemRepository prescriptionItemRepository,
+            IMedicineRepository medicineRepository)
         {
             _visitRepository = visitRepository;
             _prescriptionItemRepository = prescriptionItemRepository;
+            _medicineRepository = medicineRepository;
         }
 
         [Authorize]
@@ -95,7 +98,7 @@ namespace Clinic_Management_System.Controllers
 
             // 1- Check if medicines list id are valid
             List<string> medicineIds = request.Items.Select(item => item.MedicineID.ToString()).ToList();
-            if (!clsMedicine.IsValidMedicines(medicineIds))
+            if (!await _medicineRepository.AreValidMedicinesAsync(medicineIds))
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: "One or more of the medicines referenced does not exist.");
 
@@ -143,7 +146,7 @@ namespace Clinic_Management_System.Controllers
 
             // 1- Check if medicines list id are valid
             List<string> medicineIds = request.Items.Select(item => item.MedicineID.ToString()).ToList();
-            if (!clsMedicine.IsValidMedicines(medicineIds))
+            if (!await _medicineRepository.AreValidMedicinesAsync(medicineIds))
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: "One or more of the medicines referenced does not exist.");
 
