@@ -31,13 +31,20 @@ Classic three-tier, 3-layer naming (`clsX` / `clsXDA`). Data access is **raw ADO
 choice. Don't propose EF Core.
 
 Business classes are **active record** (Fowler's term, and a deliberate pattern rather than
-debt): the object wraps a row, holds its own `Save()`, and carries its own `IsValid()`.
-`Save()` gates on `IsValid()` and then switches on a private `enMode _Mode` field — `Add`
-calls `_CreateUser()`, `Update` calls `_UpdateUser()`. `_Mode` is set to `Add` by the public
-constructor and to `Update` by the private one that only `MapUser` uses, so an object loaded
-from the database updates and an object built by hand inserts.
+debt): the object wraps a row, holds its own persistence, and carries its own validation.
+Persistence ownership was reviewed on 8 September and the object keeps it — see the roadmap.
 
-Mostly static-entry (`clsUser.FindByEmail(...)`), with one exception described under
+Two shapes exist side by side, and the difference matters:
+
+- **`clsUser` is the migrated one.** It has explicit `Create()` and `Update()`, each carrying
+  the validation rule that applies to it. `enMode`, `_Mode`, `Save()` and `IsValid()` are
+  gone. A caller states which operation it wants; nothing is inferred from hidden state.
+- **The other six still use the flag.** `clsAppointment`, `clsDiagnosis`, `clsDoctor`,
+  `clsMedicine`, `clsPatient` and `clsVisit` each have a private `enMode _Mode` that `Save()`
+  switches on — `Add` inserts, `Update` updates, and `IsValid()` silently means different
+  things depending on it. Converting them is optional and should follow need, not momentum.
+
+Mostly static-entry (`clsUser.FindByEmailAsync(...)`), with the exceptions under
 *Dependency injection* below.
 
 Two things worth remembering:
@@ -46,11 +53,16 @@ Two things worth remembering:
   `CreateUser` stored-procedure call, so there is no two-step orphan-row window in C#.
   Whether the procedure itself is transactional cannot be verified from this repo — see
   the note about unscripted procedures below.
-- Most `Find`-style methods pass results back through `ref` parameters, which is why they
-  can't be made `async` without changing shape first. **`clsUser` and `clsUserDA` are the
-  exception** — they pass a `DataRow?` and map it, so the user path is already async-able.
-  The eight-`ref` signatures live in `clsPerson`, `clsAppointment`, `clsVisit`,
-  `clsDiagnosis`, `clsMedicine` and `clsPrescriptionItem`.
+- **The user path is `async` end to end** — `clsUserDA` → `clsUser` → `IUserRepository` →
+  controllers, reads and writes. Everything else is synchronous. Note the naming slip:
+  `clsUserDA.Find` returns a `Task` but lacks the `Async` suffix its two siblings have.
+  Still sync by decision: `clsUser.FindUsers` (returns a `DataTable`) and `Delete` (no callers).
+- The other six classes **cannot** be converted by adding `await`: they pass results back
+  through `ref` parameters, and `ref` cannot cross an `await` (`CS1988`), because an async
+  method's stack does not survive suspension. Their signatures must be reshaped first, and
+  the target shape already works — `clsUserDA._FindByAsync` returns a `DataRow?` and
+  `MapUser` turns it into an object. The `ref`-heavy signatures live in `clsPerson`,
+  `clsAppointment`, `clsVisit`, `clsDiagnosis`, `clsMedicine` and `clsPrescriptionItem`.
 
 **The data-access layer no longer swallows exceptions.** All 52 `try/catch` +
 `Console.WriteLine` blocks were removed, and `Clinic_DataAccess` now contains zero `catch`
@@ -61,22 +73,34 @@ distinction between 422 and 500 in the controllers meaningful.
 
 ## Dependency injection
 
-`Program.cs` is the composition root. Registered there: three
-`AddSingleton<IAuthorizationHandler, …>` handlers, and
-`AddScoped<IUserRepository, UserRepository>()` at line 85.
+`Program.cs` is the composition root. Registered there (lines 92-95):
+
+| Registration | Lifetime | Why |
+|---|---|---|
+| `PersonOwnerOrAuthorizedHandler` | **Scoped** | it injects the scoped repository; `AddSingleton` here fails at startup |
+| `CanDoctorViewAppointmentHandler` | Singleton | stateless, calls statics, injects nothing |
+| `ManagePrescriptionHandler` | Singleton | same |
+| `IUserRepository` → `UserRepository` | Scoped | per-request is the lifetime a DB-touching service wants |
+
+That first row is the interesting one. A singleton may not consume a scoped service — the
+container refuses at startup with *"Cannot consume scoped service … from singleton"*, because
+the singleton would capture the first request's instance forever. Changing that one line from
+`AddSingleton` to `AddScoped` is what made injecting the repository possible. Note the
+container does **not** catch the reverse mistake: a `Transient` injected into a singleton is
+silently constructed once and lives as long as the singleton.
 
 `IUserRepository` (in `Clinic_Business/Interfaces/`, implemented by
-`Clinic_Business/UserRepository.cs`) is the **only** interface in either library and the only
-constructor-injected service of its kind. It has one member, `FindByEmail`, and
-`AuthController` receives it through its constructor. The implementation currently delegates
-to the static `clsUser.FindByEmail` **on purpose**: `UsersController` and
-`PersonOwnerOrAuthorizedHandler` still call that static, and two independent copies of the
-load logic would let the injected and static paths drift. Inline the `clsUserDA` call once
-the last static caller is gone.
+`Clinic_Business/UserRepository.cs`) is the **only** interface in either library. Two members,
+both async: `FindByEmailAsync` and `FindByPersonIDAsync`.
 
-`user.Save()` is still called directly on the object in all four `AuthController` actions.
-Persistence ownership — active record versus repository — is an open question, not an
-oversight; see the roadmap.
+Injected in exactly two places — `AuthController` and `PersonOwnerOrAuthorizedHandler`.
+**`UsersController` still calls the statics** (`clsUser.FindUserAsync`, `FindByEmailAsync`,
+`FindUsers`), which is why the implementation delegates to `clsUser` rather than calling
+`clsUserDA` directly: two independent copies of the load logic would let the injected and
+static paths drift. Inline it once the last static caller is gone.
+
+`user.Create()` / `user.Update()` are still called directly on the object. That is the
+recorded decision, not an oversight.
 
 ## Database facts not visible in the code
 
@@ -98,17 +122,42 @@ oversight; see the roadmap.
 
 ## Configuration
 
-Both secrets come from configuration and the app **refuses to start** without either:
+Two secrets, both from configuration, and the app **refuses to start** without either:
 
-- `Jwt:Key` — read once in `Program.cs:18` and once each in `AuthController`'s `Login` and
-  `Refresh` (via the injected `IConfiguration`). All three read the same key; there is no
-  hardcoded copy left.
-- `ConnectionStrings:Clinic` — read in `Program.cs:19` and assigned to the static
-  `clsDataAccessSettings.ConnectionString` at line 21, which is how the data-access layer
-  still reaches it.
+- `Jwt:Key` — bound onto `JwtOptions.Key`, validated `[Required]` + `[MinLength(32)]`.
+- `ConnectionStrings:Clinic` — read in `Program.cs` and assigned to the static
+  `clsDataAccessSettings.ConnectionString`, which is how the data-access layer reaches it.
 
-Both live in user-secrets, which load **only in Development**. For any other environment use
-environment variables, where `:` becomes `__` (`ConnectionStrings__Clinic`).
+Both live in user-secrets, which load **only in Development**. Elsewhere use environment
+variables, where `:` becomes `__` (`ConnectionStrings__Clinic`). User-secrets is not an
+alternative to configuration — it is one of its *providers*, and it wins on precedence in
+Development, which is why options binding sees it.
+
+**JWT settings use the options pattern.** `Options/JwtOptions.cs` holds `Key`, `Issuer`,
+`Audience`, `AccessTokenMinutes` and `RefreshTokenDays`, bound and validated in `Program.cs`:
+
+```csharp
+builder.Services.AddOptions<JwtOptions>()
+    .Bind(builder.Configuration.GetSection(JwtOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+```
+
+`ValidateOnStart()` is the point: a missing, short or out-of-range value produces
+`Hosting failed to start` naming the property and the rule, instead of a 500 on someone's
+first login. `AuthController` injects `IOptions<JwtOptions>` and holds `.Value`; it no longer
+takes `IConfiguration` at all. `Program.cs` binds the section a second time, directly, because
+the JWT bearer handler is configured while the container is still being built — that is the
+startup sequence, not a duplication to remove.
+
+**Two traps already hit here, both worth remembering:**
+
+- `const` and `static` members are invisible to configuration binding *and* to
+  `ValidateDataAnnotations` — binding needs somewhere to write, and validation only inspects
+  instance properties. Attributes on a `const` look correct and do nothing. Naming the section
+  constant `Key` once collapsed it with the signing key and produced a 3-byte HMAC key.
+- `JwtOptions.SectionName` is `"jwt"` while the secret is `Jwt:Key`. That binds only because
+  configuration keys are case-insensitive.
 
 ## Current focus
 

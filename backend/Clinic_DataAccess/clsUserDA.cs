@@ -11,13 +11,13 @@ namespace Clinic_DataAccess
 {
     public class clsUserDA
     {
-        public static DataTable FindUsers(int pageNumber = 1, int pageSize = 10)
+        public static async Task<DataTable> FindUsersAsync(int pageNumber = 1, int pageSize = 10)
         {
             DataTable dt = new DataTable();
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                connection.Open();
+                await connection.OpenAsync();
 
                 string query = @"SELECT
 	                U.UserID,
@@ -36,7 +36,7 @@ namespace Clinic_DataAccess
                     command.Parameters.AddWithValue("@PageNumber", pageNumber);
                     command.Parameters.AddWithValue("@PageSize", pageSize);
 
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
                         if (reader.HasRows)
                         {

@@ -18,5 +18,20 @@ namespace Clinic_Business
         {
             return clsUser.FindUserAsync(userID);
         }
-    }
+
+        public Task<List<clsUser.UserItem>> FindUsersAsync(int pageNumber = 1, int pageSize = 10)
+        {
+            return clsUser.FindUsersAsync(pageNumber, pageSize);
+        }
+
+        public Task<bool> Deactivate(int? userId)
+        {
+            return clsUser.DeactivateUser(userId);
+        }
+
+        public Task<bool> Activate(int? userId)
+        {
+            return clsUser.ActivateUser(userId);
+        }
+  }
 }

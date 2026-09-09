@@ -4,7 +4,6 @@ using Clinic_Management_System.DTOs.Models.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
-using System.Data;
 using System.Security.Claims;
 
 namespace Clinic_Management_System.Controllers
@@ -26,24 +25,19 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public ActionResult<List<UserDTO>> GetUsers([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
+        public async Task<ActionResult<List<UserDTO>>> GetUsers([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
-            perPage = Math.Clamp(perPage, 1, 10);
+            List<clsUser.UserItem> users = await _userRepository.FindUsersAsync(page, perPage);
 
-            DataTable table = clsUser.FindUsers(page, perPage);
-            List<UserDTO> usersList = new List<UserDTO>();
-
-            foreach (DataRow row in table.Rows)
-            {
-                usersList.Add(new UserDTO
+            List<UserDTO> usersList = users
+                .Select(user => new UserDTO
                 {
-                    Id = row.Field<int>("UserID"),
-                    Fullname = row.Field<string>("Fullname") ?? string.Empty,
-                    Email = row.Field<string>("Email") ?? string.Empty,
-                    Active = row.Field<bool>("Active"),
-                    Role = row.Field<string>("Role") ?? string.Empty,
-                });
-            }
+                    Id = user.Id,
+                    Fullname = user.Fullname,
+                    Email = user.Email,
+                    Active = user.Active,
+                    Role = user.Role,
+                }).ToList();
 
             return Ok(usersList);
         }

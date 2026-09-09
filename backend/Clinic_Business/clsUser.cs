@@ -54,9 +54,17 @@ namespace Clinic_Business
             PersonInfo = new clsPerson();
         }
 
-        public static DataTable FindUsers(int pageNumber = 1, int pageSize = 10)
+        public static async Task<List<UserItem>> FindUsersAsync(int pageNumber = 1, int pageSize = 10)
         {
-            return clsUserDA.FindUsers(pageNumber, pageSize);
+            DataTable table = await clsUserDA.FindUsersAsync(pageNumber, pageSize);
+
+            return table.AsEnumerable().Select(row => new UserItem(
+                row.Field<int>("UserID"),
+                row.Field<string>("Fullname") ?? string.Empty,
+                row.Field<string>("Email") ?? string.Empty,
+                row.Field<string>("Role") ?? string.Empty,
+                row.Field<bool>("Active")
+            )).ToList();
         }
 
         public static async Task<clsUser?> FindUserAsync(int? id)
@@ -176,5 +184,7 @@ namespace Clinic_Business
         }
 
         private bool _HasCredintals() => !string.IsNullOrEmpty(PasswordHash) && !string.IsNullOrEmpty(Email);
+
+        public record UserItem(int Id, string Fullname, string Email, string Role, bool Active);
     }
 }
