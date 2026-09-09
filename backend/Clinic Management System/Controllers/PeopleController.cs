@@ -1,9 +1,9 @@
 ﻿using Clinic_Business;
+using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.People;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
-using System.Data;
 
 namespace Clinic_Management_System.Controllers
 {
@@ -11,32 +11,37 @@ namespace Clinic_Management_System.Controllers
     [ApiController]
     public class PeopleController : ControllerBase
     {
+        private readonly IPersonRepository _personRepository;
+
+        public PeopleController(IPersonRepository personRepository)
+        {
+            _personRepository = personRepository;
+        }
+
         [Authorize(Roles = "Admin")]
         [HttpGet(Name = "GetPeople")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public ActionResult<List<PersonDTO>> GetPeople([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
+        public async Task<ActionResult<List<PersonDTO>>> GetPeople([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
-            perPage = Math.Clamp(perPage, 1, 10);
-
-            DataTable table = clsPerson.FindAll(page, perPage);
+            List<clsPerson> people = await _personRepository.FindAllAsync(page, perPage);
             List<PersonDTO> peopleList = new List<PersonDTO>();
 
-            foreach (DataRow row in table.Rows)
+            foreach (clsPerson person in people)
             {
                 peopleList.Add(new PersonDTO
                 {
-                    Id = row.Field<int>("PersonID"),
-                    Firstname = row.Field<string>("Firstname") ?? string.Empty,
-                    Midname = row.Field<string>("Midname") ?? string.Empty,
-                    Thirdname = row.Field<string>("Thirdname"),
-                    Lastname = row.Field<string>("Lastname") ?? string.Empty,
-                    Phone = row.Field<string>("Phone") ?? string.Empty,
-                    Gender = row.Field<bool>("Gender"),
-                    DateOfBirth = row.Field<DateTime>("DateOfBirth"),
-                    ProfileImage = row.Field<string>("ProfileImage")
+                    Id = person.PersonID ?? 0,
+                    Firstname = person.Firstname,
+                    Midname = person.Midname,
+                    Thirdname = person.Thirdname,
+                    Lastname = person.Lastname,
+                    Phone = person.Phone,
+                    Gender = person.Gender,
+                    DateOfBirth = person.DateOfBirth,
+                    ProfileImage = person.ProfileImage
                 });
             }
 
@@ -55,7 +60,7 @@ namespace Clinic_Management_System.Controllers
             [FromServices] IAuthorizationService authorizationService
         )
         {
-            clsPerson? person = clsPerson.Find(id);
+            clsPerson? person = await _personRepository.FindByIdAsync(id);
 
             if (person == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
@@ -94,14 +99,14 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public ActionResult DeletePerson([Range(1, int.MaxValue)] int id)
+        public async Task<ActionResult> DeletePerson([Range(1, int.MaxValue)] int id)
         {
-            clsPerson? person = clsPerson.Find(id);
+            clsPerson? person = await _personRepository.FindByIdAsync(id);
             if (person == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Person with id {id} not found");
 
-            if (clsPerson.Delete(id))
+            if (await _personRepository.DeleteAsync(id))
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,

@@ -58,36 +58,23 @@ namespace Clinic_Business
             ProfileImage = profileImage;
         }
 
-        public static DataTable FindAll(int pageNumber = 1, int pageSize = 10)
+        public static async Task<List<clsPerson>> FindAllAsync(int pageNumber = 1, int pageSize = 10)
         {
-            return clsPersonDA.FindAll(pageNumber, pageSize);
+            DataTable dt = await clsPersonDA.FindAllAsync(pageNumber, pageSize);
+
+            return dt.AsEnumerable().Select(MapPerson).ToList();
         }
 
-        public static clsPerson? Find(int? id)
+        public static async Task<clsPerson?> FindAsync(int? id)
         {
-            string firstname = string.Empty;
-            string midname = string.Empty;
-            string? thirdname = null;
-            string lastname = string.Empty;
-            string phone = string.Empty;
-            string nationalNo = string.Empty;
-            bool gender = false;
-            DateTime dateofBirth = DateTime.MinValue;
-            string? profileImage = null;
+            DataRow? row = await clsPersonDA.FindAsync(id);
 
-            if (clsPersonDA.Find(id, ref firstname, ref midname, ref thirdname, ref lastname, ref nationalNo, ref phone, ref gender, ref dateofBirth, ref profileImage))
-            {
-                return new clsPerson(id, firstname, midname, thirdname, lastname, nationalNo, phone, gender, dateofBirth, profileImage);
-            }
-            else
-            {
-                return null;
-            }
+            return row is null ? null : MapPerson(row);
         }
 
-        public static bool Delete(int? id)
+        public static Task<bool> DeleteAsync(int? id)
         {
-            return clsPersonDA.Delete(id);
+            return clsPersonDA.DeleteAsync(id);
         }
 
         /// <summary>
@@ -96,19 +83,17 @@ namespace Clinic_Business
         /// </summary>
         internal static clsPerson MapPerson(DataRow row)
         {
-            return new clsPerson
-            {
-                PersonID = row.Field<int>("PersonID"),
-                Firstname = row.Field<string>("Firstname") ?? string.Empty,
-                Midname = row.Field<string>("Midname") ?? string.Empty,
-                Thirdname = row.Field<string>("Thirdname"),
-                Lastname = row.Field<string>("Lastname") ?? string.Empty,
-                NationalNo = row.Field<string>("NationalNo") ?? string.Empty,
-                Phone = row.Field<string>("Phone") ?? string.Empty,
-                Gender = row.Field<bool>("Gender"),
-                DateOfBirth = row.Field<DateTime>("DateOfBirth"),
-                ProfileImage = row.Field<string>("ProfileImage")
-            };
+            return new clsPerson(
+                row.Field<int>("PersonID"),
+                row.Field<string>("Firstname") ?? string.Empty,
+                row.Field<string>("Midname") ?? string.Empty,
+                row.Field<string>("Thirdname"),
+                row.Field<string>("Lastname") ?? string.Empty,
+                row.Field<string>("NationalNo") ?? string.Empty,
+                row.Field<string>("Phone") ?? string.Empty,
+                row.Field<bool>("Gender"),
+                row.Field<DateTime>("DateOfBirth"),
+                row.Field<string>("ProfileImage"));
         }
 
         public bool IsValid()
