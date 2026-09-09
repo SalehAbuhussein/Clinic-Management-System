@@ -11,9 +11,9 @@ using Microsoft.AspNetCore.Authorization;
 using Clinic_Management_System.Authorization.Appointment;
 using Clinic_DataAccess;
 using Clinic_Management_System.Authorization.Prescription;
-using Clinic_Business;
 using Clinic_Business.Interfaces;
 using Clinic_Management_System.Options;
+using Clinic_Business.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? throw new InvalidOperationException("The Jwt configuration section is missing.");

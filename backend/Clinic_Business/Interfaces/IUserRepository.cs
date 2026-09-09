@@ -1,4 +1,6 @@
 ﻿
+using Clinic_Business.Entities;
+
 namespace Clinic_Business.Interfaces
 {
     public interface IUserRepository

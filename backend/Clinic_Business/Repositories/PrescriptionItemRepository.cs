@@ -1,6 +1,7 @@
+using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 
-namespace Clinic_Business
+namespace Clinic_Business.Repositories
 {
     public class PrescriptionItemRepository : IPrescriptionItemRepository
     {

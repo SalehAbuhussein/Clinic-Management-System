@@ -2,7 +2,7 @@
 using System.Data;
 using System.Linq;
 
-namespace Clinic_Business
+namespace Clinic_Business.Entities
 {
     public class clsAppointment
     {

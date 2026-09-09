@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Clinic_Business
+namespace Clinic_Business.Entities
 {
     public class clsUser
     {

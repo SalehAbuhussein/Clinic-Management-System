@@ -1,7 +1,7 @@
 ﻿using Clinic_DataAccess;
 using System.Data;
 
-namespace Clinic_Business
+namespace Clinic_Business.Entities
 {
     public class clsPerson
     {

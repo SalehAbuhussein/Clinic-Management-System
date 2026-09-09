@@ -1,4 +1,4 @@
-﻿using Clinic_Business;
+﻿using Clinic_Business.Entities;
 using System.ComponentModel.DataAnnotations;
 
 namespace Clinic_Management_System.Validation

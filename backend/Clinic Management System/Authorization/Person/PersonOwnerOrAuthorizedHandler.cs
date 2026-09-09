@@ -1,4 +1,4 @@
-﻿using Clinic_Business;
+﻿using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;

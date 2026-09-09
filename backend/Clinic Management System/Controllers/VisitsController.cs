@@ -1,4 +1,4 @@
-﻿using Clinic_Business;
+﻿using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Visits;
 using Microsoft.AspNetCore.Authorization;
