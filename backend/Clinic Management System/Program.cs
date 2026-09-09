@@ -1,19 +1,20 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-using System.Text;
-
+﻿using Clinic_Business.Interfaces;
+using Clinic_Business.Repositories;
+using Clinic_DataAccess;
+using Clinic_Management_System.Authorization.Appointment;
+using Clinic_Management_System.Authorization.People;
+using Clinic_Management_System.Authorization.Prescription;
+using Clinic_Management_System.Options;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 // ✅ NEW (Rate limiting)
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Diagnostics;
+using System.Globalization;
+using System.Text;
 using System.Threading.RateLimiting;
-using Clinic_Management_System.Authorization.People;
-using Microsoft.AspNetCore.Authorization;
-using Clinic_Management_System.Authorization.Appointment;
-using Clinic_DataAccess;
-using Clinic_Management_System.Authorization.Prescription;
-using Clinic_Business.Interfaces;
-using Clinic_Management_System.Options;
-using Clinic_Business.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? throw new InvalidOperationException("The Jwt configuration section is missing.");
@@ -103,7 +104,10 @@ builder.Services.AddScoped<IDiagnosisRepository, DiagnosisRepository>();
 builder.Services.AddScoped<IPrescriptionItemRepository, PrescriptionItemRepository>();
 builder.Services.AddScoped<IPersonRepository, PersonRepository>();
 
-builder.Services.AddProblemDetails();
+builder.Services.AddProblemDetails(options =>
+    options.CustomizeProblemDetails = context =>
+        context.ProblemDetails.Extensions["traceId"] =
+            Activity.Current?.Id ?? context.HttpContext.TraceIdentifier);
 // ✅ NEW
 // ===============================
 // 2.5) Rate Limiting (auth endpoints)
@@ -112,6 +116,28 @@ builder.Services.AddRateLimiter(options =>
 {
     // Always return 429 when blocked
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+        {
+            context.HttpContext.Response.Headers.RetryAfter = ((int)retryAfter.TotalSeconds).ToString(NumberFormatInfo.InvariantInfo);
+        }
+
+        var problemDetailsService = context.HttpContext.RequestServices.GetRequiredService<IProblemDetailsService>();
+
+        await problemDetailsService.WriteAsync(new ProblemDetailsContext
+        {
+            HttpContext = context.HttpContext,
+            ProblemDetails =
+            {
+                Status = StatusCodes.Status429TooManyRequests,
+                Type = "https://tools.ietf.org/html/rfc6585#section-4",
+                Title = "Too Many Requests",
+                Detail = "Too many attempts. Please try again later."
+            }
+        });
+    };
 
     // One bucket per caller per action, named "<ip>:<action>", e.g. "127.0.0.1:login".
     // Separate buckets matter: without them, five bad passwords also block the
@@ -213,17 +239,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCors("ClinicApiCorsPolicy");
-
-//Return a safe 429 message (without revealing limits)
-app.Use(async (context, next) =>
-{
-    await next();
-
-    if (context.Response.StatusCode == StatusCodes.Status429TooManyRequests)
-    {
-        await context.Response.WriteAsync("Too many attempts. Please try again later.");
-    }
-});
 
 app.UseRateLimiter();
 
