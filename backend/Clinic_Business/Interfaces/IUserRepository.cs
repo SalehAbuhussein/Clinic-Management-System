@@ -5,5 +5,6 @@ namespace Clinic_Business.Interfaces
     {
         Task<clsUser?> FindByEmailAsync(string email);
         Task<clsUser?> FindByPersonIDAsync(int? personID);
+        Task<clsUser?> FindByIdAsync(int? userID);
     }
 }

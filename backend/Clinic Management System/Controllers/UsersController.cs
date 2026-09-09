@@ -1,4 +1,5 @@
 ﻿using Clinic_Business;
+using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +13,13 @@ namespace Clinic_Management_System.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
+        private readonly IUserRepository _userRepository;
+
+        public UsersController(IUserRepository userRepository)
+        {
+            _userRepository = userRepository;
+        }
+
         [Authorize(Roles = "Admin")]
         [HttpGet(Name = "GetUsers")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -49,7 +57,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<UserDTO>> GetUser([Range(1, int.MaxValue)] int id)
         {
-            clsUser? user = await clsUser.FindUserAsync(id);
+            clsUser? user = await _userRepository.FindByIdAsync(id);
             if (user == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"User with id {id} not found");
@@ -77,12 +85,12 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public async Task<ActionResult> UpdateUser([Range(1, int.MaxValue)] int id, UpdateUserDTO updatedUserDTO)
         {
-            clsUser? user = await clsUser.FindUserAsync(id);
+            clsUser? user = await _userRepository.FindByIdAsync(id);
             if (user == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"User with id {id} not found");
-
-            clsUser? existingEmailUser = await clsUser.FindByEmailAsync(updatedUserDTO.Email);
+            
+            clsUser? existingEmailUser = await _userRepository.FindByEmailAsync(updatedUserDTO.Email);
             bool isEmailTakenByAnotherUser = existingEmailUser != null && existingEmailUser.UserID != id;
             if (isEmailTakenByAnotherUser)
                 return Problem(statusCode: StatusCodes.Status409Conflict,
@@ -115,7 +123,7 @@ namespace Clinic_Management_System.Controllers
                 return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
                     detail: "You cannot deactivate your own account.");
 
-            clsUser? user = await clsUser.FindUserAsync(id);
+            clsUser? user = await _userRepository.FindByIdAsync(id);
             if (user == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"User with id {id} not found");
@@ -137,7 +145,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public async Task<ActionResult> Activate([Range(1, int.MaxValue)] int id)
         {
-            clsUser? user = await clsUser.FindUserAsync(id);
+            clsUser? user = await _userRepository.FindByIdAsync(id);
             if (user == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"User with id {id} not found");

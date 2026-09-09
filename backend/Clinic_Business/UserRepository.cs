@@ -9,9 +9,14 @@ namespace Clinic_Business
             return clsUser.FindByEmailAsync(email);
         }
 
-        Task<clsUser?> IUserRepository.FindByPersonIDAsync(int? personID)
+        public Task<clsUser?> FindByPersonIDAsync(int? personID)
         {
             return clsUser.FindByPersonIDAsync(personID);
+        }
+
+        public Task<clsUser?> FindByIdAsync(int? userID)
+        {
+            return clsUser.FindUserAsync(userID);
         }
     }
 }
