@@ -4,16 +4,16 @@ using Clinic_Management_System.Authorization.Appointment;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
-namespace Clinic_Management_System.Authorization.Prescription
+namespace Clinic_Management_System.Authorization.VisitRecord
 {
-    public class ManagePrescriptionHandler : AuthorizationHandler<ManagePrescriptionRequirement, int>
+    public class ManageVisitRecordHandler : AuthorizationHandler<ManageVisitRecordRequirement, int>
     {
         private readonly IDoctorRepository _doctorRepository;
-        private readonly ILogger<ManagePrescriptionHandler> _logger;
+        private readonly ILogger<ManageVisitRecordHandler> _logger;
 
-        public ManagePrescriptionHandler(
+        public ManageVisitRecordHandler(
             IDoctorRepository doctorRepository,
-            ILogger<ManagePrescriptionHandler> logger)
+            ILogger<ManageVisitRecordHandler> logger)
         {
             _doctorRepository = doctorRepository;
             _logger = logger;
@@ -21,7 +21,7 @@ namespace Clinic_Management_System.Authorization.Prescription
 
         protected override async Task HandleRequirementAsync(
             AuthorizationHandlerContext context,
-            ManagePrescriptionRequirement requirement, 
+            ManageVisitRecordRequirement requirement, 
             int visitId
         )
         {
@@ -38,7 +38,7 @@ namespace Clinic_Management_System.Authorization.Prescription
 
             if (!context.HasSucceeded)
                 _logger.LogWarning(
-                    "Authorization denied: user {UserId} may not manage the prescription of visit {VisitId}",
+                    "Authorization denied: user {UserId} may not manage the record of visit {VisitId}",
                     context.User.FindFirstValue(ClaimTypes.NameIdentifier), visitId);
         }
     }

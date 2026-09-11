@@ -3,7 +3,7 @@ using Clinic_Business.Repositories;
 using Clinic_DataAccess;
 using Clinic_Management_System.Authorization.Appointment;
 using Clinic_Management_System.Authorization.People;
-using Clinic_Management_System.Authorization.Prescription;
+using Clinic_Management_System.Authorization.VisitRecord;
 using Clinic_Management_System.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -87,12 +87,12 @@ builder.Services.AddAuthorization(options =>
         policy => policy.Requirements.Add(new PersonOwnerOrAuthorizedRequirement()));
     options.AddPolicy("CanDoctorViewAppointment",
         policy => policy.Requirements.Add(new CanDoctorViewAppointmentRequirement()));
-    options.AddPolicy("ManagePrescription",
-        policy => policy.Requirements.Add(new ManagePrescriptionRequirement()));
+    options.AddPolicy("ManageVisitRecord",
+        policy => policy.Requirements.Add(new ManageVisitRecordRequirement()));
 });
 builder.Services.AddScoped<IAuthorizationHandler, PersonOwnerOrAuthorizedHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, CanDoctorViewAppointmentHandler>();
-builder.Services.AddScoped<IAuthorizationHandler, ManagePrescriptionHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, ManageVisitRecordHandler>();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IMedicineRepository, MedicineRepository>();

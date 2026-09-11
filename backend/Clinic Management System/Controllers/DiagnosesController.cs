@@ -37,7 +37,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<DiagnosisDTO>> GetVisitDiagnosis([Range(1, int.MaxValue)] int visitId)
         {
-            var authResult = await _authorizationService.AuthorizeAsync(User, visitId, "ManagePrescription");
+            var authResult = await _authorizationService.AuthorizeAsync(User, visitId, "ManageVisitRecord");
 
             if (!authResult.Succeeded)
                 return Forbid();
@@ -68,7 +68,7 @@ namespace Clinic_Management_System.Controllers
             [Range(1, int.MaxValue)] int visitId,
             CreateDiagnosesDTO createDiagnosesDTO)
         {
-            var authResult = await _authorizationService.AuthorizeAsync(User, visitId, "ManagePrescription");
+            var authResult = await _authorizationService.AuthorizeAsync(User, visitId, "ManageVisitRecord");
 
             if (!authResult.Succeeded)
                 return Forbid();
@@ -116,17 +116,18 @@ namespace Clinic_Management_System.Controllers
             [Range(1, int.MaxValue)] int visitId,
             UpdateDiagnosesDTO updateDiagnosesDTO)
         {
-            var authResult = await _authorizationService.AuthorizeAsync(User, visitId, "ManagePrescription");
+            var authResult = await _authorizationService.AuthorizeAsync(User, visitId, "ManageVisitRecord");
 
             if (!authResult.Succeeded)
                 return Forbid();
 
             clsDiagnosis? diagnosis = await _diagnosisRepository.FindByVisitIdAsync(visitId);
-            if (diagnosis == null)
+            clsVisit? visit = diagnosis?.VisitInfo;
+            if (diagnosis == null || visit == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Visit {visitId} has no diagnosis");
 
-            if (await _visitRepository.HasCheckedOutAsync(visitId))
+            if (visit.IsLocked == false)
                 return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
                     detail: "The visit is locked, so its diagnosis cannot be changed.");
 
@@ -150,7 +151,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public async Task<ActionResult> DeleteVisitDiagnosis([Range(1, int.MaxValue)] int visitId)
         {
-            var authResult = await _authorizationService.AuthorizeAsync(User, visitId, "ManagePrescription");
+            var authResult = await _authorizationService.AuthorizeAsync(User, visitId, "ManageVisitRecord");
 
             if (!authResult.Succeeded)
                 return Forbid();

@@ -45,7 +45,7 @@ namespace Clinic_Management_System.Controllers
             var authResult = await authorizationService.AuthorizeAsync(
                 User,
                 visitId,
-                "ManagePrescription"
+                "ManageVisitRecord"
             );
 
             if (!authResult.Succeeded)
@@ -90,7 +90,7 @@ namespace Clinic_Management_System.Controllers
             var authResult = await authorizationService.AuthorizeAsync(
                 User,
                 visitId,
-                "ManagePrescription"
+                "ManageVisitRecord"
             );
 
             if (!authResult.Succeeded)
@@ -138,7 +138,7 @@ namespace Clinic_Management_System.Controllers
             var authResult = await authorizationService.AuthorizeAsync(
                 User,
                 visitId,
-                "ManagePrescription"
+                "ManageVisitRecord"
             );
 
             if (!authResult.Succeeded)
