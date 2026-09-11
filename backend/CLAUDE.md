@@ -185,6 +185,33 @@ Two things to keep in mind:
 Still open: no log scopes, so nothing carries a correlation id across a request — the
 `traceId` now on every `ProblemDetails` is the value a scope would carry.
 
+## Resource shape
+
+Three decisions here are deliberate and easy to mistake for gaps:
+
+- **A child that cannot exist without its parent is nested and singular.** A visit has at
+  most one prescription and at most one diagnosis, so both are singular sub-resources:
+  `api/Visits/{visitId}/prescription` and `api/Visits/{visitId}/diagnosis`. Neither carries
+  an id segment, and neither create DTO carries `VisitID` — the parent is in the URL.
+  `POST` returns 409 if one already exists.
+- **`Users` has no `DELETE` on purpose.** `PATCH {id}/deactivate` and `{id}/activate` are the
+  delete: a user owns audit history (refresh tokens, which admin changed which role), so
+  hard-deleting it would orphan the record of what it did. This is soft delete, not an
+  oversight.
+- **`People` has neither `POST` nor `DELETE`.** A person is only ever created as part of a
+  role — `POST /api/Auth/register`, `POST /api/Patients`, `POST /api/Doctors`, all of which
+  inherit `CreatePersonDTO`. `DELETE /api/People/{id}` was **removed on 11 September**: it
+  could destroy a person the API cannot recreate, out from under the patient, doctor or user
+  attached to them. `GET /api/People/{id}` still exists, so the route answers **405**, not 404.
+  `clsPerson.DeleteAsync`, `PersonRepository.DeleteAsync` and `clsPersonDA.DeleteAsync` are
+  now unreferenced and kept deliberately.
+
+**Known inconsistency:** `DiagnosesController` guards with `[Authorize(Roles = "Admin,Doctor")]`,
+so any doctor may edit any visit's diagnosis, while the prescription on the *same visit* uses
+the `ManagePrescription` policy, which checks that the doctor owns that visit. Now that
+`visitId` is a route value the policy applies directly. Also `POST` checks `visit.IsLocked`
+while `PUT`/`DELETE` check `HasCheckedOutAsync` — two ways to ask the same question.
+
 ## Database facts not visible in the code
 
 - `dbo.Users.Role` **defaults to `'Staff'`** — `clsUserDA.Create` deliberately omits the

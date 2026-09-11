@@ -91,26 +91,5 @@ namespace Clinic_Management_System.Controllers
             return Ok(personDTO);
         }
 
-        [Authorize(Roles = "Admin")]
-        [HttpDelete("{id}", Name = "DeletePerson")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public async Task<ActionResult> DeletePerson([Range(1, int.MaxValue)] int id)
-        {
-            clsPerson? person = await _personRepository.FindByIdAsync(id);
-            if (person == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Person with id {id} not found");
-
-            if (await _personRepository.DeleteAsync(id))
-                return NoContent();
-
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The person could not be deleted.");
-        }
     }
 }
