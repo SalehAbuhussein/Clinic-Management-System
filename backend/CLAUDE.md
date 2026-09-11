@@ -206,11 +206,28 @@ Three decisions here are deliberate and easy to mistake for gaps:
   `clsPerson.DeleteAsync`, `PersonRepository.DeleteAsync` and `clsPersonDA.DeleteAsync` are
   now unreferenced and kept deliberately.
 
-**Known inconsistency:** `DiagnosesController` guards with `[Authorize(Roles = "Admin,Doctor")]`,
-so any doctor may edit any visit's diagnosis, while the prescription on the *same visit* uses
-the `ManagePrescription` policy, which checks that the doctor owns that visit. Now that
-`visitId` is a route value the policy applies directly. Also `POST` checks `visit.IsLocked`
-while `PUT`/`DELETE` check `HasCheckedOutAsync` — two ways to ask the same question.
+**Both sub-resources of a visit are guarded the same way**, as of 11 September. All four
+diagnosis actions call
+`_authorizationService.AuthorizeAsync(User, visitId, "ManagePrescription")` and `Forbid()` on
+failure, matching the prescription endpoints. A doctor who is not on the visit gets 403 for
+either. Three things about that:
+
+- **A role attribute cannot express this rule.** `[Authorize(Roles = …)]` runs before the
+  action and never sees which visit was requested, so it can only ask *what role are you*, not
+  *is this your patient*. That is why the check is imperative, in the method body.
+- **The guard sits above the 404 and the 409**, so a doctor who is not on the visit cannot
+  learn whether a diagnosis exists by probing — the same reasoning as the identical 401 on the
+  two login branches.
+- **The strict direction was a decision, not a fix.** The mismatch could have been resolved by
+  loosening prescriptions instead, since covering doctors are normal in a clinic. That was
+  considered and declined on 11 September.
+
+`IAuthorizationService` is injected by **constructor** here rather than `[FromServices]`,
+because all four actions need it; `PrescriptionsController` still uses `[FromServices]`.
+
+Two loose ends: the policy is still named `ManagePrescription` while guarding a diagnosis in
+four places (`ManageVisitRecord` would describe it), and `POST` checks `visit.IsLocked` while
+`PUT`/`DELETE` check `HasCheckedOutAsync` — two ways to ask the same question.
 
 ## Database facts not visible in the code
 

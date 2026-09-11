@@ -1,4 +1,4 @@
-using Clinic_Business.Entities;
+﻿using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Diagnoses;
 using Microsoft.AspNetCore.Authorization;
@@ -16,11 +16,16 @@ namespace Clinic_Management_System.Controllers
     {
         private readonly IVisitRepository _visitRepository;
         private readonly IDiagnosisRepository _diagnosisRepository;
+        private readonly IAuthorizationService _authorizationService;
 
-        public DiagnosesController(IVisitRepository visitRepository, IDiagnosisRepository diagnosisRepository)
+        public DiagnosesController(
+            IVisitRepository visitRepository, 
+            IDiagnosisRepository diagnosisRepository,
+            IAuthorizationService authorizationService)
         {
             _visitRepository = visitRepository;
             _diagnosisRepository = diagnosisRepository;
+            _authorizationService = authorizationService;
         }
 
         [Authorize(Roles = "Admin,Doctor")]
@@ -32,6 +37,11 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<DiagnosisDTO>> GetVisitDiagnosis([Range(1, int.MaxValue)] int visitId)
         {
+            var authResult = await _authorizationService.AuthorizeAsync(User, visitId, "ManagePrescription");
+
+            if (!authResult.Succeeded)
+                return Forbid();
+
             clsDiagnosis? diagnosis = await _diagnosisRepository.FindByVisitIdAsync(visitId);
             if (diagnosis == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
@@ -58,6 +68,11 @@ namespace Clinic_Management_System.Controllers
             [Range(1, int.MaxValue)] int visitId,
             CreateDiagnosesDTO createDiagnosesDTO)
         {
+            var authResult = await _authorizationService.AuthorizeAsync(User, visitId, "ManagePrescription");
+
+            if (!authResult.Succeeded)
+                return Forbid();
+
             if (await _diagnosisRepository.ExistsByVisitIdAsync(visitId))
                 return Problem(statusCode: StatusCodes.Status409Conflict,
                     detail: $"Visit {visitId} already has a diagnosis");
@@ -101,6 +116,11 @@ namespace Clinic_Management_System.Controllers
             [Range(1, int.MaxValue)] int visitId,
             UpdateDiagnosesDTO updateDiagnosesDTO)
         {
+            var authResult = await _authorizationService.AuthorizeAsync(User, visitId, "ManagePrescription");
+
+            if (!authResult.Succeeded)
+                return Forbid();
+
             clsDiagnosis? diagnosis = await _diagnosisRepository.FindByVisitIdAsync(visitId);
             if (diagnosis == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
@@ -130,6 +150,11 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public async Task<ActionResult> DeleteVisitDiagnosis([Range(1, int.MaxValue)] int visitId)
         {
+            var authResult = await _authorizationService.AuthorizeAsync(User, visitId, "ManagePrescription");
+
+            if (!authResult.Succeeded)
+                return Forbid();
+
             clsDiagnosis? diagnosis = await _diagnosisRepository.FindByVisitIdAsync(visitId);
             if (diagnosis == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
