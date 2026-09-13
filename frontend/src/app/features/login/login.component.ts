@@ -33,19 +33,11 @@ export class LoginComponent implements OnDestroy {
   loginService = inject(LoginService);
 
   loading = signal(false);
-
-  /** The single message shown above the form, or null when there is none. */
-  errorMessage = signal<string | null>(null);
-
-  errorTone = signal<BannerTone>('error');
-
-  /** From ProblemDetails.traceId — the only thing that makes a bug report useful. */
-  traceId = signal<string | null>(null);
-
-  /** Set on 429. Keeps the button disabled until the minute is over. */
-  rateLimited = signal(false);
-
   hidePassword = signal(true);
+
+  errorMessage = signal<string>('');
+  errorTone = signal<BannerTone>('error');
+  rateLimited = signal(false);
 
   errorIcon = computed(() => {
     switch (this.errorTone()) {
@@ -86,8 +78,7 @@ export class LoginComponent implements OnDestroy {
    *
    */
   clearError(): void {
-    this.errorMessage.set(null);
-    this.traceId.set(null);
+    this.errorMessage.set('');
     this.rateLimited.set(false);
     this.errorTone.set('error');
   }

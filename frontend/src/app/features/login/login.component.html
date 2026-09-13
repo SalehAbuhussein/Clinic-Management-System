@@ -13,15 +13,11 @@
       <p class="login__subtitle">Sign in to continue</p>
     </header>
 
-    <!-- One banner for the whole form. 401 never says which half was wrong. -->
     @if (errorMessage(); as message) {
       <div class="login__banner" [class]="'login__banner--' + errorTone()" role="alert">
         <mat-icon>{{ errorIcon() }}</mat-icon>
         <span>
           <b>{{ message }}</b>
-          @if (traceId(); as trace) {
-            <span class="login__trace">traceId {{ trace }}</span>
-          }
         </span>
       </div>
     }
