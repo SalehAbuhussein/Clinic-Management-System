@@ -66,14 +66,6 @@
   }
 }
 
-.backdrop__ecg-baseline {
-  animation: none;
-  opacity: 0.34;
-  stroke-dasharray: none;
-  stroke-dashoffset: 0;
-  stroke-width: 1;
-}
-
 @keyframes backdrop-trace {
   to {
     stroke-dashoffset: 0;
