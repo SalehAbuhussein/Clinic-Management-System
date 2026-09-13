@@ -1,0 +1,126 @@
+// Sign in.
+// Colour, shape, elevation and type all come from the M3 system variables that
+// `mat.theme()` emits in styles.scss, so this file holds no hard-coded colours.
+
+:host {
+  display: block;
+  min-height: 100%;
+}
+
+.login {
+  position: relative;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  background-color: var(--mat-sys-surface);
+  overflow: hidden;
+}
+
+/* -------------------------------------------------------------- card ---- */
+
+.login__card {
+  position: relative;
+  z-index: 1;
+  width: min(424px, 100%);
+  padding: clamp(24px, 5vw, 36px);
+  border-radius: var(--mat-sys-corner-extra-large);
+  background-color: var(--mat-sys-surface-container-lowest);
+  box-shadow: var(--mat-sys-level3);
+}
+
+.login__brand {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.login__logo {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  margin-bottom: 10px;
+  border-radius: var(--mat-sys-corner-large);
+  background-color: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  box-shadow: var(--mat-sys-level1);
+
+  mat-icon {
+    font-size: 30px;
+    width: 30px;
+    height: 30px;
+  }
+}
+
+.login__title {
+  margin: 0;
+  font: var(--mat-sys-headline-small);
+}
+
+.login__subtitle {
+  margin: 0;
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+/* ------------------------------------------------------------ banner ---- */
+
+.login__banner {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border-radius: var(--mat-sys-corner-medium);
+  font: var(--mat-sys-body-medium);
+  background-color: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+
+  b {
+    font-weight: 500;
+  }
+
+  mat-icon {
+    flex: 0 0 auto;
+  }
+}
+
+.login__banner--warn {
+  background-color: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-on-tertiary-container);
+}
+
+.login__banner--info {
+  background-color: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.login__trace {
+  display: block;
+  margin-top: 3px;
+  font: var(--mat-sys-label-small);
+  opacity: 0.74;
+  word-break: break-all;
+}
+
+/* -------------------------------------------------------------- form ---- */
+
+.login__form {
+  display: grid;
+  gap: 4px;
+}
+
+.login__submit {
+  height: 48px;
+  margin-top: 12px;
+
+  // mat-spinner sits beside the label while the request is in flight
+  mat-spinner {
+    display: inline-block;
+    margin-inline-end: 8px;
+    vertical-align: middle;
+  }
+}

@@ -1,0 +1,29 @@
+<div class="backdrop__light"></div>
+<div class="backdrop__pulse"></div>
+
+<svg class="backdrop__gauze" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="loginCrosses" width="56" height="56" patternUnits="userSpaceOnUse" patternTransform="rotate(12)">
+      <path d="M28 21v14M21 28h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none" />
+    </pattern>
+    <radialGradient id="loginFade" cx="50%" cy="50%" r="62%">
+      <stop offset="0%" stop-color="#fff" stop-opacity="1" />
+      <stop offset="100%" stop-color="#fff" stop-opacity="0" />
+    </radialGradient>
+    <mask id="loginGauzeMask">
+      <rect width="100%" height="100%" fill="url(#loginFade)" />
+    </mask>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#loginCrosses)" mask="url(#loginGauzeMask)" />
+</svg>
+
+<svg class="backdrop__ecg" viewBox="0 0 1200 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+  <path class="backdrop__ecg-baseline" d="M0 100 H1200" />
+  <path
+    d="M0 100 H100 l10 -8 l8 16 l10 -54 l10 66 l8 -20 l12 0
+       H320 l10 -8 l8 16 l10 -54 l10 66 l8 -20 l12 0
+       H540 l10 -8 l8 16 l10 -54 l10 66 l8 -20 l12 0
+       H760 l10 -8 l8 16 l10 -54 l10 66 l8 -20 l12 0
+       H980 l10 -8 l8 16 l10 -54 l10 66 l8 -20 l12 0
+       H1200" />
+</svg>

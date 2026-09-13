@@ -1,0 +1,108 @@
+// Colour comes from the M3 system variables emitted by `mat.theme()`, so the
+// backdrop follows the app theme rather than holding its own palette.
+
+:host {
+  display: block;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+}
+
+.backdrop__light {
+  filter: blur(10px);
+  inset: -10%;
+  opacity: 0.85;
+  position: absolute;
+  background:
+    radial-gradient(42% 46% at 84% 8%, var(--mat-sys-secondary-container) 0%, transparent 62%),
+    radial-gradient(40% 44% at 10% 92%, var(--mat-sys-primary-container) 0%, transparent 62%),
+    radial-gradient(34% 38% at 50% 50%, var(--mat-sys-tertiary-container) 0%, transparent 70%);
+}
+
+.backdrop__pulse {
+  animation: backdrop-beat 4.2s ease-in-out infinite;
+  background: radial-gradient(circle, var(--mat-sys-tertiary-container) 0%, transparent 62%);
+  border-radius: 50%;
+  height: 520px;
+  left: 50%;
+  margin: -260px 0 0 -260px;
+  opacity: 0.5;
+  position: absolute;
+  top: 50%;
+  width: 520px;
+}
+
+.backdrop__gauze {
+  color: var(--mat-sys-primary);
+  height: 100%;
+  inset: 0;
+  opacity: 0.1;
+  position: absolute;
+  width: 100%;
+}
+
+.backdrop__ecg {
+  color: var(--mat-sys-primary);
+  height: clamp(200px, 34vh, 340px);
+  inset-inline: 0;
+  opacity: 0.22;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100%;
+
+  path {
+    animation: backdrop-trace 3.4s cubic-bezier(0.22, 1, 0.36, 1) 0.25s forwards;
+    fill: none;
+    stroke-dasharray: 2600;
+    stroke-dashoffset: 2600;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+    stroke: currentColor;
+    vector-effect: non-scaling-stroke;
+  }
+}
+
+.backdrop__ecg-baseline {
+  animation: none;
+  opacity: 0.34;
+  stroke-dasharray: none;
+  stroke-dashoffset: 0;
+  stroke-width: 1;
+}
+
+@keyframes backdrop-trace {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes backdrop-beat {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.42;
+  }
+  46% {
+    transform: scale(1.06);
+    opacity: 0.54;
+  }
+  52% {
+    transform: scale(1.02);
+    opacity: 0.48;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop__ecg path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .backdrop__pulse {
+    animation: none;
+  }
+}
