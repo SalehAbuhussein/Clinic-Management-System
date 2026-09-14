@@ -99,6 +99,7 @@ export class LoginComponent implements OnDestroy {
         if (response) {
           this.localStorage.set("accessToken", response.accessToken);
           this.localStorage.set("refreshToken", response.refreshToken);
+          this.localStorage.set("email", this.loginModel().email);
         }
       },
       error: error => {
