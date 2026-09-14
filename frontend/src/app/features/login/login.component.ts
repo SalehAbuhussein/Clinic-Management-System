@@ -15,7 +15,8 @@ import { LocalStorageService } from '@core/services/local-storage/local-storage.
 import { LoginBackdropComponent } from './components/login-backdrop/login-backdrop.component';
 import { ThemeToggleComponent } from '@shared/components/theme-toggle/theme-toggle.component';
 
-import { LoginBannerTone, LoginError, LoginRequestBody } from './types/login.types';
+import { LoginBannerTone, LoginError } from './types/login.types';
+import { LoginRequestBody } from '@core/auth/types/auth.types';
 
 @Component({
   imports: [
