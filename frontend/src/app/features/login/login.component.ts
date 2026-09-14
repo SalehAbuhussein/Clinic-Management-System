@@ -9,8 +9,8 @@ import { email, form, FormField, minLength, required } from '@angular/forms/sign
 
 import { finalize } from 'rxjs';
 
+import { AuthService } from '@core/auth/service/auth.service';
 import { LocalStorageService } from '@core/services/local-storage/local-storage.service';
-import { LoginService } from './services/login.service';
 
 import { LoginBackdropComponent } from './components/login-backdrop/login-backdrop.component';
 import { ThemeToggleComponent } from '@shared/components/theme-toggle/theme-toggle.component';
@@ -19,23 +19,23 @@ import { LoginBannerTone, LoginError, LoginRequestBody } from './types/login.typ
 
 @Component({
   imports: [
+    FormField,
     LoginBackdropComponent,
-    ThemeToggleComponent,
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
-    FormField,
     MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
+    ThemeToggleComponent,
   ],
   selector: 'app-login',
   styleUrl: './login.component.scss',
   templateUrl: './login.component.html',
 })
 export class LoginComponent implements OnDestroy {
+  authService = inject(AuthService);
   localStorage = inject(LocalStorageService);
-  loginService = inject(LoginService);
 
   readonly TONE_BY_STATUS: Record<number, LoginBannerTone> = {
     400: "error",
@@ -90,7 +90,7 @@ export class LoginComponent implements OnDestroy {
     });
     this.loading.set(true);
 
-    this.loginService.login(this.loginForm().value())
+    this.authService.login(this.loginForm().value())
     .pipe(
       finalize(() => this.loading.set(false))
     ).subscribe({
