@@ -10,7 +10,6 @@ import { email, form, FormField, minLength, required } from '@angular/forms/sign
 import { finalize } from 'rxjs';
 
 import { AuthService } from '@core/auth/service/auth.service';
-import { LocalStorageService } from '@core/services/local-storage/local-storage.service';
 
 import { LoginBackdropComponent } from './components/login-backdrop/login-backdrop.component';
 import { ThemeToggleComponent } from '@shared/components/theme-toggle/theme-toggle.component';
@@ -36,7 +35,6 @@ import { LoginRequestBody } from '@core/auth/types/auth.types';
 })
 export class LoginComponent implements OnDestroy {
   authService = inject(AuthService);
-  localStorage = inject(LocalStorageService);
 
   readonly TONE_BY_STATUS: Record<number, LoginBannerTone> = {
     400: "error",
@@ -95,13 +93,6 @@ export class LoginComponent implements OnDestroy {
     .pipe(
       finalize(() => this.loading.set(false))
     ).subscribe({
-      next: response => {
-        if (response) {
-          this.localStorage.set("accessToken", response.accessToken);
-          this.localStorage.set("refreshToken", response.refreshToken);
-          this.localStorage.set("email", this.loginModel().email);
-        }
-      },
       error: error => {
         error = error.error;
 
