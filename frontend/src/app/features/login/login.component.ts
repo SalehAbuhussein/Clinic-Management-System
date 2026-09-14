@@ -13,12 +13,14 @@ import { finalize } from 'rxjs';
 import { LoginService } from './services/login.service';
 
 import { LoginBackdropComponent } from './components/login-backdrop/login-backdrop.component';
+import { ThemeToggleComponent } from '@shared/components/theme-toggle/theme-toggle.component';
 
 import { LoginBannerTone, LoginError, LoginRequestBody } from './types/login.types';
 
 @Component({
   imports: [
     LoginBackdropComponent,
+    ThemeToggleComponent,
     ReactiveFormsModule,
     MatButtonModule,
     MatCardModule,

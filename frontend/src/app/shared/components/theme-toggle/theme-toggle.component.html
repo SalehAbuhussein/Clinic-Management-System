@@ -1,0 +1,9 @@
+@let isDark = themeService.theme() === 'dark';
+
+<button
+  mat-icon-button
+  type="button"
+  (click)="themeService.toggle()"
+  [attr.aria-label]="isDark ? 'Switch to light theme' : 'Switch to dark theme'">
+  <mat-icon>{{ isDark ? 'light_mode' : 'dark_mode' }}</mat-icon>
+</button>
