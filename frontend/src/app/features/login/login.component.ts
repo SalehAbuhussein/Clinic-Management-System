@@ -1,5 +1,4 @@
 import { Component, computed, inject, OnDestroy, signal } from '@angular/core';
-import { ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -10,6 +9,7 @@ import { email, form, FormField, minLength, required } from '@angular/forms/sign
 
 import { finalize } from 'rxjs';
 
+import { LocalStorageService } from '@core/services/local-storage/local-storage.service';
 import { LoginService } from './services/login.service';
 
 import { LoginBackdropComponent } from './components/login-backdrop/login-backdrop.component';
@@ -21,7 +21,6 @@ import { LoginBannerTone, LoginError, LoginRequestBody } from './types/login.typ
   imports: [
     LoginBackdropComponent,
     ThemeToggleComponent,
-    ReactiveFormsModule,
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
@@ -35,6 +34,7 @@ import { LoginBannerTone, LoginError, LoginRequestBody } from './types/login.typ
   templateUrl: './login.component.html',
 })
 export class LoginComponent implements OnDestroy {
+  localStorage = inject(LocalStorageService);
   loginService = inject(LoginService);
 
   readonly TONE_BY_STATUS: Record<number, LoginBannerTone> = {
@@ -76,7 +76,7 @@ export class LoginComponent implements OnDestroy {
   /**
    * Submit Login form
    */
-  onSubmit(event: Event): void {
+  onFormSubmit(event: Event): void {
     event.preventDefault();
 
     if (this.loginForm().invalid()) {
@@ -90,9 +90,15 @@ export class LoginComponent implements OnDestroy {
     });
     this.loading.set(true);
 
-    this.loginService.login(this.loginForm().value()).pipe(finalize(() => this.loading.set(false))).subscribe({
+    this.loginService.login(this.loginForm().value())
+    .pipe(
+      finalize(() => this.loading.set(false))
+    ).subscribe({
       next: response => {
-        console.log(response);
+        if (response) {
+          this.localStorage.set("accessToken", response.accessToken);
+          this.localStorage.set("refreshToken", response.refreshToken);
+        }
       },
       error: error => {
         error = error.error;
