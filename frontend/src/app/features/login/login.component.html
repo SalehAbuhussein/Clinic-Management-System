@@ -1,5 +1,7 @@
 @let email = loginForm.email();
 @let password = loginForm.password();
+@let errorMsg = error().message;
+@let errorTone = error().tone;
 
 <div class="login">
   <app-login-backdrop />
@@ -13,11 +15,11 @@
       <p class="login__subtitle">Sign in to continue</p>
     </header>
 
-    @if (errorMessage(); as message) {
-      <div class="login__banner" [class]="'login__banner--' + errorTone()" role="alert">
+    @if (errorMsg) {
+      <div class="login__banner" [class]="'login__banner--' + errorTone" role="alert">
         <mat-icon>{{ errorIcon() }}</mat-icon>
         <span>
-          <b>{{ message }}</b>
+          <b>{{ errorMsg }}</b>
         </span>
       </div>
     }
@@ -73,7 +75,7 @@
           <mat-spinner diameter="18" />
           <span>Signing in</span>
         } @else {
-          <span>{{ submitLabel() }}</span>
+          <span>{{ "Sign in" }}</span>
         }
       </button>
     </form>

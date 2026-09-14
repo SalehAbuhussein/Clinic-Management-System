@@ -3,4 +3,9 @@ export type LoginRequestBody = {
   password: string;
 };
 
-export type BannerTone = 'error' | 'warn' | 'info';
+export type LoginBannerTone = 'error' | 'warn' | 'info' | '';
+
+export type LoginError = {
+  message: string;
+  tone: LoginBannerTone;
+};

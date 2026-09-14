@@ -1,8 +1,8 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Params } from '@angular/router';
 import { inject, Service } from '@angular/core';
 
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 
 @Service()
 export class ApiService {
@@ -28,8 +28,8 @@ export class ApiService {
    * @param body Request payload.
    * @returns The created resource, or void when the API answers 201 with no body.
    */
-  post<T>(path: string, body: Params): Observable<T> {
-    return this.httpClient.post<T>(`${this._baseUrl}${path}`, body);
+  post<T>(path: string, body: Params): Observable<T | null> {
+    return this.httpClient.post<T>(`${this._baseUrl}${path}`, body, { observe: 'response' }).pipe(map(this.extractBody));
   }
 
   /**
@@ -87,4 +87,12 @@ export class ApiService {
 
     return httpParams;
   }
+
+  /**
+   * Extract body out of Http Response
+   *
+   * @param response
+   * @returns
+   */
+  extractBody = <T>(response: HttpResponse<T>) => response.body;
 }

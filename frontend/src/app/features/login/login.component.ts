@@ -8,11 +8,13 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { email, form, FormField, minLength, required } from '@angular/forms/signals';
 
+import { finalize } from 'rxjs';
+
 import { LoginService } from './services/login.service';
 
 import { LoginBackdropComponent } from './components/login-backdrop/login-backdrop.component';
 
-import { BannerTone, LoginRequestBody } from './types/login.types';
+import { LoginBannerTone, LoginError, LoginRequestBody } from './types/login.types';
 
 @Component({
   imports: [
@@ -34,13 +36,22 @@ export class LoginComponent implements OnDestroy {
   formBuilder = inject(FormBuilder);
   loginService = inject(LoginService);
 
+  readonly TONE_BY_STATUS: Record<number, LoginBannerTone> = {
+    400: "error",
+    401: "error",
+    429: "warn",
+    200: "info"
+  };
+
   loading = signal(false);
   hidePassword = signal(true);
 
-  errorMessage = signal<string>('');
-  errorTone = signal<BannerTone>('error');
+  error = signal<LoginError>({
+    message: "",
+    tone: "error",
+  });
   errorIcon = computed(() => {
-    switch (this.errorTone()) {
+    switch (this.error().tone) {
       case 'warn':
         return 'timer';
       case 'info':
@@ -49,8 +60,6 @@ export class LoginComponent implements OnDestroy {
         return 'error';
     }
   });
-
-  submitLabel = computed(() => (this.errorTone() === 'info' ? 'Retry' : 'Sign in'));
 
   loginModel = signal<LoginRequestBody>({
     email: '',
@@ -74,26 +83,34 @@ export class LoginComponent implements OnDestroy {
       return;
     }
 
-    this.clearError();
+    this.error.set({
+      message: '',
+      tone: '',
+    });
     this.loading.set(true);
 
-    // TODO: subscribe to this.loginService.postLogin(this.form.getRawValue()).
-    //       next  -> store the tokens and the email (refresh needs both), then navigate.
-    //       error -> this.showError(err); finally -> this.loading.set(false).
-  }
+    this.loginService.postLogin(this.loginForm().value()).pipe(finalize(() => this.loading.set(false))).subscribe({
+      next: response => {
+        console.log(response);
+      },
+      error: error => {
+        error = error.error;
 
-  /**
-   *
-   */
-  clearError(): void {
-    this.errorMessage.set('');
-    this.errorTone.set('error');
+        this.error.set({
+          tone: this.TONE_BY_STATUS[error.status],
+          message: error.detail
+        });
+      }
+    });
   }
 
   /**
    * Angular onDestroy lifecycle method
    */
   ngOnDestroy(): void {
-    this.clearError();
+    this.error.set({
+      message: '',
+      tone: '',
+    });
   }
 }

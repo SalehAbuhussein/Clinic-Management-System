@@ -8,45 +8,45 @@
 }
 
 .login {
-  position: relative;
-  min-height: 100dvh;
-  display: grid;
-  place-items: center;
-  padding: 24px 16px;
   background-color: var(--mat-sys-surface);
+  display: grid;
+  min-height: 100dvh;
   overflow: hidden;
+  padding: 24px 16px;
+  place-items: center;
+  position: relative;
 }
 
 /* -------------------------------------------------------------- card ---- */
 
 .login__card {
-  position: relative;
-  z-index: 1;
-  width: min(424px, 100%);
-  padding: clamp(24px, 5vw, 36px);
-  border-radius: var(--mat-sys-corner-extra-large);
   background-color: var(--mat-sys-surface-container-lowest);
+  border-radius: var(--mat-sys-corner-extra-large);
   box-shadow: var(--mat-sys-level3);
+  padding: clamp(24px, 5vw, 36px);
+  position: relative;
+  width: min(424px, 100%);
+  z-index: 1;
 }
 
 .login__brand {
   display: grid;
-  justify-items: center;
   gap: 6px;
-  text-align: center;
+  justify-items: center;
   margin-bottom: 24px;
+  text-align: center;
 }
 
 .login__logo {
+  background-color: var(--mat-sys-primary);
+  border-radius: var(--mat-sys-corner-large);
+  box-shadow: var(--mat-sys-level1);
+  color: var(--mat-sys-on-primary);
   display: grid;
-  place-items: center;
-  width: 60px;
   height: 60px;
   margin-bottom: 10px;
-  border-radius: var(--mat-sys-corner-large);
-  background-color: var(--mat-sys-primary);
-  color: var(--mat-sys-on-primary);
-  box-shadow: var(--mat-sys-level1);
+  place-items: center;
+  width: 60px;
 
   mat-icon {
     font-size: 30px;
@@ -61,23 +61,23 @@
 }
 
 .login__subtitle {
-  margin: 0;
-  font: var(--mat-sys-body-medium);
   color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+  margin: 0;
 }
 
 /* ------------------------------------------------------------ banner ---- */
 
 .login__banner {
+  align-items: center;
+  background-color: var(--mat-sys-error-container);
+  border-radius: var(--mat-sys-corner-medium);
+  color: var(--mat-sys-on-error-container);
   display: flex;
+  font: var(--mat-sys-body-medium);
   gap: 12px;
-  align-items: flex-start;
   margin-bottom: 20px;
   padding: 14px 16px;
-  border-radius: var(--mat-sys-corner-medium);
-  font: var(--mat-sys-body-medium);
-  background-color: var(--mat-sys-error-container);
-  color: var(--mat-sys-on-error-container);
 
   b {
     font-weight: 500;
@@ -100,8 +100,8 @@
 
 .login__trace {
   display: block;
-  margin-top: 3px;
   font: var(--mat-sys-label-small);
+  margin-top: 3px;
   opacity: 0.74;
   word-break: break-all;
 }
@@ -117,7 +117,6 @@
   height: 48px;
   margin-top: 12px;
 
-  // mat-spinner sits beside the label while the request is in flight
   mat-spinner {
     display: inline-block;
     margin-inline-end: 8px;

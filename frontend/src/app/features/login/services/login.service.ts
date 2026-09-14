@@ -1,5 +1,4 @@
 import { inject, Service } from '@angular/core';
-import { Params } from '@angular/router';
 
 import { ApiService } from '@core/services/api/api.service';
 import { LoginRequestBody } from '../types/login.types';
@@ -14,6 +13,6 @@ export class LoginService {
    * @param body
    */
   postLogin = (body: LoginRequestBody) => {
-    return this.apiService.post('/login', body);
+    return this.apiService.post('/Auth/login/', body);
   }
 }
