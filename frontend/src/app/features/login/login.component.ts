@@ -1,17 +1,18 @@
 import { Component, computed, inject, OnDestroy, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { email, form, FormField, minLength, required } from '@angular/forms/signals';
 
 import { LoginService } from './services/login.service';
 
 import { LoginBackdropComponent } from './components/login-backdrop/login-backdrop.component';
 
-import { BannerTone } from './types/login.types';
+import { BannerTone, LoginRequestBody } from './types/login.types';
 
 @Component({
   imports: [
@@ -20,6 +21,7 @@ import { BannerTone } from './types/login.types';
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
+    FormField,
     MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
@@ -37,8 +39,6 @@ export class LoginComponent implements OnDestroy {
 
   errorMessage = signal<string>('');
   errorTone = signal<BannerTone>('error');
-  rateLimited = signal(false);
-
   errorIcon = computed(() => {
     switch (this.errorTone()) {
       case 'warn':
@@ -50,19 +50,27 @@ export class LoginComponent implements OnDestroy {
     }
   });
 
-  readonly submitLabel = computed(() => (this.errorTone() === 'info' ? 'Retry' : 'Sign in'));
+  submitLabel = computed(() => (this.errorTone() === 'info' ? 'Retry' : 'Sign in'));
 
-  readonly form = this.formBuilder.nonNullable.group({
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required]],
+  loginModel = signal<LoginRequestBody>({
+    email: '',
+    password: ''
+  });
+  loginForm = form(this.loginModel, (schemaPath) => {
+    required(schemaPath.email);
+    email(schemaPath.email);
+    required(schemaPath.password);
+    minLength(schemaPath.password, 6);
   });
 
   /**
    * Submit Login form
    */
-  onSubmit(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
+  onSubmit(event: Event): void {
+    event.preventDefault();
+
+    if (this.loginForm().invalid()) {
+      this.loginForm().markAsTouched();
       return;
     }
 
@@ -79,7 +87,6 @@ export class LoginComponent implements OnDestroy {
    */
   clearError(): void {
     this.errorMessage.set('');
-    this.rateLimited.set(false);
     this.errorTone.set('error');
   }
 

@@ -1,5 +1,5 @@
-@let email = form.controls.email;
-@let password = form.controls.password;
+@let email = loginForm.email();
+@let password = loginForm.password();
 
 <div class="login">
   <app-login-backdrop />
@@ -22,22 +22,21 @@
       </div>
     }
 
-    <form class="login__form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+    <form class="login__form" (submit)="onSubmit($event)" novalidate>
       <mat-form-field appearance="fill">
         <mat-label>Email</mat-label>
 
         <input
           matInput
           type="email"
-          formControlName="email"
+          [formField]="loginForm.email"
           autocomplete="username"
-          inputmode="email"
-          required />
+          inputmode="email"/>
 
         <mat-icon matSuffix>mail</mat-icon>
-        @if (email.hasError('required')) {
+        @if (email.errors()[0]?.kind === 'required') {
           <mat-error>Email is required</mat-error>
-        } @else if (email.hasError('email')) {
+        } @else if (email.errors()[0]?.kind === 'email') {
           <mat-error>Enter a valid email address</mat-error>
         }
       </mat-form-field>
@@ -47,9 +46,8 @@
         <input
           matInput
           [type]="hidePassword() ? 'password' : 'text'"
-          formControlName="password"
-          autocomplete="current-password"
-          required />
+          [formField]="loginForm.password"
+          autocomplete="current-password"/>
         <button
           mat-icon-button
           matSuffix
@@ -59,8 +57,10 @@
           [attr.aria-pressed]="!hidePassword()">
           <mat-icon>{{ hidePassword() ? 'visibility' : 'visibility_off' }}</mat-icon>
         </button>
-        @if (password.hasError('required')) {
+        @if (password.errors()[0]?.kind === 'required') {
           <mat-error>Password is required</mat-error>
+        } @else if (password.errors()[0]?.kind === 'minLength') {
+          <mat-error>Password must be at least 6 characters</mat-error>
         }
       </mat-form-field>
 
@@ -68,7 +68,7 @@
         class="login__submit"
         mat-flat-button
         type="submit"
-        [disabled]="loading() || rateLimited()">
+        [disabled]="loading() || loginForm().invalid()">
         @if (loading()) {
           <mat-spinner diameter="18" />
           <span>Signing in</span>
