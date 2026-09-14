@@ -90,7 +90,7 @@ export class LoginComponent implements OnDestroy {
     });
     this.loading.set(true);
 
-    this.loginService.postLogin(this.loginForm().value()).pipe(finalize(() => this.loading.set(false))).subscribe({
+    this.loginService.login(this.loginForm().value()).pipe(finalize(() => this.loading.set(false))).subscribe({
       next: response => {
         console.log(response);
       },
