@@ -1,0 +1,41 @@
+<div class="dashboard-container">
+  <nav class="dashboard-side">
+    <button class="book-btn" matFab extended>
+      <mat-icon>add</mat-icon>
+      Book
+    </button>
+
+    <mat-nav-list>
+      <a mat-list-item [activated]="true">
+        <mat-icon matListItemIcon>today</mat-icon>
+        <span matListItemTitle>Today</span>
+      </a>
+
+      <a mat-list-item>
+        <mat-icon matListItemIcon>groups</mat-icon>
+        <span matListItemTitle>Patients</span>
+      </a>
+
+      <a mat-list-item>
+        <mat-icon matListItemIcon>assignment</mat-icon>
+        <span matListItemTitle>Visits</span>
+      </a>
+
+      <a mat-list-item>
+        <mat-icon matListItemIcon>settings</mat-icon>
+        <span matListItemTitle>Admin</span>
+      </a>
+    </mat-nav-list>
+
+    <mat-nav-list class="dashboard-side__footer">
+      <a mat-list-item>
+        <mat-icon matListItemIcon>logout</mat-icon>
+        <span matListItemTitle>Sign out</span>
+      </a>
+    </mat-nav-list>
+  </nav>
+
+  <main class="dashboard-main-content">
+    MAIN CONTENT
+  </main>
+</div>
