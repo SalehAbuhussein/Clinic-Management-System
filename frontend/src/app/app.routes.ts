@@ -1,4 +1,4 @@
-import { Routes } from '@angular/router';
+﻿import { Routes } from '@angular/router';
 
 export const routes: Routes = [
   {
@@ -8,6 +8,6 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     loadComponent: () => import('./shared/layouts/dashboard-layout/dashboard-layout.component').then(c => c.DashboardLayoutComponent),
-    loadChildren: () => import('./features/today-schedule/today-schedule.routes').then(r => r.todayScheduleRoutes),
+    loadChildren: () => import('./features/today-appointments/today-appointments.routes').then(r => r.todayAppointmentsRoutes),
   }
 ];
