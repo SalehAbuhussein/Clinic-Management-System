@@ -7,6 +7,7 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard',
-    loadComponent: () => import('./features/dashboard/dashboard.component').then(c => c.DashboardComponent),
+    loadComponent: () => import('./shared/layouts/dashboard-layout/dashboard-layout.component').then(c => c.DashboardLayoutComponent),
+    loadChildren: () => import('./features/today-schedule/today-schedule.routes').then(r => r.todayScheduleRoutes),
   }
 ];
