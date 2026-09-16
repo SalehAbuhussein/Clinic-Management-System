@@ -84,7 +84,7 @@ namespace Clinic_Business.Entities
         /// </summary>
         internal static clsAppointment MapAppointment(DataRow row)
         {
-            return new clsAppointment(
+            clsAppointment appointment = new clsAppointment(
                 row.Field<int>("AppointmentID"),
                 row.Field<int>("DoctorID"),
                 row.Field<int>("PatientID"),
@@ -96,6 +96,55 @@ namespace Clinic_Business.Entities
                 row.Field<DateTime>("UpdatedAt"),
                 row.Field<int>("CreatedBy")
             );
+
+            appointment.PatientInfo = _MapPatientInfo(row);
+            appointment.DoctorInfo = _MapDoctorInfo(row);
+
+            return appointment;
+        }
+
+        /// <summary>
+        /// Builds the patient carried on the appointment row. Only what a list
+        /// row displays is read; the emergency contacts and audit columns stay
+        /// at their defaults.
+        ///
+        /// Deliberately not `clsPatient._MapPatient`: that reads the column
+        /// names of its own query, which are not the ones in this joined row.
+        /// </summary>
+        private static clsPatient _MapPatientInfo(DataRow row)
+        {
+            return new clsPatient
+            {
+                PatientID = row.Field<int>("PatientID"),
+                PersonID = row.Field<int>("PersonID"),
+                Firstname = row.Field<string>("Firstname") ?? string.Empty,
+                Midname = row.Field<string>("Midname") ?? string.Empty,
+                Thirdname = row.Field<string?>("Thirdname"),
+                Lastname = row.Field<string>("Lastname") ?? string.Empty,
+            };
+        }
+
+        /// <summary>
+        /// Builds the doctor carried on the appointment row. The name lives two
+        /// hops away, because a doctor reaches a person through their user.
+        /// </summary>
+        private static clsDoctor _MapDoctorInfo(DataRow row)
+        {
+            return new clsDoctor
+            {
+                DoctorID = row.Field<int>("DoctorID"),
+                UserID = row.Field<int>("UserID"),
+                UserInfo = new clsUser
+                {
+                    PersonInfo = new clsPerson
+                    {
+                        Firstname = row.Field<string>("Firstname") ?? string.Empty,
+                        Midname = row.Field<string>("Midname") ?? string.Empty,
+                        Thirdname = row.Field<string?>("Thirdname"),
+                        Lastname = row.Field<string>("Lastname") ?? string.Empty,
+                    },
+                },
+            };
         }
 
         public static Task<bool> IsExistByIDAsync(int? id)

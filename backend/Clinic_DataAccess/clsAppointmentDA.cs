@@ -26,8 +26,10 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"SELECT *
-                FROM Appointments";
+                string query = @"SELECT * FROM Appointments A
+                INNER JOIN Doctors D ON A.DoctorID = D.DoctorID
+                INNER JOIN Patients P ON A.PatientID = P.PatientID
+                INNER JOIN People PP ON P.PersonID = PP.PersonID";
 
                 List<string> conditions = new List<string>();
 
@@ -95,18 +97,11 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"SELECT [AppointmentID]
-                    ,[DoctorID]
-                    ,[PatientID]
-                    ,[StartAt]
-                    ,[EndAt]
-                    ,[Status]
-                    ,[Notes]
-                    ,[CreatedAt]
-                    ,[UpdatedAt]
-                    ,[CreatedBy]
-                FROM [ClinicManagementSystem].[dbo].[Appointments]
-                WHERE AppointmentID = @AppointmentID";
+                string query = @"SELECT * FROM Appointments A
+                INNER JOIN Doctors D ON A.DoctorID = D.DoctorID
+                INNER JOIN Patients P ON A.PatientID = P.PatientID
+                INNER JOIN People PP ON P.PersonID = PP.PersonID
+                WHERE A.AppointmentID = @AppointmentID";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {

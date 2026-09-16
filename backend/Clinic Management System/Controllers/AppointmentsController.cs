@@ -47,7 +47,9 @@ namespace Clinic_Management_System.Controllers
                 {
                     Id = appointment.AppointmentID,
                     DoctorID = appointment.DoctorID,
+                    DoctorName = appointment.DoctorInfo?.UserInfo.PersonInfo.Fullname ?? string.Empty,
                     PatientID = appointment.PatientID,
+                    PatientName = appointment.PatientInfo?.Fullname ?? string.Empty,
                     StartAt = AsUtc(appointment.StartAt),
                     EndAt = AsUtc(appointment.EndAt),
                     Status = appointment.Status,
@@ -87,7 +89,9 @@ namespace Clinic_Management_System.Controllers
             {
                 Id = id,
                 PatientID = appointment.PatientID,
+                PatientName = appointment.PatientInfo?.Fullname ?? string.Empty,
                 DoctorID = appointment.DoctorID,
+                DoctorName = appointment.DoctorInfo?.UserInfo.PersonInfo.Fullname ?? string.Empty,
                 StartAt = AsUtc(appointment.StartAt),
                 EndAt = AsUtc(appointment.EndAt),
                 Notes = appointment.Notes,
@@ -247,7 +251,9 @@ namespace Clinic_Management_System.Controllers
                 {
                     Id = appointment.AppointmentID,
                     DoctorID = appointment.DoctorID,
+                    DoctorName = appointment.DoctorInfo?.UserInfo.PersonInfo.Fullname ?? string.Empty,
                     PatientID = appointment.PatientID,
+                    PatientName = appointment.PatientInfo?.Fullname ?? string.Empty,
                     StartAt = AsUtc(appointment.StartAt),
                     EndAt = AsUtc(appointment.EndAt),
                     Status = appointment.Status,
