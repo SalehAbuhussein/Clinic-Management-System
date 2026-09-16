@@ -5,6 +5,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { Router } from '@angular/router';
 import { email, form, FormField, minLength, required } from '@angular/forms/signals';
 
 import { finalize } from 'rxjs';
@@ -35,6 +36,7 @@ import { LoginRequestBody } from '@core/auth/types/auth.types';
 })
 export class LoginComponent implements OnDestroy {
   authService = inject(AuthService);
+  router = inject(Router);
 
   readonly TONE_BY_STATUS: Record<number, LoginBannerTone> = {
     400: "error",
@@ -93,6 +95,9 @@ export class LoginComponent implements OnDestroy {
     .pipe(
       finalize(() => this.loading.set(false))
     ).subscribe({
+      next: () => {
+        this.router.navigate(['dashboard']);
+      },
       error: error => {
         error = error.error;
 
