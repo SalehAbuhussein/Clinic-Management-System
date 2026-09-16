@@ -1,5 +1,5 @@
 <div class="list-container">
-  @for (item of listItems(); track item.id) {
+  @for (item of data(); track item.id) {
     <app-appointment-card [item]="item" />
   }
 </div>

@@ -2,7 +2,7 @@ import { Component, input } from '@angular/core';
 
 import { AppointmentCardComponent } from '@shared/components/appointment-card/appointment-card.component';
 
-import { AppointmentCard } from '@shared/components/appointment-card/appointment-card.types';
+import { AppointmentCard } from '@shared/services/appointment/appointment.types';
 
 @Component({
   imports: [AppointmentCardComponent],
@@ -11,5 +11,5 @@ import { AppointmentCard } from '@shared/components/appointment-card/appointment
   templateUrl: './appointments-list.component.html',
 })
 export class AppointmentsListComponent {
-  listItems = input.required<AppointmentCard[]>();
+  data = input.required<AppointmentCard[]>();
 }

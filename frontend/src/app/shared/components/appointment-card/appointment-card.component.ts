@@ -1,8 +1,8 @@
-import { Component, computed, input, OnInit } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
 
-import { AppointmentCard } from './appointment-card.types';
+import { AppointmentCard } from '@shared/services/appointment/appointment.types';
 
 @Component({
   imports: [DatePipe, MatIcon],
@@ -10,7 +10,7 @@ import { AppointmentCard } from './appointment-card.types';
   styleUrl: './appointment-card.component.scss',
   templateUrl: './appointment-card.component.html',
 })
-export class AppointmentCardComponent implements OnInit {
+export class AppointmentCardComponent {
   item = input.required<AppointmentCard>();
 
   /**
@@ -57,9 +57,4 @@ export class AppointmentCardComponent implements OnInit {
         };
     }
   });
-
-  ngOnInit(): void {
-    console.log(this.item());
-
-  }
 }
