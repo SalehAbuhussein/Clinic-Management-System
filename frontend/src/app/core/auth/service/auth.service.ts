@@ -62,7 +62,7 @@ export class AuthService {
   /**
    * Clear Auth related local storage fields
    */
-  clear = () => {
+  logout = () => {
     this.localStorage.remove("accessToken");
     this.localStorage.remove("refreshToken");
     this.localStorage.remove("email");
