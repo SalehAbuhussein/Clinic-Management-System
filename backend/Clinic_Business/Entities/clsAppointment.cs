@@ -117,10 +117,10 @@ namespace Clinic_Business.Entities
             {
                 PatientID = row.Field<int>("PatientID"),
                 PersonID = row.Field<int>("PersonID"),
-                Firstname = row.Field<string>("Firstname") ?? string.Empty,
-                Midname = row.Field<string>("Midname") ?? string.Empty,
-                Thirdname = row.Field<string?>("Thirdname"),
-                Lastname = row.Field<string>("Lastname") ?? string.Empty,
+                Firstname = row.Field<string>("PatientFirstname") ?? string.Empty,
+                Midname = row.Field<string>("PatientMidname") ?? string.Empty,
+                Thirdname = row.Field<string?>("PatientThirdname"),
+                Lastname = row.Field<string>("PatientLastname") ?? string.Empty,
             };
         }
 
@@ -138,10 +138,10 @@ namespace Clinic_Business.Entities
                 {
                     PersonInfo = new clsPerson
                     {
-                        Firstname = row.Field<string>("Firstname") ?? string.Empty,
-                        Midname = row.Field<string>("Midname") ?? string.Empty,
-                        Thirdname = row.Field<string?>("Thirdname"),
-                        Lastname = row.Field<string>("Lastname") ?? string.Empty,
+                        Firstname = row.Field<string>("DoctorFirstname") ?? string.Empty,
+                        Midname = row.Field<string>("DoctorMidname") ?? string.Empty,
+                        Thirdname = row.Field<string?>("DoctorThirdname"),
+                        Lastname = row.Field<string>("DoctorLastname") ?? string.Empty,
                     },
                 },
             };

@@ -26,10 +26,28 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"SELECT * FROM Appointments A
-                INNER JOIN Doctors D ON A.DoctorID = D.DoctorID
-                INNER JOIN Patients P ON A.PatientID = P.PatientID
-                INNER JOIN People PP ON P.PersonID = PP.PersonID";
+                string query = @"SELECT
+                    A.AppointmentID, A.DoctorID, A.PatientID, A.StartAt, A.EndAt,
+                    A.Status, A.Notes, A.CreatedAt, A.UpdatedAt, A.CreatedBy,
+
+                    P.PersonID,
+                    PP.Firstname AS PatientFirstname,
+                    PP.Midname   AS PatientMidname,
+                    PP.Thirdname AS PatientThirdname,
+                    PP.Lastname  AS PatientLastname,
+
+                    D.UserID,
+                    DP.Firstname AS DoctorFirstname,
+                    DP.Midname   AS DoctorMidname,
+                    DP.Thirdname AS DoctorThirdname,
+                    DP.Lastname  AS DoctorLastname
+
+                FROM Appointments A
+                INNER JOIN Doctors D ON D.DoctorID = A.DoctorID
+                INNER JOIN Users U ON U.UserID = D.UserID
+                INNER JOIN People DP ON DP.PersonID = U.PersonID
+                INNER JOIN Patients P ON P.PatientID = A.PatientID
+                INNER JOIN People PP ON PP.PersonID = P.PersonID";
 
                 List<string> conditions = new List<string>();
 
@@ -37,21 +55,23 @@ namespace Clinic_DataAccess
                 {
                     command.Connection = connection;
 
+                    // Every filter is qualified with A: DoctorID and PatientID each exist on
+                    // two of the joined tables, so an unqualified name is ambiguous SQL.
                     if (doctorId.HasValue)
                     {
-                        conditions.Add("DoctorID = @DoctorID");
+                        conditions.Add("A.DoctorID = @DoctorID");
                         command.Parameters.AddWithValue("@DoctorID", doctorId.Value);
                     }
 
                     if (patientId.HasValue)
                     {
-                        conditions.Add("PatientID = @PatientID");
+                        conditions.Add("A.PatientID = @PatientID");
                         command.Parameters.AddWithValue("@PatientID", patientId.Value);
                     }
 
                     if (date.HasValue)
                     {
-                        conditions.Add("StartAt < DATEADD(day, 1, @Date) AND EndAt >= @Date");
+                        conditions.Add("A.StartAt < DATEADD(day, 1, @Date) AND A.EndAt >= @Date");
                         command.Parameters.AddWithValue("@Date", date.Value);
                     }
 
@@ -59,7 +79,7 @@ namespace Clinic_DataAccess
                         query += $"\nWHERE {string.Join(" AND ", conditions)}";
 
                     query += @"
-                        ORDER BY AppointmentID
+                        ORDER BY A.AppointmentID
                         OFFSET (@PageNumber - 1) * @PageSize ROWS
                         FETCH NEXT @PageSize ROWS ONLY;";
 
@@ -97,10 +117,28 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"SELECT * FROM Appointments A
-                INNER JOIN Doctors D ON A.DoctorID = D.DoctorID
-                INNER JOIN Patients P ON A.PatientID = P.PatientID
-                INNER JOIN People PP ON P.PersonID = PP.PersonID
+                string query = @"SELECT
+                    A.AppointmentID, A.DoctorID, A.PatientID, A.StartAt, A.EndAt,
+                    A.Status, A.Notes, A.CreatedAt, A.UpdatedAt, A.CreatedBy,
+
+                    P.PersonID,
+                    PP.Firstname AS PatientFirstname,
+                    PP.Midname   AS PatientMidname,
+                    PP.Thirdname AS PatientThirdname,
+                    PP.Lastname  AS PatientLastname,
+
+                    D.UserID,
+                    DP.Firstname AS DoctorFirstname,
+                    DP.Midname   AS DoctorMidname,
+                    DP.Thirdname AS DoctorThirdname,
+                    DP.Lastname  AS DoctorLastname
+
+                FROM Appointments A
+                INNER JOIN Doctors D ON D.DoctorID = A.DoctorID
+                INNER JOIN Users U ON U.UserID = D.UserID
+                INNER JOIN People DP ON DP.PersonID = U.PersonID
+                INNER JOIN Patients P ON P.PatientID = A.PatientID
+                INNER JOIN People PP ON PP.PersonID = P.PersonID
                 WHERE A.AppointmentID = @AppointmentID";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
