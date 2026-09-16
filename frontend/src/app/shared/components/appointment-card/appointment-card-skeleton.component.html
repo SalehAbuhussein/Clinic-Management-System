@@ -1,0 +1,12 @@
+@for (row of [].constructor(count()); track $index) {
+  <div class="skeleton">
+    <span class="skeleton__bar skeleton__time"></span>
+
+    <span class="skeleton__who">
+      <span class="skeleton__bar" [style.width]="widths[$index % widths.length].patient"></span>
+      <span class="skeleton__bar skeleton__meta" [style.width]="widths[$index % widths.length].meta"></span>
+    </span>
+
+    <span class="skeleton__bar skeleton__status"></span>
+  </div>
+}

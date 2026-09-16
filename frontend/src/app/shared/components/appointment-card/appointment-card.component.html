@@ -1,0 +1,21 @@
+<button
+  class="appointment"
+  type="button"
+  [style.--card-accent]="status().accent"
+  [class.appointment--not-attended]="item().status === 2"
+  [class.appointment--cancelled]="item().status === 3">
+  <span class="appointment__time">{{ item().startAt | date: 'HH:mm' }}</span>
+
+  <span class="appointment__who">
+    <span class="appointment__patient">{{ item().patientName }}</span>
+    <span class="appointment__meta">{{ item().doctorName }}</span>
+  </span>
+
+  <span
+    class="appointment__status"
+    [style.--status-container]="status().container"
+    [style.--status-on-container]="status().onContainer">
+    <mat-icon>{{ status().icon }}</mat-icon>
+    {{ status().label }}
+  </span>
+</button>
