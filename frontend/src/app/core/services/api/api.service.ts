@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpParams, httpResource, HttpResponse } from '@angular/common/http';
 import { Params } from '@angular/router';
 import { inject, Service } from '@angular/core';
 
@@ -19,6 +19,24 @@ export class ApiService {
    */
   get<T>(path: string, params?: Params): Observable<T> {
     return this.httpClient.get<T>(`${this._baseUrl}${path}`, { params: this._toHttpParams(params) });
+  }
+
+  /**
+   * Sends a GET request as reactive state rather than a one-shot call.
+   *
+   * Returns a resource exposing `value()`, `isLoading()`, `error()` and
+   * `reload()`, so a screen does not hand-write those signals itself. Use it
+   * for lists a filter drives; use `get` when a caller needs the Observable.
+   *
+   * @param path Route below /api.
+   * @param params Query-string values; unset entries are dropped.
+   * @returns The resource holding the response body.
+   */
+  getResource = <T>(path: string, params: Params = {}) => {
+    return httpResource<T>(() => ({
+      url: `${this._baseUrl}${path}`,
+      params: this._toHttpParams(params),
+    }));
   }
 
   /**
