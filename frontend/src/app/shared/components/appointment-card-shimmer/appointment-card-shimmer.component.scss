@@ -1,12 +1,12 @@
-:host {
+﻿:host {
   display: grid;
   gap: 8px;
 
-  --skeleton-base: light-dark(#e8e6ea, #2a2830);
-  --skeleton-sheen: light-dark(#f4f2f6, #36333c);
+  --shimmer-base: light-dark(#e8e6ea, #2a2830);
+  --shimmer-sheen: light-dark(#f4f2f6, #36333c);
 }
 
-.skeleton {
+.shimmer {
   align-items: center;
   background-color: var(--mat-sys-surface-container-lowest);
   border-inline-start: 4px solid var(--mat-sys-outline-variant);
@@ -18,19 +18,19 @@
   padding: 12px 16px;
 }
 
-.skeleton__who {
+.shimmer__who {
   display: grid;
   gap: 6px;
   min-width: 0;
 }
 
-.skeleton__bar {
-  animation: skeleton-sheen 1.4s linear infinite;
+.shimmer__bar {
+  animation: shimmer-sheen 1.4s linear infinite;
   background: linear-gradient(
     90deg,
-    var(--skeleton-base) 25%,
-    var(--skeleton-sheen) 50%,
-    var(--skeleton-base) 75%
+    var(--shimmer-base) 25%,
+    var(--shimmer-sheen) 50%,
+    var(--shimmer-base) 75%
   );
   background-size: 200% 100%;
   border-radius: 999px;
@@ -38,29 +38,45 @@
   height: 14px;
 }
 
-.skeleton__time {
+.shimmer__time {
   width: 38px;
 }
 
-.skeleton__meta {
-  height: 11px;
-  opacity: 0.7;
+.shimmer__patient {
+  width: 46%;
 }
 
-.skeleton__status {
+.shimmer__meta {
+  height: 11px;
+  opacity: 0.7;
+  width: 30%;
+}
+
+// Alternate the bar widths so the block reads as a list rather than a table.
+.shimmer:nth-child(even) {
+  .shimmer__patient {
+    width: 34%;
+  }
+
+  .shimmer__meta {
+    width: 38%;
+  }
+}
+
+.shimmer__status {
   border-radius: var(--mat-sys-corner-small);
   height: 30px;
   width: 84px;
 }
 
-@keyframes skeleton-sheen {
+@keyframes shimmer-sheen {
   to {
     background-position: -200% 0;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .skeleton__bar {
+  .shimmer__bar {
     animation: none;
   }
 }
