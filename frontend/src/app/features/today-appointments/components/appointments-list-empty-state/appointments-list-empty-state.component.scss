@@ -1,0 +1,44 @@
+:host {
+  display: block;
+}
+
+.empty-state {
+  align-content: center;
+  background-color: var(--mat-sys-surface-container-lowest);
+  border-radius: var(--mat-sys-corner-medium);
+  box-shadow: var(--mat-sys-level1);
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.empty-state__orb {
+  background-color: var(--mat-sys-secondary-container);
+  border-radius: 50%;
+  color: var(--mat-sys-on-secondary-container);
+  display: grid;
+  height: 56px;
+  margin-bottom: 4px;
+  place-items: center;
+  width: 56px;
+
+  mat-icon {
+    font-size: 26px;
+    height: 26px;
+    width: 26px;
+  }
+}
+
+.empty-state__title {
+  font: var(--mat-sys-title-medium);
+  margin: 0;
+}
+
+.empty-state__body {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+  margin: 0 0 6px;
+  max-width: 42ch;
+}

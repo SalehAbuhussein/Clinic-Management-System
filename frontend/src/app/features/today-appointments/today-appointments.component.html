@@ -1,1 +1,13 @@
-<app-appointments-list [data]="data()" />
+@if (appointmentsResource.isLoading()) {
+  <app-appointment-card-shimmer />
+} @else if (appointmentsResource.error(); as error) {
+  <app-appointments-list-error-state [message]="error.message" (retry)="appointmentsResource.reload()" />
+} @else {
+  @let appointmentList = appointmentsResource.value() ?? [];
+
+  @if (appointmentList.length) {
+    <app-appointments-list [data]="appointmentList" />
+  } @else {
+    <app-appointments-list-empty-state />
+  }
+}

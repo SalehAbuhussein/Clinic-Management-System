@@ -12,4 +12,9 @@ export class AppointmentService {
    * Get Appointment List
    */
   getAppointmentList = () => this.apiService.get<GetAppointmentsResponse>('/Appointments');
+
+  /**
+   * Get Appointment List Resource
+   */
+  getAppointmentResource = () => this.apiService.getResource<GetAppointmentsResponse>('/Appointments');
 }

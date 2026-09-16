@@ -1,43 +1,20 @@
-﻿import { Component, inject, OnInit, signal } from '@angular/core';
+﻿import { Component, inject } from '@angular/core';
 
 import { AppointmentService } from '@shared/services/appointment/appointment.service';
 
+import { AppointmentCardShimmerComponent } from '@shared/components/appointment-card-shimmer/appointment-card-shimmer.component';
 import { AppointmentsListComponent } from './components/appointments-list/appointments-list.component';
-
-import { AppointmentCard } from '@shared/services/appointment/appointment.types';
+import { AppointmentsListEmptyStateComponent } from './components/appointments-list-empty-state/appointments-list-empty-state.component';
+import { AppointmentsListErrorStateComponent } from './components/appointments-list-error-state/appointments-list-error-state.component';
 
 @Component({
-  imports: [AppointmentsListComponent],
+  imports: [AppointmentsListComponent, AppointmentCardShimmerComponent, AppointmentsListErrorStateComponent, AppointmentsListEmptyStateComponent],
   selector: 'app-today-appointments',
   styleUrl: './today-appointments.component.scss',
   templateUrl: './today-appointments.component.html',
 })
-export class TodayAppointmentsComponent implements OnInit {
+export class TodayAppointmentsComponent {
   appointmentService = inject(AppointmentService);
 
-  data = signal<AppointmentCard[]>([]);
-
-  /**
-   * Angular onInit lifecycle method
-   */
-  ngOnInit(): void {
-    this.initComponent();
-  }
-
-  /**
-   * Initialize Component data
-   */
-  initComponent = () => {
-    this.getAppointmentsList();
-  }
-
-  /**
-   * Get Appointment List from API
-   */
-  getAppointmentsList = () => {
-    this.appointmentService.getAppointmentList().subscribe({
-      next: items => this.data.set(items),
-      error: err => console.error(err),
-    });
-  }
+  appointmentsResource = this.appointmentService.getAppointmentResource();
 }

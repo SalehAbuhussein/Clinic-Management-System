@@ -1,0 +1,20 @@
+<div class="empty-state">
+  <span class="empty-state__orb">
+    <mat-icon>event_available</mat-icon>
+  </span>
+
+  <p class="empty-state__title">No appointments on this day</p>
+
+  <p class="empty-state__body">
+    @if (day()) {
+      Nothing is booked for {{ day() }}. Pick another date, or book the first one.
+    } @else {
+      Nothing is booked yet. Pick another date, or book the first one.
+    }
+  </p>
+
+  <button matButton="tonal" type="button" (click)="book.emit()">
+    <mat-icon>add</mat-icon>
+    Book appointment
+  </button>
+</div>
