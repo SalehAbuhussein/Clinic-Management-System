@@ -1,0 +1,15 @@
+<nav class="pagination" aria-label="Pagination">
+  <p class="pagination__position">Page {{ page() }}</p>
+
+  <div class="pagination__actions">
+    <button matButton="outlined" type="button" [disabled]="!hasPrevious()" (click)="goToPrevious()">
+      <mat-icon>chevron_left</mat-icon>
+      Previous
+    </button>
+
+    <button matButton="outlined" type="button" [disabled]="!hasNext()" (click)="goToNext()">
+      Next
+      <mat-icon iconPositionEnd>chevron_right</mat-icon>
+    </button>
+  </div>
+</nav>
