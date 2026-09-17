@@ -1,4 +1,4 @@
-export type PagedResponse<T> = {
+export type PagedResult<T> = {
   items: Array<T>;
   page: number;
   perPage: number;
