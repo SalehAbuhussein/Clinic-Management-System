@@ -1,11 +1,6 @@
 @use '@angular/material' as mat;
 
-mat-nav-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding-top: 0;
-}
+$rail-max-width: 840px;
 
 .dashboard-container {
   background-color: var(--mat-sys-surface);
@@ -32,17 +27,35 @@ mat-nav-list {
     list-item-leading-icon-end-space: 12px,
     list-item-one-line-container-height: 56px,
   ));
+}
 
-  a[aria-current='page'] {
-    @include mat.list-overrides((
-      list-item-label-text-color: var(--mat-sys-on-secondary-container),
-      list-item-leading-icon-color: var(--mat-sys-on-secondary-container),
-    ));
-  }
+.dashboard-side__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 0;
 }
 
 .dashboard-side__footer {
   margin-top: auto;
+}
+
+.dashboard-side__link[aria-current='page'] {
+  @include mat.list-overrides((
+    list-item-label-text-color: var(--mat-sys-on-secondary-container),
+    list-item-leading-icon-color: var(--mat-sys-on-secondary-container),
+  ));
+}
+
+.dashboard-side__book {
+  align-self: stretch;
+  justify-content: flex-start;
+  margin-bottom: 16px;
+
+  @include mat.fab-overrides((
+    container-color: var(--mat-sys-tertiary-container),
+    foreground-color: var(--mat-sys-on-tertiary-container),
+  ));
 }
 
 .dashboard-main-content {
@@ -52,13 +65,70 @@ mat-nav-list {
   padding: 20px;
 }
 
-.book-btn {
-  align-self: stretch;
-  justify-content: flex-start;
-  margin-bottom: 16px;
+@media (width < #{$rail-max-width}) {
+  .dashboard-container {
+    grid-template-columns: 88px 1fr;
+  }
 
-  @include mat.fab-overrides((
-    container-color: var(--mat-sys-tertiary-container),
-    foreground-color: var(--mat-sys-on-tertiary-container),
-  ));
+  .dashboard-side {
+    padding: 12px 0;
+
+    @include mat.list-overrides((
+      active-indicator-color: transparent,
+      list-item-label-text-size: 11px,
+      list-item-label-text-line-height: 16px,
+      list-item-leading-icon-end-space: 0,
+      list-item-one-line-container-height: auto,
+    ));
+  }
+
+  .dashboard-side__nav {
+    gap: 12px;
+  }
+
+  .dashboard-side__link {
+    align-items: center;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0;
+
+    .mdc-list-item__content {
+      flex: 0 0 auto;
+      text-align: center;
+    }
+  }
+
+  .dashboard-side__link .mdc-list-item__start {
+    block-size: 32px;
+    inline-size: 56px;
+    margin: 0;
+  }
+
+  .dashboard-side__icon {
+    block-size: 100%;
+    border-radius: var(--mat-sys-corner-full);
+    display: grid;
+    inline-size: 100%;
+    place-items: center;
+  }
+
+  .dashboard-side__link[aria-current='page'] .dashboard-side__icon {
+    background: var(--mat-sys-secondary-container);
+  }
+
+  .dashboard-side__book {
+    align-self: center;
+    justify-content: center;
+    min-width: 56px;
+    padding: 0;
+    width: 56px;
+  }
+
+  .dashboard-side__book .dashboard-side__book-icon {
+    margin: 0;
+  }
+
+  .dashboard-side__book-label {
+    display: none;
+  }
 }

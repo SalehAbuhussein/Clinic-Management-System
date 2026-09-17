@@ -35,7 +35,34 @@
   word-break: break-all;
 }
 
-.error-state button {
+.error-state__retry {
   --mat-button-text-label-text-color: var(--mat-sys-on-error-container);
   flex: 0 0 auto;
+}
+
+@media (width < 600px) {
+  .error-state {
+    align-items: start;
+    column-gap: 12px;
+    display: grid;
+    grid-template-areas:
+      'icon copy'
+      '.    action';
+    grid-template-columns: auto 1fr;
+    row-gap: 10px;
+  }
+
+  .error-state__icon {
+    grid-area: icon;
+  }
+
+  .error-state__copy {
+    grid-area: copy;
+  }
+
+  .error-state__retry {
+    grid-area: action;
+    justify-self: start;
+    margin-inline-start: -12px;
+  }
 }

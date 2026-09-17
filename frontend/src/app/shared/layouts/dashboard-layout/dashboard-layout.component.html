@@ -1,36 +1,36 @@
 <div class="dashboard-container">
   <nav class="dashboard-side">
-    <button class="book-btn" matFab extended>
-      <mat-icon>add</mat-icon>
-      Book
+    <button class="dashboard-side__book" matFab extended>
+      <mat-icon class="dashboard-side__book-icon">add</mat-icon>
+      <span class="dashboard-side__book-label">Book</span>
     </button>
 
-    <mat-nav-list>
-      <a mat-list-item [activated]="true">
-        <mat-icon matListItemIcon>today</mat-icon>
-        <span matListItemTitle>Today</span>
+    <mat-nav-list class="dashboard-side__nav">
+      <a class="dashboard-side__link" mat-list-item [activated]="true">
+        <mat-icon class="dashboard-side__icon" matListItemIcon>today</mat-icon>
+        <span class="dashboard-side__label" matListItemTitle>Today</span>
       </a>
 
-      <a mat-list-item>
-        <mat-icon matListItemIcon>groups</mat-icon>
-        <span matListItemTitle>Patients</span>
+      <a class="dashboard-side__link" mat-list-item>
+        <mat-icon class="dashboard-side__icon" matListItemIcon>groups</mat-icon>
+        <span class="dashboard-side__label" matListItemTitle>Patients</span>
       </a>
 
-      <a mat-list-item>
-        <mat-icon matListItemIcon>assignment</mat-icon>
-        <span matListItemTitle>Visits</span>
+      <a class="dashboard-side__link" mat-list-item>
+        <mat-icon class="dashboard-side__icon" matListItemIcon>assignment</mat-icon>
+        <span class="dashboard-side__label" matListItemTitle>Visits</span>
       </a>
 
-      <a mat-list-item>
-        <mat-icon matListItemIcon>settings</mat-icon>
-        <span matListItemTitle>Admin</span>
+      <a class="dashboard-side__link" mat-list-item>
+        <mat-icon class="dashboard-side__icon" matListItemIcon>settings</mat-icon>
+        <span class="dashboard-side__label" matListItemTitle>Admin</span>
       </a>
     </mat-nav-list>
 
-    <mat-nav-list class="dashboard-side__footer">
-      <a mat-list-item (click)="logout()">
-        <mat-icon matListItemIcon>logout</mat-icon>
-        <span matListItemTitle>Sign out</span>
+    <mat-nav-list class="dashboard-side__nav dashboard-side__footer">
+      <a class="dashboard-side__link" mat-list-item (click)="logout()">
+        <mat-icon class="dashboard-side__icon" matListItemIcon>logout</mat-icon>
+        <span class="dashboard-side__label" matListItemTitle>Sign out</span>
       </a>
     </mat-nav-list>
   </nav>

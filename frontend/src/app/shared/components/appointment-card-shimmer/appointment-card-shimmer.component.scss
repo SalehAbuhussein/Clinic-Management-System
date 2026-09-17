@@ -80,3 +80,27 @@
     animation: none;
   }
 }
+
+@media (width < 600px) {
+  .shimmer {
+    gap: 6px 12px;
+    grid-template-areas:
+      'time status'
+      'who who';
+    grid-template-columns: 1fr auto;
+    padding: 12px 14px;
+  }
+
+  .shimmer__time {
+    grid-area: time;
+  }
+
+  .shimmer__who {
+    grid-area: who;
+  }
+
+  .shimmer__status {
+    grid-area: status;
+    justify-self: end;
+  }
+}

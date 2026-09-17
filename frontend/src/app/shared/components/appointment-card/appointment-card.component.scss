@@ -116,3 +116,27 @@
     }
   }
 }
+
+@media (width < 600px) {
+  .appointment {
+    gap: 6px 12px;
+    grid-template-areas:
+      'time status'
+      'who who';
+    grid-template-columns: 1fr auto;
+    padding: 12px 14px;
+  }
+
+  .appointment__time {
+    grid-area: time;
+  }
+
+  .appointment__who {
+    grid-area: who;
+  }
+
+  .appointment__status {
+    grid-area: status;
+    justify-self: end;
+  }
+}
