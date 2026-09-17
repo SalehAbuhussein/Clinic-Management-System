@@ -1,7 +1,9 @@
 import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
-import { formatDate } from '@angular/common';
 import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
+import { formatDate } from '@angular/common';
+
 
 import { AppointmentService } from '@shared/services/appointment/appointment.service';
 
@@ -9,7 +11,9 @@ import { AppointmentCardShimmerComponent } from '@shared/components/appointment-
 import { AppointmentsListComponent } from './components/appointments-list/appointments-list.component';
 import { AppointmentsListEmptyStateComponent } from './components/appointments-list-empty-state/appointments-list-empty-state.component';
 import { AppointmentsListErrorStateComponent } from './components/appointments-list-error-state/appointments-list-error-state.component';
+import { BookAppointmentDialogComponent } from '@features/book-appointment-dialog/book-appointment-dialog.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
+
 
 @Component({
   imports: [
@@ -28,6 +32,7 @@ import { PaginationComponent } from '@shared/components/pagination/pagination.co
 })
 export class TodayAppointmentsComponent {
   appointmentService = inject(AppointmentService);
+  dialog = inject(MatDialog);
 
   day = signal(new Date());
 
@@ -56,4 +61,8 @@ export class TodayAppointmentsComponent {
    * Jump back to the current day.
    */
   goToToday = () => this.day.set(new Date());
+
+  openBookingDialog = () => {
+    this.dialog.open(BookAppointmentDialogComponent, { width: '560px' });
+  }
 }
