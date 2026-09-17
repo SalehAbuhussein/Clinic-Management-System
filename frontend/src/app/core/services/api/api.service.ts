@@ -29,13 +29,15 @@ export class ApiService {
    * for lists a filter drives; use `get` when a caller needs the Observable.
    *
    * @param path Route below /api.
-   * @param params Query-string values; unset entries are dropped.
+   * @param params Function returning the query-string values; unset entries are
+   * dropped. It is re-read on every refresh, so any signal it reads becomes a
+   * dependency and changing that signal refetches.
    * @returns The resource holding the response body.
    */
-  getResource = <T>(path: string, params: Params = {}) => {
+  getResource = <T>(path: string, params: () => Params = () => ({})) => {
     return httpResource<T>(() => ({
       url: `${this._baseUrl}${path}`,
-      params: this._toHttpParams(params),
+      params: this._toHttpParams(params()),
     }));
   }
 

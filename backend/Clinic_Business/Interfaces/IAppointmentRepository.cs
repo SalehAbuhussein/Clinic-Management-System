@@ -8,7 +8,8 @@ namespace Clinic_Business.Interfaces
         Task<List<clsAppointment>> FindAllAsync(
             int? doctorId,
             int? patientId,
-            DateTime? date,
+            DateOnly? from,
+            DateOnly? to,
             int pageNumber = 1,
             int pageSize = 10);
         Task<bool> ExistsAsync(int? id);

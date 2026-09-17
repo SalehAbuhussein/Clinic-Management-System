@@ -10,10 +10,11 @@ namespace Clinic_Business.Repositories
         public Task<List<clsAppointment>> FindAllAsync(
             int? doctorId,
             int? patientId,
-            DateTime? date,
+            DateOnly? from,
+            DateOnly? to,
             int pageNumber = 1,
             int pageSize = 10)
-            => clsAppointment.FindAllAsync(doctorId, patientId, date, pageNumber, pageSize);
+            => clsAppointment.FindAllAsync(doctorId, patientId, from, to, pageNumber, pageSize);
 
         public Task<bool> ExistsAsync(int? id) => clsAppointment.IsExistByIDAsync(id);
 

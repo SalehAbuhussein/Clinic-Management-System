@@ -15,7 +15,8 @@ namespace Clinic_DataAccess
         public static async Task<DataTable> FindAllAsync(
             int? doctorId,
             int? patientId,
-            DateTime? date,
+            DateOnly? from,
+            DateOnly? to,
             int pageNumber = 1,
             int pageSize = 10
         )
@@ -69,10 +70,16 @@ namespace Clinic_DataAccess
                         command.Parameters.AddWithValue("@PatientID", patientId.Value);
                     }
 
-                    if (date.HasValue)
+                    if (from.HasValue)
                     {
-                        conditions.Add("A.StartAt < DATEADD(day, 1, @Date) AND A.EndAt >= @Date");
-                        command.Parameters.AddWithValue("@Date", date.Value);
+                        conditions.Add("A.EndAt >= @From");
+                        command.Parameters.AddWithValue("@From", from.Value);
+                    }
+
+                    if (to.HasValue)
+                    {
+                        conditions.Add("A.StartAt < DATEADD(day, 1, @To)");
+                        command.Parameters.AddWithValue("@To", to.Value);
                     }
 
                     if (conditions.Count > 0)

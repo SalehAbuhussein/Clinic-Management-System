@@ -1,4 +1,5 @@
-﻿import { Component, inject } from '@angular/core';
+﻿import { Component, inject, signal } from '@angular/core';
+import { formatDate } from '@angular/common';
 
 import { AppointmentService } from '@shared/services/appointment/appointment.service';
 
@@ -16,5 +17,7 @@ import { AppointmentsListErrorStateComponent } from './components/appointments-l
 export class TodayAppointmentsComponent {
   appointmentService = inject(AppointmentService);
 
-  appointmentsResource = this.appointmentService.getAppointmentResource();
+  day = signal(new Date());
+
+  appointmentsResource = this.appointmentService.getTodayAppointmentResource(() => formatDate(this.day(), 'yyyy-MM-dd', 'en-US'));
 }

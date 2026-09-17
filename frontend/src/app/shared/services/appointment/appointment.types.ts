@@ -1,3 +1,12 @@
+export type AppointmentFilters = {
+  doctorId?: number;
+  patientId?: number;
+  from?: string;
+  to?: string;
+  page?: number;
+  perPage?: number;
+};
+
 export type AppointmentCard = {
   id: number;
   doctorId: number;

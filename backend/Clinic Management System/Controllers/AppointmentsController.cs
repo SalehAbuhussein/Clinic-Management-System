@@ -35,14 +35,20 @@ namespace Clinic_Management_System.Controllers
         public async Task<ActionResult<List<AppointmentDTO>>> GetAppointments(
             int? doctorId,
             int? patientId,
-            DateTime? date,
-            [Range(1, int.MaxValue)] int page = 1, 
+            DateOnly? from,
+            DateOnly? to,
+            [Range(1, int.MaxValue)] int page = 1,
             [Range(1, 10)] int perPage = 10
         )
         {
             perPage = Math.Clamp(perPage, 1, 10);
 
-            List<AppointmentDTO> appointmentsList = (await _appointmentRepository.FindAllAsync(doctorId, patientId, date, page, perPage))
+            if (from.HasValue && to.HasValue && from > to)
+            {
+                return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "The start of the range must be on or before its end.");
+            }
+
+            List<AppointmentDTO> appointmentsList = (await _appointmentRepository.FindAllAsync(doctorId, patientId, from, to, page, perPage))
                 .Select(appointment => new AppointmentDTO
                 {
                     Id = appointment.AppointmentID,
@@ -246,7 +252,7 @@ namespace Clinic_Management_System.Controllers
             if (!authResult.Succeeded)
                 return Forbid();
 
-            List<AppointmentDTO> appointmentsList = (await _appointmentRepository.FindAllAsync(doctorId, null, null, page, perPage))
+            List<AppointmentDTO> appointmentsList = (await _appointmentRepository.FindAllAsync(doctorId, null, null, null, page, perPage))
                 .Select(appointment => new AppointmentDTO
                 {
                     Id = appointment.AppointmentID,

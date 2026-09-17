@@ -62,11 +62,12 @@ namespace Clinic_Business.Entities
         public static async Task<List<clsAppointment>> FindAllAsync(
             int? doctorId,
             int? patientId,
-            DateTime? date,
+            DateOnly? from,
+            DateOnly? to,
             int pageNumber = 1,
             int pageSize = 10)
         {
-            DataTable table = await clsAppointmentDA.FindAllAsync(doctorId, patientId, date, pageNumber, pageSize);
+            DataTable table = await clsAppointmentDA.FindAllAsync(doctorId, patientId, from, to, pageNumber, pageSize);
 
             return table.AsEnumerable().Select(MapAppointment).ToList();
         }
