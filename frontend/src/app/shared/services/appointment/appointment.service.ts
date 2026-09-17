@@ -33,5 +33,5 @@ export class AppointmentService {
    * @param day Returns the day as `yyyy-MM-dd` in local time, never an instant.
    * @returns The resource holding that day's appointments.
    */
-  getTodayAppointmentResource = (day: () => string) => this.getAppointmentResource(() => ({ from: day(), to: day() }));
+  getTodayAppointmentResource = (day: () => string, page: () => number) => this.getAppointmentResource(() => ({ from: day(), to: day(), page: page() }));
 }

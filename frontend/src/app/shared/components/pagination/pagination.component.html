@@ -1,5 +1,5 @@
 <nav class="pagination" aria-label="Pagination">
-  <p class="pagination__position">Page {{ page() }}</p>
+  <p class="pagination__position">Page {{ page() }} of {{ totalPages() }}</p>
 
   <div class="pagination__actions">
     <button matButton="outlined" type="button" [disabled]="!hasPrevious()" (click)="goToPrevious()">

@@ -1,4 +1,5 @@
-﻿using Clinic_DataAccess;
+﻿using Clinic_Business.Common;
+using Clinic_DataAccess;
 using System.Data;
 using System.Linq;
 
@@ -59,7 +60,7 @@ namespace Clinic_Business.Entities
             CreatedBy = createdBy;
         }
 
-        public static async Task<List<clsAppointment>> FindAllAsync(
+        public static async Task<PagedResult<clsAppointment>> FindAllAsync(
             int? doctorId,
             int? patientId,
             DateOnly? from,
@@ -69,7 +70,10 @@ namespace Clinic_Business.Entities
         {
             DataTable table = await clsAppointmentDA.FindAllAsync(doctorId, patientId, from, to, pageNumber, pageSize);
 
-            return table.AsEnumerable().Select(MapAppointment).ToList();
+            List<clsAppointment> appointments = table.AsEnumerable().Select(MapAppointment).ToList();
+            int total = table.Rows.Count == 0 ? 0 : table.Rows[0].Field<int>("TotalCount");
+
+            return new PagedResult<clsAppointment>(appointments, pageNumber, pageSize, total);
         }
 
         public static async Task<clsAppointment?> FindAsync(int id)

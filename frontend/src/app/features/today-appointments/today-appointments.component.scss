@@ -17,13 +17,13 @@
 }
 
 .today__title {
-  font-size: var(--mat-sys-title-large);
+  font: var(--mat-sys-title-large);
   margin: 0;
 }
 
 .today__subtitle {
   color: var(--mat-sys-on-surface-variant);
-  font-size: var(--mat-sys-body-medium);
+  font: var(--mat-sys-body-medium);
   margin: 0;
 }
 

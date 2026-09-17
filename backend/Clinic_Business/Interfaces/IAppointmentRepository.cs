@@ -1,11 +1,12 @@
-﻿using Clinic_Business.Entities;
+﻿using Clinic_Business.Common;
+using Clinic_Business.Entities;
 
 namespace Clinic_Business.Interfaces
 {
     public interface IAppointmentRepository
     {
         Task<clsAppointment?> FindByIdAsync(int id);
-        Task<List<clsAppointment>> FindAllAsync(
+        Task<PagedResult<clsAppointment>> FindAllAsync(
             int? doctorId,
             int? patientId,
             DateOnly? from,

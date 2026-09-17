@@ -32,6 +32,9 @@ namespace Clinic_DataAccess
                     A.Status, A.Notes, A.CreatedAt, A.UpdatedAt, A.CreatedBy,
 
                     P.PersonID,
+
+                    COUNT(*) OVER() AS TotalCount,
+
                     PP.Firstname AS PatientFirstname,
                     PP.Midname   AS PatientMidname,
                     PP.Thirdname AS PatientThirdname,
@@ -43,12 +46,12 @@ namespace Clinic_DataAccess
                     DP.Thirdname AS DoctorThirdname,
                     DP.Lastname  AS DoctorLastname
 
-                FROM Appointments A
-                INNER JOIN Doctors D ON D.DoctorID = A.DoctorID
-                INNER JOIN Users U ON U.UserID = D.UserID
-                INNER JOIN People DP ON DP.PersonID = U.PersonID
-                INNER JOIN Patients P ON P.PatientID = A.PatientID
-                INNER JOIN People PP ON PP.PersonID = P.PersonID";
+                    FROM Appointments A
+                    INNER JOIN Doctors D ON D.DoctorID = A.DoctorID
+                    INNER JOIN Users U ON U.UserID = D.UserID
+                    INNER JOIN People DP ON DP.PersonID = U.PersonID
+                    INNER JOIN Patients P ON P.PatientID = A.PatientID
+                    INNER JOIN People PP ON PP.PersonID = P.PersonID";
 
                 List<string> conditions = new List<string>();
 

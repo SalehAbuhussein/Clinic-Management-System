@@ -5,9 +5,9 @@ namespace Clinic_Management_System.DTOs.Models.Appointments
     public class AppointmentDTO
     {
         public int Id { get; set; }
-        public int? DoctorID { get; set; }
+        public int? DoctorId { get; set; }
         public string DoctorName { get; set; } = string.Empty;
-        public int PatientID { get; set;  }
+        public int PatientId { get; set;  }
         public string PatientName { get; set; } = string.Empty;
         public DateTimeOffset StartAt { get; set; }
         public DateTimeOffset EndAt { get; set; }

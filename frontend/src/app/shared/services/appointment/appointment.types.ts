@@ -1,3 +1,5 @@
+import { PagedResponse } from '@core/types/api.types';
+
 export type AppointmentFilters = {
   doctorId?: number;
   patientId?: number;
@@ -19,4 +21,4 @@ export type AppointmentCard = {
   notes: string | null;
 };
 
-export type GetAppointmentsResponse = AppointmentCard[];
+export type GetAppointmentsResponse = PagedResponse<AppointmentCard>;

@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
 import { formatDate } from '@angular/common';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
@@ -9,17 +9,19 @@ import { AppointmentCardShimmerComponent } from '@shared/components/appointment-
 import { AppointmentsListComponent } from './components/appointments-list/appointments-list.component';
 import { AppointmentsListEmptyStateComponent } from './components/appointments-list-empty-state/appointments-list-empty-state.component';
 import { AppointmentsListErrorStateComponent } from './components/appointments-list-error-state/appointments-list-error-state.component';
+import { PaginationComponent } from '@shared/components/pagination/pagination.component';
 
 @Component({
   imports: [
-    AppointmentsListComponent,
     AppointmentCardShimmerComponent,
-    AppointmentsListErrorStateComponent,
+    AppointmentsListComponent,
     AppointmentsListEmptyStateComponent,
+    AppointmentsListErrorStateComponent,
     MatButton,
-    MatIconButton,
     MatIcon,
-  ],
+    MatIconButton,
+    PaginationComponent,
+],
   selector: 'app-today-appointments',
   styleUrl: './today-appointments.component.scss',
   templateUrl: './today-appointments.component.html',
@@ -33,7 +35,15 @@ export class TodayAppointmentsComponent {
   dayLabel = computed(() => formatDate(this.day(), 'EEEE d MMMM', 'en-US'));
   isToday = computed(() => this.dayParam() === formatDate(new Date(), 'yyyy-MM-dd', 'en-US'));
 
-  appointmentsResource = this.appointmentService.getTodayAppointmentResource(this.dayParam);
+  page = linkedSignal({
+    source: this.dayParam,
+    computation: () => 1
+  });
+  total = computed(() => this.appointmentsResource.hasValue() ? this.appointmentsResource.value().total : 0);
+  perPage = computed(() => this.appointmentsResource.hasValue() ? this.appointmentsResource.value().perPage : 10);
+
+  appointmentsResource = this.appointmentService.getTodayAppointmentResource(this.dayParam, this.page);
+  appointments = computed(() => this.appointmentsResource.hasValue() ? this.appointmentsResource.value().items : []);
 
   /**
    * Move the shown day.

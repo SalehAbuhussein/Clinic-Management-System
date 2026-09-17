@@ -1,4 +1,5 @@
-﻿using Clinic_Business.Entities;
+﻿using Clinic_Business.Common;
+using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 
 namespace Clinic_Business.Repositories
@@ -7,7 +8,7 @@ namespace Clinic_Business.Repositories
     {
         public Task<clsAppointment?> FindByIdAsync(int id) => clsAppointment.FindAsync(id);
 
-        public Task<List<clsAppointment>> FindAllAsync(
+        public Task<PagedResult<clsAppointment>> FindAllAsync(
             int? doctorId,
             int? patientId,
             DateOnly? from,

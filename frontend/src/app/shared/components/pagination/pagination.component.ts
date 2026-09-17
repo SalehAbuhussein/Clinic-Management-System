@@ -11,11 +11,13 @@ import { MatIcon } from '@angular/material/icon';
 })
 export class PaginationComponent {
   page = model.required<number>();
-  currentPageCount = input.required<number>();
+  total = input.required<number>();
   pageSize = input(10);
 
+  totalPages = computed(() => Math.ceil(this.total() / this.pageSize()));
+
   hasPrevious = computed(() => this.page() > 1);
-  hasNext = computed(() => this.currentPageCount() >= this.pageSize());
+  hasNext = computed(() => this.page() < this.totalPages());
 
   /**
    * Go to previous page

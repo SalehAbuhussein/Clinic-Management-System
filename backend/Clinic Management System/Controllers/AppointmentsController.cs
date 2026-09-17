@@ -1,4 +1,5 @@
 ﻿using Clinic_Business.Entities;
+using Clinic_Business.Common;
 using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Appointments;
 using Microsoft.AspNetCore.Authorization;
@@ -32,7 +33,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<List<AppointmentDTO>>> GetAppointments(
+        public async Task<ActionResult<PagedResult<AppointmentDTO>>> GetAppointments(
             int? doctorId,
             int? patientId,
             DateOnly? from,
@@ -48,13 +49,15 @@ namespace Clinic_Management_System.Controllers
                 return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "The start of the range must be on or before its end.");
             }
 
-            List<AppointmentDTO> appointmentsList = (await _appointmentRepository.FindAllAsync(doctorId, patientId, from, to, page, perPage))
+            PagedResult<clsAppointment> appointmentsPage = await _appointmentRepository.FindAllAsync(doctorId, patientId, from, to, page, perPage);
+
+            List<AppointmentDTO> appointmentsList = appointmentsPage.Items
                 .Select(appointment => new AppointmentDTO
                 {
                     Id = appointment.AppointmentID,
-                    DoctorID = appointment.DoctorID,
+                    DoctorId = appointment.DoctorID,
                     DoctorName = appointment.DoctorInfo?.UserInfo.PersonInfo.Fullname ?? string.Empty,
-                    PatientID = appointment.PatientID,
+                    PatientId = appointment.PatientID,
                     PatientName = appointment.PatientInfo?.Fullname ?? string.Empty,
                     StartAt = AsUtc(appointment.StartAt),
                     EndAt = AsUtc(appointment.EndAt),
@@ -62,7 +65,7 @@ namespace Clinic_Management_System.Controllers
                     Notes = appointment.Notes
                 }).ToList();
 
-            return Ok(appointmentsList);
+            return Ok(new PagedResult<AppointmentDTO>(appointmentsList, appointmentsPage.Page, appointmentsPage.PerPage, appointmentsPage.Total));
         }
 
         [Authorize(Roles = "Admin,Doctor,Staff")]
@@ -94,9 +97,9 @@ namespace Clinic_Management_System.Controllers
             AppointmentDTO appointmentDTO = new AppointmentDTO
             {
                 Id = id,
-                PatientID = appointment.PatientID,
+                PatientId = appointment.PatientID,
                 PatientName = appointment.PatientInfo?.Fullname ?? string.Empty,
-                DoctorID = appointment.DoctorID,
+                DoctorId = appointment.DoctorID,
                 DoctorName = appointment.DoctorInfo?.UserInfo.PersonInfo.Fullname ?? string.Empty,
                 StartAt = AsUtc(appointment.StartAt),
                 EndAt = AsUtc(appointment.EndAt),
@@ -149,8 +152,8 @@ namespace Clinic_Management_System.Controllers
                 AppointmentDTO newAppointmentDTO = new AppointmentDTO
                 {
                     Id = newAppointment.AppointmentID,
-                    PatientID = newAppointment.PatientID,
-                    DoctorID = newAppointment.DoctorID,
+                    PatientId = newAppointment.PatientID,
+                    DoctorId = newAppointment.DoctorID,
                     StartAt = AsUtc(newAppointment.StartAt),
                     EndAt = AsUtc(newAppointment.EndAt),
                     Notes = newAppointment.Notes,
@@ -230,7 +233,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<List<AppointmentDTO>>> GetDoctorAppointments(
+        public async Task<ActionResult<PagedResult<AppointmentDTO>>> GetDoctorAppointments(
             int doctorId,
             [FromServices] IAuthorizationService authorizationService,
             [Range(1, int.MaxValue)] int page = 1,
@@ -252,13 +255,15 @@ namespace Clinic_Management_System.Controllers
             if (!authResult.Succeeded)
                 return Forbid();
 
-            List<AppointmentDTO> appointmentsList = (await _appointmentRepository.FindAllAsync(doctorId, null, null, null, page, perPage))
+            PagedResult<clsAppointment> appointmentsPage = await _appointmentRepository.FindAllAsync(doctorId, null, null, null, page, perPage);
+
+            List<AppointmentDTO> appointmentsList = appointmentsPage.Items
                 .Select(appointment => new AppointmentDTO
                 {
                     Id = appointment.AppointmentID,
-                    DoctorID = appointment.DoctorID,
+                    DoctorId = appointment.DoctorID,
                     DoctorName = appointment.DoctorInfo?.UserInfo.PersonInfo.Fullname ?? string.Empty,
-                    PatientID = appointment.PatientID,
+                    PatientId = appointment.PatientID,
                     PatientName = appointment.PatientInfo?.Fullname ?? string.Empty,
                     StartAt = AsUtc(appointment.StartAt),
                     EndAt = AsUtc(appointment.EndAt),
@@ -266,7 +271,7 @@ namespace Clinic_Management_System.Controllers
                     Notes = appointment.Notes
                 }).ToList();
 
-            return Ok(appointmentsList);
+            return Ok(new PagedResult<AppointmentDTO>(appointmentsList, appointmentsPage.Page, appointmentsPage.PerPage, appointmentsPage.Total));
         }
 
         [Authorize(Roles = "Admin,Staff")]
