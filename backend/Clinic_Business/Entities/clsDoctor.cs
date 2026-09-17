@@ -1,4 +1,5 @@
-﻿using Clinic_DataAccess;
+﻿using Clinic_Business.Common;
+using Clinic_DataAccess;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -60,20 +61,26 @@ namespace Clinic_Business.Entities
             UserInfo = new clsUser();
         }
 
-        public record DoctorItem(int Id, string Specialization, string MedicalSchool, ushort GraduationYear, int PersonID, bool Active);
+        public record DoctorItem(int Id, string Fullname, string Phone, string Specialization, string MedicalSchool, ushort GraduationYear, int PersonID, bool Active);
 
-        public static async Task<List<DoctorItem>> FindAllDoctorsAsync(int pageNumber = 1, int pageSize = 10)
+        public static async Task<PagedResult<DoctorItem>> FindAllDoctorsAsync(string? fullname = null, string? specialization = null, int pageNumber = 1, int pageSize = 10)
         {
-            DataTable table = await clsDoctorDA.FindAllAsync(pageNumber, pageSize);
+            DataTable table = await clsDoctorDA.FindAllAsync(fullname, specialization, pageNumber, pageSize);
 
-            return table.AsEnumerable().Select(row => new DoctorItem(
+            List<DoctorItem> doctors = table.AsEnumerable().Select(row => new DoctorItem(
                 row.Field<int>("DoctorID"),
+                row.Field<string>("Fullname") ?? string.Empty,
+                row.Field<string>("Phone") ?? string.Empty,
                 row.Field<string>("Specialization") ?? string.Empty,
                 row.Field<string>("MedicalSchool") ?? string.Empty,
                 Convert.ToUInt16(row.Field<short>("GraduationYear")),
                 row.Field<int>("PersonID"),
                 row.Field<bool>("Active")
             )).ToList();
+
+            int total = table.Rows.Count == 0 ? 0 : table.Rows[0].Field<int>("TotalCount");
+
+            return new PagedResult<DoctorItem>(doctors, pageNumber, pageSize, total);
         }
 
         public static async Task<clsDoctor?> FindAsync(int? id)

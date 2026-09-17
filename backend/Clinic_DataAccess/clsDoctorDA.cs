@@ -10,7 +10,7 @@ namespace Clinic_DataAccess
 {
     public class clsDoctorDA
     {
-        public static async Task<DataTable> FindAllAsync(int pageNumber = 1, int pageSize = 10)
+        public static async Task<DataTable> FindAllAsync(string? fullname = null, string? specialization = null, int pageNumber = 1, int pageSize = 10)
         {
             DataTable dt = new DataTable();
 
@@ -19,19 +19,48 @@ namespace Clinic_DataAccess
                 await connection.OpenAsync();
 
                 string query = @"SELECT
+                    COUNT(*) OVER() AS TotalCount,
+
                     D.DoctorID, D.Specialization, D.MedicalSchool, D.GraduationYear,
-                    U.PersonID, U.Active
+                    U.PersonID, U.Active,
+
+                    CONCAT_WS(' ', P.Firstname, P.Midname, P.Thirdname, P.Lastname) AS Fullname,
+                    P.Phone
+
                 FROM Doctors D
                 INNER JOIN Users U ON D.UserID = U.UserID
-                INNER JOIN People P ON P.PersonID = U.PersonID
-                ORDER BY D.DoctorID
-                OFFSET (@PageNumber - 1) * @PageSize ROWS
-                FETCH NEXT @PageSize ROWS ONLY;";
+                INNER JOIN People P ON P.PersonID = U.PersonID";
 
-                using (SqlCommand command = new SqlCommand(query, connection))
+                using (SqlCommand command = new SqlCommand())
                 {
+                    command.Connection = connection;
+
+                    List<string> conditions = new List<string>();
+
+                    if (!string.IsNullOrWhiteSpace(fullname))
+                    {
+                        conditions.Add("CONCAT_WS(' ', P.Firstname, P.Midname, P.Thirdname, P.Lastname) LIKE @Fullname");
+                        command.Parameters.AddWithValue("@Fullname", $"%{fullname.Trim()}%");
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(specialization))
+                    {
+                        conditions.Add("D.Specialization LIKE @Specialization");
+                        command.Parameters.AddWithValue("@Specialization", $"%{specialization.Trim()}%");
+                    }
+
+                    if (conditions.Count > 0)
+                        query += $"\nWHERE {string.Join(" AND ", conditions)}";
+
+                    query += @"
+                        ORDER BY D.DoctorID
+                        OFFSET (@PageNumber - 1) * @PageSize ROWS
+                        FETCH NEXT @PageSize ROWS ONLY;";
+
                     command.Parameters.AddWithValue("@PageNumber", pageNumber);
                     command.Parameters.AddWithValue("@PageSize", pageSize);
+
+                    command.CommandText = query;
 
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {

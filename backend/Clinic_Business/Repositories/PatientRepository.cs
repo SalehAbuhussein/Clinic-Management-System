@@ -1,4 +1,5 @@
-﻿using Clinic_Business.Entities;
+﻿using Clinic_Business.Common;
+using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 
 namespace Clinic_Business.Repositories
@@ -15,9 +16,9 @@ namespace Clinic_Business.Repositories
             return clsPatient.FindPatientByNationalNoAsync(nationalNo);
         }
 
-        public Task<List<clsPatient.PatientItem>> FindAllAsync(int pageNumber = 1, int pageSize = 10)
+        public Task<PagedResult<clsPatient.PatientItem>> FindAllAsync(string? fullname = null, string? phone = null, int pageNumber = 1, int pageSize = 10)
         {
-            return clsPatient.FindPatientsAsync(pageNumber, pageSize);
+            return clsPatient.FindPatientsAsync(fullname, phone, pageNumber, pageSize);
         }
 
         public Task<bool> DeleteAsync(int? id)

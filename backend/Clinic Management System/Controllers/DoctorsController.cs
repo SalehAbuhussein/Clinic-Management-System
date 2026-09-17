@@ -1,4 +1,5 @@
-﻿using Clinic_Business.Entities;
+﻿using Clinic_Business.Common;
+using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Doctors;
 using Microsoft.AspNetCore.Authorization;
@@ -19,20 +20,27 @@ namespace Clinic_Management_System.Controllers
             _doctorRepository = doctorRepository;
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Staff")]
         [HttpGet(Name = "GetDoctors")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<List<DoctorDTO>>> GetDoctors([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
+        public async Task<ActionResult<PagedResult<DoctorDTO>>> GetDoctors(string? fullname, string? specialization, [Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
             perPage = Math.Clamp(perPage, 1, 10);
 
-            List<DoctorDTO> peopleList = (await _doctorRepository.FindAllAsync(page, perPage))
+            fullname = fullname?.Trim().Replace("%", "").Replace("_", "").Replace("[", "");
+            specialization = specialization?.Trim().Replace("%", "").Replace("_", "").Replace("[", "");
+
+            PagedResult<clsDoctor.DoctorItem> doctorsPage = await _doctorRepository.FindAllAsync(fullname, specialization, page, perPage);
+
+            List<DoctorDTO> doctorsList = doctorsPage.Items
                 .Select(doctor => new DoctorDTO
                 {
                     Id = doctor.Id,
+                    Fullname = doctor.Fullname,
+                    Phone = doctor.Phone,
                     Specialization = doctor.Specialization,
                     MedicalSchool = doctor.MedicalSchool,
                     GraduationYear = doctor.GraduationYear,
@@ -40,7 +48,7 @@ namespace Clinic_Management_System.Controllers
                     Active = doctor.Active
                 }).ToList();
 
-            return Ok(peopleList);
+            return Ok(new PagedResult<DoctorDTO>(doctorsList, doctorsPage.Page, doctorsPage.PerPage, doctorsPage.Total));
         }
 
         [Authorize(Roles = "Admin")]

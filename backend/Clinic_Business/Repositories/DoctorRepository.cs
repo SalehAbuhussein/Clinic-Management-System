@@ -1,4 +1,5 @@
-﻿using Clinic_Business.Entities;
+﻿using Clinic_Business.Common;
+using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 
 namespace Clinic_Business.Repositories
@@ -9,8 +10,8 @@ namespace Clinic_Business.Repositories
 
         public Task<clsDoctor?> FindByUserIdAsync(int? userID) => clsDoctor.FindByUserIDAsync(userID);
 
-        public Task<List<clsDoctor.DoctorItem>> FindAllAsync(int pageNumber = 1, int pageSize = 10)
-            => clsDoctor.FindAllDoctorsAsync(pageNumber, pageSize);
+        public Task<PagedResult<clsDoctor.DoctorItem>> FindAllAsync(string? fullname = null, string? specialization = null, int pageNumber = 1, int pageSize = 10)
+            => clsDoctor.FindAllDoctorsAsync(fullname, specialization, pageNumber, pageSize);
 
         public Task<bool> DeleteAsync(int? id) => clsDoctor.DeleteDoctorAsync(id);
 

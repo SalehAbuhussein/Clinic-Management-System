@@ -10,7 +10,7 @@ namespace Clinic_DataAccess
 {
     public class clsPatientDA
     {
-        public static async Task<DataTable> FindAllAsync(int pageNumber = 1, int pageSize = 10)
+        public static async Task<DataTable> FindAllAsync(string? fullname = null, string? phone = null, int pageNumber = 1, int pageSize = 10)
         {
             DataTable dt = new DataTable();
 
@@ -18,16 +18,51 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"SELECT *
-                FROM Patients
-                ORDER BY PatientID
-                OFFSET (@PageNumber - 1) * @PageSize ROWS
-                FETCH NEXT @PageSize ROWS ONLY;";
+                string query = @"SELECT
+                    COUNT(*) OVER() AS TotalCount,
 
-                using (SqlCommand command = new SqlCommand(query, connection))
+                    PT.PatientID, PT.EmergencyContactNumber, PT.EmergencyContactName,
+                    PT.CreatedAt, PT.UpdatedAt, PT.CreatedBy, PT.Active, PT.PersonID,
+
+                    CONCAT_WS(' ', P.Firstname, P.Midname, P.Thirdname, P.Lastname) AS Fullname,
+                    P.Firstname, P.Midname, P.Thirdname, P.Lastname,
+                    P.NationalNo, P.Phone, P.Gender, P.DateOfBirth, P.ProfileImage
+
+                FROM Patients PT
+                INNER JOIN People P ON P.PersonID = PT.PersonID";
+
+                using (SqlCommand command = new SqlCommand())
                 {
+                    command.Connection = connection;
+
+                    List<string> conditions = new List<string>();
+
+                    if (!string.IsNullOrWhiteSpace(fullname))
+                    {
+                        conditions.Add("CONCAT_WS(' ', P.Firstname, P.Midname, P.Thirdname, P.Lastname) LIKE @Fullname");
+                        command.Parameters.AddWithValue("@Fullname", $"%{fullname.Trim()}%");
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(phone))
+                    {
+                        // Anchored at the start: nobody searches a phone number from the
+                        // middle, and a leading wildcard would rule out an index seek.
+                        conditions.Add("P.Phone LIKE @Phone");
+                        command.Parameters.AddWithValue("@Phone", $"{phone.Trim()}%");
+                    }
+
+                    if (conditions.Count > 0)
+                        query += $"\nWHERE {string.Join(" AND ", conditions)}";
+
+                    query += @"
+                        ORDER BY PT.PatientID
+                        OFFSET (@PageNumber - 1) * @PageSize ROWS
+                        FETCH NEXT @PageSize ROWS ONLY;";
+
                     command.Parameters.AddWithValue("@PageNumber", pageNumber);
                     command.Parameters.AddWithValue("@PageSize", pageSize);
+
+                    command.CommandText = query;
 
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {

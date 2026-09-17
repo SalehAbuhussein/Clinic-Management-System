@@ -1,4 +1,5 @@
-﻿using Clinic_Business.Entities;
+﻿using Clinic_Business.Common;
+using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Patients;
 using Microsoft.AspNetCore.Authorization;
@@ -25,20 +26,27 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<List<PatientDTO>>> GetPatients([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
+        public async Task<ActionResult<PagedResult<PatientDTO>>> GetPatients(string? fullname, string? phone, [Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
             perPage = Math.Clamp(perPage, 1, 10);
 
-            List<PatientDTO> patientsList = (await _patientRepository.FindAllAsync(page, perPage))
+            fullname = fullname?.Trim().Replace("%", "").Replace("_", "").Replace("[", "");
+            phone = phone?.Trim().Replace("%", "").Replace("_", "").Replace("[", "");
+
+            PagedResult<clsPatient.PatientItem> patientsPage = await _patientRepository.FindAllAsync(fullname, phone, page, perPage);
+
+            List<PatientDTO> patientsList = patientsPage.Items
                 .Select(patient => new PatientDTO
                 {
                     Id = patient.Id,
+                    Fullname = patient.Fullname,
+                    Phone = patient.Phone,
                     EmergencyContactName = patient.EmergencyContactName,
                     EmergencyContactNumber = patient.EmergencyContactNumber,
                     PersonID = patient.PersonID
                 }).ToList();
 
-            return Ok(patientsList);
+            return Ok(new PagedResult<PatientDTO>(patientsList, patientsPage.Page, patientsPage.PerPage, patientsPage.Total));
         }
 
         [Authorize(Roles = "Admin,Staff,Doctor")]

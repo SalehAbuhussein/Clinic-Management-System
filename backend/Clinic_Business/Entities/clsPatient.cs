@@ -1,4 +1,5 @@
-﻿using Clinic_DataAccess;
+﻿using Clinic_Business.Common;
+using Clinic_DataAccess;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -73,18 +74,24 @@ namespace Clinic_Business.Entities
             base.NationalNo = nationalNo;
         }
 
-        public record PatientItem(int Id, string? EmergencyContactName, string? EmergencyContactNumber, int PersonID);
+        public record PatientItem(int Id, string? Fullname, string? Phone, string? EmergencyContactName, string? EmergencyContactNumber, int PersonID);
 
-        public static async Task<List<PatientItem>> FindPatientsAsync(int pageNumber = 1, int pageSize = 10)
+        public static async Task<PagedResult<PatientItem>> FindPatientsAsync(string? fullname = null, string? phone = null, int pageNumber = 1, int pageSize = 10)
         {
-            DataTable table = await clsPatientDA.FindAllAsync(pageNumber, pageSize);
+            DataTable table = await clsPatientDA.FindAllAsync(fullname, phone, pageNumber, pageSize);
 
-            return table.AsEnumerable().Select(row => new PatientItem(
+            List<PatientItem> patients = table.AsEnumerable().Select(row => new PatientItem(
                 row.Field<int>("PatientID"),
+                row.Field<string>("Fullname"),
+                row.Field<string>("Phone"),
                 row.Field<string>("EmergencyContactName"),
                 row.Field<string>("EmergencyContactNumber"),
                 row.Field<int>("PersonID")
             )).ToList();
+
+            int total = table.Rows.Count == 0 ? 0 : table.Rows[0].Field<int>("TotalCount");
+
+            return new PagedResult<PatientItem>(patients, pageNumber, pageSize, total);
         }
 
         public static async Task<clsPatient?> FindPatientAsync(int? id)

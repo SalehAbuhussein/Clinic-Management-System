@@ -1,4 +1,5 @@
-﻿using Clinic_Business.Entities;
+﻿using Clinic_Business.Common;
+using Clinic_Business.Entities;
 
 namespace Clinic_Business.Interfaces
 {
@@ -6,7 +7,7 @@ namespace Clinic_Business.Interfaces
     {
         Task<clsPatient?> FindByIdAsync(int? id);
         Task<clsPatient?> FindByNationalNoAsync(string nationalNo);
-        Task<List<clsPatient.PatientItem>> FindAllAsync(int pageNumber = 1, int pageSize = 10);
+        Task<PagedResult<clsPatient.PatientItem>> FindAllAsync(string? fullname = null, string? phone = null, int pageNumber = 1, int pageSize = 10);
         Task<bool> DeleteAsync(int? id);
         Task<bool> ExistsAsync(int? id);
     }
