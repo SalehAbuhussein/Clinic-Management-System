@@ -1,1 +1,37 @@
-<p>book-appointment-dialog works!</p>
+<h2 class="book__title" matDialogTitle>Book Appointment</h2>
+
+<div class="book__content" matDialogContent>
+  <app-patient-selector-input />
+
+  <app-doctor-selector-input />
+
+  <div class="book__dates">
+    <app-date-input [(date)]="date" />
+
+    <mat-form-field>
+      <mat-label>Time</mat-label>
+
+      <input matInput type="time" step="900" [(ngModel)]="time">
+    </mat-form-field>
+  </div>
+
+  <mat-chip-listbox class="book__durations" [(ngModel)]="minutes" aria-label="Duration">
+    @for (option of DURATIONS; track option) {
+      <mat-chip-option [value]="option">{{ option }} min</mat-chip-option>
+    }
+  </mat-chip-listbox>
+
+  <mat-form-field>
+    <mat-label>Notes</mat-label>
+
+    <textarea matInput rows="2" maxlength="255" [(ngModel)]="notes"></textarea>
+
+    <mat-hint align="end">{{ notes().length }} / 255</mat-hint>
+  </mat-form-field>
+</div>
+
+<div class="book__actions" matDialogActions>
+  <button matButton type="button" matDialogClose>Cancel</button>
+
+  <button matButton="filled" type="button" [disabled]="!canBook()">Book Appointment</button>
+</div>

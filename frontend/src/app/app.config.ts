@@ -6,11 +6,13 @@ import { authInterceptor } from './core/auth/interceptor/auth.interceptor';
 import { errorInterceptor } from '@core/auth/interceptor/error.interceptor';
 
 import { routes } from './app.routes';
+import { provideNativeDateAdapter } from '@angular/material/core';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])),
+    provideNativeDateAdapter(),
   ]
 };

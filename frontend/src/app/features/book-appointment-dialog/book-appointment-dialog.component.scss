@@ -1,0 +1,19 @@
+.book__content {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.book__dates {
+  display: flex;
+  gap: 12px;
+
+  > * {
+    flex: 1;
+  }
+}
+
+.book__actions {
+  gap: 8px;
+  justify-content: flex-end;
+}

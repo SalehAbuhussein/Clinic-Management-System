@@ -50,6 +50,10 @@ export class TodayAppointmentsComponent {
   appointmentsResource = this.appointmentService.getTodayAppointmentResource(this.dayParam, this.page);
   appointments = computed(() => this.appointmentsResource.hasValue() ? this.appointmentsResource.value().items : []);
 
+  constructor() {
+    this.openBookingDialog();
+  }
+
   /**
    * Move the shown day.
    *
