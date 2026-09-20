@@ -1,0 +1,42 @@
+<div class="strip">
+  <div class="strip__head">
+    <span class="strip__label">Doctor's day</span>
+    <span class="strip__range">{{ rangeLabel() }}</span>
+  </div>
+
+  <div #track class="strip__track" (click)="onTrackClick($any($event))">
+    @for (slot of busy; track slot.start) {
+      <span class="strip__busy" [style.left.%]="left(slot.start)" [style.width.%]="width(slot.end - slot.start)"></span>
+    }
+
+    <span
+      class="strip__pick"
+      role="slider"
+      tabindex="0"
+      aria-label="Appointment start time"
+      [attr.aria-valuetext]="startLabel()"
+      [attr.aria-valuenow]="start()"
+      [attr.aria-valuemin]="480"
+      [attr.aria-valuemax]="960"
+      [class.strip__pick--clash]="clash()"
+      [style.left.%]="left(start())"
+      [style.width.%]="width(minutes())"
+      (pointerdown)="onPointerDown($event)"
+      (pointermove)="onPointerMove($event)"
+      (click)="$event.stopPropagation()"
+      (keydown.arrowleft)="shift(-1); $event.preventDefault()"
+      (keydown.arrowright)="shift(1); $event.preventDefault()"></span>
+  </div>
+
+  <div class="strip__ticks">
+    <span>08:00</span>
+    <span>10:00</span>
+    <span>12:00</span>
+    <span>14:00</span>
+    <span>16:00</span>
+  </div>
+
+  @if (clash()) {
+    <p class="strip__clash">Already booked in that slot.</p>
+  }
+</div>

@@ -1,4 +1,4 @@
-﻿using Clinic_Business.Entities;
+using Clinic_Business.Entities;
 using Clinic_Business.Common;
 using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Appointments;
@@ -272,6 +272,25 @@ namespace Clinic_Management_System.Controllers
                 }).ToList();
 
             return Ok(new PagedResult<AppointmentDTO>(appointmentsList, appointmentsPage.Page, appointmentsPage.PerPage, appointmentsPage.Total));
+        }
+
+        [Authorize(Roles = "Admin,Staff")]
+        [HttpGet("doctor/{doctorId}/schedules", Name = "GetDoctorAppointmentSchedules")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult> GetDoctorAppointmentSchedules(
+            [Range(1, int.MaxValue)] int doctorId,
+            DateTime from,
+            DateTime to
+        )
+        {
+            List<clsAppointment.DoctorSchedule> doctorSchedules = await clsAppointment.FindDoctorSchedulesAsync(doctorId, from, to);
+
+            if (doctorSchedules.Count == 0)
+                return NotFound(doctorSchedules);
+
+            return Ok(doctorSchedules);
         }
 
         [Authorize(Roles = "Admin,Staff")]

@@ -22,3 +22,12 @@ export type AppointmentCard = {
 };
 
 export type GetAppointmentsResponse = PagedResult<AppointmentCard>;
+
+export type AppointmentSchedule = {
+  appointmentID: number;
+  startAt: string;
+  endAt: string;
+  status: number;
+};
+
+export type GetDoctorSchedulesResponse = AppointmentSchedule[];

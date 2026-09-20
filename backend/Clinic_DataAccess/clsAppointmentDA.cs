@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
@@ -164,6 +164,45 @@ namespace Clinic_DataAccess
             }
 
             return dt.Rows.Count > 0 ? dt.Rows[0] : null;
+        }
+
+        public static async Task<DataTable> FindDoctorSchedules(int doctorId, DateTime from, DateTime to)
+        {
+            DataTable dt = new DataTable();
+
+            if (doctorId < 1)
+                return dt;
+
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                await connection.OpenAsync();
+
+                string query = @"SELECT
+                    A.AppointmentID, A.DoctorID, A.PatientID, A.StartAt, A.EndAt, A.Status
+                FROM Appointments A
+                WHERE A.DoctorID = @DoctorID
+                AND A.StartAt >= @StartAt
+                AND A.EndAt < @EndAt
+                AND A.Status NOT IN (1, 3)";
+
+                using (SqlCommand command = new SqlCommand())
+                {
+                    command.Connection = connection;
+                    command.Parameters.AddWithValue("@DoctorID", doctorId);
+                    command.Parameters.AddWithValue("@StartAt", from);
+                    command.Parameters.AddWithValue("@EndAt", to);
+
+                    command.CommandText = query;
+
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
+                    {
+                        if (reader.HasRows)
+                            dt.Load(reader);
+                    }
+                }
+            }
+
+            return dt;
         }
 
         public static async Task<bool> IsExistByIDAsync(int? id)

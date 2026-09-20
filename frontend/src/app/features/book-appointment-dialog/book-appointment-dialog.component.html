@@ -1,9 +1,9 @@
 <h2 class="book__title" matDialogTitle>Book Appointment</h2>
 
 <div class="book__content" matDialogContent>
-  <app-patient-selector-input />
+  <app-patient-selector-input [(patient)]="patient" />
 
-  <app-doctor-selector-input />
+  <app-doctor-selector-input [(doctor)]="doctor" />
 
   <div class="book__dates">
     <app-date-input [(date)]="date" />
@@ -20,6 +20,8 @@
       <mat-chip-option [value]="option">{{ option }} min</mat-chip-option>
     }
   </mat-chip-listbox>
+
+  <app-doctor-day-strip />
 
   <mat-form-field>
     <mat-label>Notes</mat-label>

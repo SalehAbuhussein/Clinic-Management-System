@@ -2,7 +2,7 @@ import { inject, Service } from '@angular/core';
 
 import { ApiService } from '@core/services/api/api.service';
 
-import { AppointmentFilters, GetAppointmentsResponse } from './appointment.types';
+import { AppointmentFilters, GetAppointmentsResponse, GetDoctorSchedulesResponse } from './appointment.types';
 
 @Service()
 export class AppointmentService {
@@ -34,4 +34,21 @@ export class AppointmentService {
    * @returns The resource holding that day's appointments.
    */
   getTodayAppointmentResource = (day: () => string, page: () => number) => this.getAppointmentResource(() => ({ from: day(), to: day(), page: page() }));
+
+  /**
+   * The slots a doctor already has booked between two days.
+   *
+   * Stays idle until a doctor is chosen: the path carries the id, so without
+   * one there is no URL to request.
+   *
+   * @param doctorId Returns the chosen doctor, or null when none is.
+   * @param from Returns the first day as `yyyy-MM-dd`.
+   * @param to Returns the last day as `yyyy-MM-dd`.
+   * @returns The resource holding that doctor's booked slots.
+   */
+  getDoctorSchedulesResource = (doctorId: () => number | null, from: () => string, to: () => string) =>
+    this.apiService.getResource<GetDoctorSchedulesResponse>(
+      () => (doctorId() ? `/Appointments/doctor/${doctorId()}/schedules` : null),
+      () => ({ from: from(), to: to() }),
+    );
 }

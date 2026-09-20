@@ -1,0 +1,88 @@
+:host {
+  display: block;
+}
+
+.strip {
+  display: grid;
+  gap: 6px;
+}
+
+.strip__head {
+  align-items: baseline;
+  display: flex;
+  justify-content: space-between;
+}
+
+.strip__label {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-medium);
+}
+
+.strip__range {
+  color: var(--mat-sys-on-surface-variant);
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.strip__track {
+  background-color: var(--mat-sys-surface-container-lowest);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+  height: 34px;
+  overflow: hidden;
+  position: relative;
+}
+
+.strip__busy {
+  background-color: color-mix(in srgb, var(--mat-sys-on-surface) 14%, transparent);
+  bottom: 0;
+  position: absolute;
+  top: 0;
+}
+
+.strip__pick {
+  background-color: var(--mat-sys-secondary-container);
+  border: 2px solid var(--mat-sys-secondary);
+  border-radius: 6px;
+  bottom: 0;
+  position: absolute;
+  top: 0;
+}
+
+.strip__pick--clash {
+  background-color: var(--mat-sys-error-container);
+  border-color: var(--mat-sys-error);
+}
+
+.strip__ticks {
+  color: var(--mat-sys-on-surface-variant);
+  display: flex;
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 10.5px;
+  justify-content: space-between;
+}
+
+.strip__clash {
+  color: var(--mat-sys-error);
+  font: var(--mat-sys-body-small);
+  margin: 0;
+}
+
+.strip__track {
+  cursor: pointer;
+}
+
+.strip__pick {
+  cursor: grab;
+  touch-action: none;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--mat-sys-primary);
+    outline-offset: 2px;
+  }
+}

@@ -34,11 +34,19 @@ export class ApiService {
    * dependency and changing that signal refetches.
    * @returns The resource holding the response body.
    */
-  getResource = <T>(path: string, params: () => Params = () => ({})) => {
-    return httpResource<T>(() => ({
-      url: `${this._baseUrl}${path}`,
-      params: this._toHttpParams(params()),
-    }));
+  getResource = <T>(path: string | (() => string | null), params: () => Params = () => ({})) => {
+    return httpResource<T>(() => {
+      const resolvedPath = typeof path === 'string' ? path : path();
+
+      if (!resolvedPath) {
+        return undefined;
+      }
+
+      return {
+        url: `${this._baseUrl}${resolvedPath}`,
+        params: this._toHttpParams(params()),
+      };
+    });
   }
 
   /**

@@ -1,1 +1,20 @@
-<p>doctor-selector-input works!</p>
+<mat-form-field class="doctor__field">
+  <mat-label>Doctor</mat-label>
+
+  <mat-icon matPrefix>stethoscope</mat-icon>
+
+  <mat-select [ngModel]="doctor()" (ngModelChange)="doctor.set($event)" [compareWith]="compareById" [disabled]="doctorsResource.isLoading() || !!doctorsResource.error()">
+    @for (option of doctors(); track option.id) {
+      <mat-option [value]="option">
+        <span class="doctor__name">{{ option.fullname }}</span>
+        <span class="doctor__meta">{{ option.specialization }}</span>
+      </mat-option>
+    }
+  </mat-select>
+
+  @if (doctorsResource.isLoading()) {
+    <mat-hint>Loading doctors…</mat-hint>
+  } @else if (!!doctorsResource.error()) {
+    <mat-hint>Could not load the doctor list.</mat-hint>
+  }
+</mat-form-field>

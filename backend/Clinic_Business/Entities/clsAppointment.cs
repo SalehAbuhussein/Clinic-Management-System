@@ -1,4 +1,4 @@
-﻿using Clinic_Business.Common;
+using Clinic_Business.Common;
 using Clinic_DataAccess;
 using System.Data;
 using System.Linq;
@@ -74,6 +74,20 @@ namespace Clinic_Business.Entities
             int total = table.Rows.Count == 0 ? 0 : table.Rows[0].Field<int>("TotalCount");
 
             return new PagedResult<clsAppointment>(appointments, pageNumber, pageSize, total);
+        }
+
+        public record DoctorSchedule(int AppointmentID, DateTime StartAt, DateTime EndAt, byte Status);
+
+        public static async Task<List<DoctorSchedule>> FindDoctorSchedulesAsync(int doctorId, DateTime from, DateTime to)
+        {
+            DataTable table = await clsAppointmentDA.FindDoctorSchedules(doctorId, from, to);
+
+            return table.AsEnumerable().Select(row => new DoctorSchedule(
+                row.Field<int>("AppointmentID"),
+                row.Field<DateTime>("StartAt"),
+                row.Field<DateTime>("EndAt"),
+                row.Field<byte>("Status")
+            )).ToList();
         }
 
         public static async Task<clsAppointment?> FindAsync(int id)
