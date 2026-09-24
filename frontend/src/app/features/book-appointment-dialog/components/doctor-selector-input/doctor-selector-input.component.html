@@ -1,20 +1,44 @@
 <mat-form-field class="doctor__field">
   <mat-label>Doctor</mat-label>
 
-  <mat-icon matPrefix>stethoscope</mat-icon>
+  <mat-icon matPrefix>medical_services</mat-icon>
 
-  <mat-select [ngModel]="doctor()" (ngModelChange)="doctor.set($event)" [compareWith]="compareById" [disabled]="doctorsResource.isLoading() || !!doctorsResource.error()">
+  <input
+    matInput
+    type="text"
+    autocomplete="off"
+    placeholder="Search by name"
+    [matAutocomplete]="auto"
+    [ngModel]="doctor()"
+    (input)="onInput($any($event.target).value)" />
+
+  @if (doctor()) {
+    <button matIconButton matSuffix type="button" aria-label="Clear doctor" (click)="clear()">
+      <mat-icon>close</mat-icon>
+    </button>
+  }
+
+  @if (doctorsResource.error()) {
+    <mat-hint>Could not load the doctor list.</mat-hint>
+  } @else if (doctor(); as chosen) {
+    <mat-hint>Doctor {{ chosen.id }} · {{ chosen.specialization }}</mat-hint>
+  }
+</mat-form-field>
+
+<mat-autocomplete #auto [displayWith]="showName" (optionSelected)="doctor.set($event.option.value)">
+  @if (doctorsResource.isLoading()) {
+    <mat-option class="selector__status" disabled>
+      <mat-progress-spinner diameter="20" mode="indeterminate" />
+      Loading doctors…
+    </mat-option>
+  } @else if (hasNoResults()) {
+    <mat-option class="selector__status" disabled>No doctor matches that name.</mat-option>
+  } @else {
     @for (option of doctors(); track option.id) {
       <mat-option [value]="option">
         <span class="doctor__name">{{ option.fullname }}</span>
         <span class="doctor__meta">{{ option.specialization }}</span>
       </mat-option>
     }
-  </mat-select>
-
-  @if (doctorsResource.isLoading()) {
-    <mat-hint>Loading doctors…</mat-hint>
-  } @else if (!!doctorsResource.error()) {
-    <mat-hint>Could not load the doctor list.</mat-hint>
   }
-</mat-form-field>
+</mat-autocomplete>

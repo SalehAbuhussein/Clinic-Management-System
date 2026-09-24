@@ -21,7 +21,7 @@
     }
   </mat-chip-listbox>
 
-  <app-doctor-day-strip />
+  <app-doctor-day-strip [doctorId]="doctor()?.id ?? null" [date]="date()" [(time)]="time" [durationMinutes]="minutes()" />
 
   <mat-form-field>
     <mat-label>Notes</mat-label>

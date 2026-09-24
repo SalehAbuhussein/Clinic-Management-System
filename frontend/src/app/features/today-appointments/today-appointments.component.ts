@@ -51,7 +51,6 @@ export class TodayAppointmentsComponent {
   appointments = computed(() => this.appointmentsResource.hasValue() ? this.appointmentsResource.value().items : []);
 
   constructor() {
-    this.openBookingDialog();
   }
 
   /**
@@ -66,6 +65,9 @@ export class TodayAppointmentsComponent {
    */
   goToToday = () => this.day.set(new Date());
 
+  /**
+   * Open Booking Dialog Flow
+   */
   openBookingDialog = () => {
     this.dialog.open(BookAppointmentDialogComponent, { width: '560px' });
   }

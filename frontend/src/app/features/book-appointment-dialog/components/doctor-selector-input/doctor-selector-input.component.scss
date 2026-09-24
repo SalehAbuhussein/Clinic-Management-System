@@ -16,3 +16,19 @@
   display: block;
   font: var(--mat-sys-body-small);
 }
+
+.selector__status {
+  align-items: center;
+  color: var(--mat-sys-on-surface-variant);
+  display: flex;
+  font: var(--mat-sys-body-medium);
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+// A disabled option rather than a bare div, so the row matches the options it
+// stands in for and cannot be selected or reached by the keyboard.
+.selector__status.mat-mdc-option {
+  opacity: 1;
+  pointer-events: none;
+}

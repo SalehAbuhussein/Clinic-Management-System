@@ -1,31 +1,36 @@
-<div class="strip">
+<div class="strip" [class.strip--disabled]="isDisabled()" [attr.aria-disabled]="isDisabled()">
   <div class="strip__head">
     <span class="strip__label">Doctor's day</span>
-    <span class="strip__range">{{ rangeLabel() }}</span>
+
+    @if (!isDisabled()) {
+      <span class="strip__range">{{ rangeLabel() }}</span>
+    }
   </div>
 
   <div #track class="strip__track" (click)="onTrackClick($any($event))">
-    @for (slot of busy; track slot.start) {
-      <span class="strip__busy" [style.left.%]="left(slot.start)" [style.width.%]="width(slot.end - slot.start)"></span>
+    @for (slot of busySlots(); track slot.startMinutes) {
+      <span class="strip__busy" [style.left.%]="leftPercent(slot.startMinutes)" [style.width.%]="widthPercent(slot.endMinutes - slot.startMinutes)"></span>
     }
 
-    <span
-      class="strip__pick"
-      role="slider"
-      tabindex="0"
-      aria-label="Appointment start time"
-      [attr.aria-valuetext]="startLabel()"
-      [attr.aria-valuenow]="start()"
-      [attr.aria-valuemin]="480"
-      [attr.aria-valuemax]="960"
-      [class.strip__pick--clash]="clash()"
-      [style.left.%]="left(start())"
-      [style.width.%]="width(minutes())"
-      (pointerdown)="onPointerDown($event)"
-      (pointermove)="onPointerMove($event)"
-      (click)="$event.stopPropagation()"
-      (keydown.arrowleft)="shift(-1); $event.preventDefault()"
-      (keydown.arrowright)="shift(1); $event.preventDefault()"></span>
+    @if (!isDisabled()) {
+      <span
+        class="strip__pick"
+        role="slider"
+        tabindex="0"
+        aria-label="Appointment start time"
+        [attr.aria-valuetext]="startLabel()"
+        [attr.aria-valuenow]="startMinutes()"
+        [attr.aria-valuemin]="480"
+        [attr.aria-valuemax]="960"
+        [class.strip__pick--clash]="clash()"
+        [style.left.%]="leftPercent(startMinutes())"
+        [style.width.%]="widthPercent(durationMinutes())"
+        (pointerdown)="onPointerDown($event)"
+        (pointermove)="onPointerMove($event)"
+        (click)="$event.stopPropagation()"
+        (keydown.arrowleft)="shift(-1); $event.preventDefault()"
+        (keydown.arrowright)="shift(1); $event.preventDefault()"></span>
+    }
   </div>
 
   <div class="strip__ticks">
@@ -36,7 +41,11 @@
     <span>16:00</span>
   </div>
 
-  @if (clash()) {
-    <p class="strip__clash">Already booked in that slot.</p>
-  }
+  <p class="strip__clash" aria-live="polite">
+    @if (isDisabled()) {
+      Choose a doctor to see their day.
+    } @else if (clash()) {
+      Already booked in that slot.
+    }
+  </p>
 </div>

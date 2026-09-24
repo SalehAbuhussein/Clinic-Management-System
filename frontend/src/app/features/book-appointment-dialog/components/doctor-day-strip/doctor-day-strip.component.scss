@@ -63,10 +63,22 @@
   justify-content: space-between;
 }
 
+.strip--disabled {
+  .strip__track,
+  .strip__head {
+    opacity: 0.38;
+  }
+}
+
+.strip--disabled .strip__clash {
+  color: var(--mat-sys-on-surface-variant);
+}
+
 .strip__clash {
   color: var(--mat-sys-error);
   font: var(--mat-sys-body-small);
   margin: 0;
+  min-block-size: 1.25rem;
 }
 
 .strip__track {

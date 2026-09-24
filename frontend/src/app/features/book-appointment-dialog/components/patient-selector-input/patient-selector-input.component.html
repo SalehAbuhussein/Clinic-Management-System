@@ -12,9 +12,7 @@
     [ngModel]="patient()"
     (input)="onInput($any($event.target).value)" />
 
-  @if (patientsResource.isLoading()) {
-    <mat-progress-spinner matSuffix diameter="18" mode="indeterminate" />
-  } @else if (patient()) {
+  @if (patient()) {
     <button matIconButton matSuffix type="button" aria-label="Clear patient" (click)="clear()">
       <mat-icon>close</mat-icon>
     </button>
@@ -22,16 +20,23 @@
 
   @if (patient(); as chosen) {
     <mat-hint>Patient {{ chosen.id }} · {{ chosen.phone }}</mat-hint>
-  } @else if (hasNoResults()) {
-    <mat-hint>No patient matches that name.</mat-hint>
   }
 </mat-form-field>
 
 <mat-autocomplete #auto [displayWith]="showName" (optionSelected)="patient.set($event.option.value)">
-  @for (option of patients(); track option.id) {
-    <mat-option [value]="option">
-      <span class="patient__name">{{ option.fullname }}</span>
-      <span class="patient__meta">{{ option.phone }} · #{{ option.id }}</span>
+  @if (patientsResource.isLoading()) {
+    <mat-option class="selector__status" disabled>
+      <mat-progress-spinner diameter="20" mode="indeterminate" />
+      Searching…
     </mat-option>
+  } @else if (hasNoResults()) {
+    <mat-option class="selector__status" disabled>No patient matches that name.</mat-option>
+  } @else {
+    @for (option of patients(); track option.id) {
+      <mat-option [value]="option">
+        <span class="patient__name">{{ option.fullname }}</span>
+        <span class="patient__meta">{{ option.phone }} · #{{ option.id }}</span>
+      </mat-option>
+    }
   }
 </mat-autocomplete>

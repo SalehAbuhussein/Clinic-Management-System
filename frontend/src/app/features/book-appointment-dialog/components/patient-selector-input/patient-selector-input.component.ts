@@ -53,10 +53,10 @@ export class PatientSelectorInputComponent {
     return term.length >= 2 ? term : '';
   });
 
-  patientsResource = this.patientService.getPatientResource(() => ({ fullname: this.searchTerm() }));
 
   patients = computed(() => (this.patientsResource.hasValue() ? this.patientsResource.value().items : []));
-  hasNoResults = computed(() => !!this.searchTerm() && !this.patientsResource.isLoading && this.patients().length === 0);
+  hasNoResults = computed(() => !!this.searchTerm() && !this.patientsResource.isLoading() && this.patients().length === 0);
+  patientsResource = this.patientService.getPatientResource(() => ({ fullname: this.searchTerm() }));
 
   /**
    * What the input shows once a patient is chosen. Without it the field would
@@ -70,6 +70,9 @@ export class PatientSelectorInputComponent {
    */
   onInput = (value: string) => this.term.set(value);
 
+  /**
+   * Clear Both patient and
+   */
   clear = () => {
     this.patient.set(null);
     this.term.set('');

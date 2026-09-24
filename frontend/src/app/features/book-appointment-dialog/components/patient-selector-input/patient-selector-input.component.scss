@@ -16,3 +16,19 @@
   display: block;
   font: var(--mat-sys-body-small);
 }
+
+.selector__status {
+  align-items: center;
+  color: var(--mat-sys-on-surface-variant);
+  display: flex;
+  font: var(--mat-sys-body-medium);
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+// A disabled option rather than a bare div: MatAutocomplete keeps its panel
+// hidden while it has no options, so a panel of plain markup never appears.
+.selector__status.mat-mdc-option {
+  opacity: 1;
+  pointer-events: none;
+}
