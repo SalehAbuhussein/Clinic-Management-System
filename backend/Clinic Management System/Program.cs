@@ -1,4 +1,4 @@
-﻿using Clinic_Business.Interfaces;
+using Clinic_Business.Interfaces;
 using Clinic_Business.Repositories;
 using Clinic_DataAccess;
 using Clinic_Management_System.Authorization.Appointment;
@@ -94,6 +94,10 @@ builder.Services.AddScoped<IAuthorizationHandler, PersonOwnerOrAuthorizedHandler
 builder.Services.AddScoped<IAuthorizationHandler, CanDoctorViewAppointmentHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, ManageVisitRecordHandler>();
 
+
+// ===============================
+// 2.1) Services
+// ===============================
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IMedicineRepository, MedicineRepository>();
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
@@ -103,6 +107,7 @@ builder.Services.AddScoped<IVisitRepository, VisitRepository>();
 builder.Services.AddScoped<IDiagnosisRepository, DiagnosisRepository>();
 builder.Services.AddScoped<IPrescriptionItemRepository, PrescriptionItemRepository>();
 builder.Services.AddScoped<IPersonRepository, PersonRepository>();
+builder.Services.AddScoped<IWorkingDayRepository, WorkingDayRepository>();
 
 builder.Services.AddProblemDetails(options =>
     options.CustomizeProblemDetails = context =>
@@ -214,13 +219,14 @@ builder.Services.AddSwaggerGen(options =>
     {
         ["Auth"] = 1,
         ["Users"] = 2,
-        ["Patients"] = 3,
-        ["Doctors"] = 4,
-        ["People"] = 5,
-        ["Appointments"] = 6,
-        ["Visits"] = 7,
-        ["Diagnoses"] = 8,
-        ["Prescriptions"] = 9
+        ["WorkingDays"] = 3,
+        ["Patients"] = 4,
+        ["Doctors"] = 5,
+        ["People"] = 6,
+        ["Appointments"] = 7,
+        ["Visits"] = 8,
+        ["Diagnoses"] = 9,
+        ["Prescriptions"] = 10,
     };
 
     options.OrderActionsBy(api =>

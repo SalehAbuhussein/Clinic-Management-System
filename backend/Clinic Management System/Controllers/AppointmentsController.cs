@@ -278,7 +278,7 @@ namespace Clinic_Management_System.Controllers
         [HttpGet("doctor/{doctorId}/schedules", Name = "GetDoctorAppointmentSchedules")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult> GetDoctorAppointmentSchedules(
             [Range(1, int.MaxValue)] int doctorId,
             DateTime from,
@@ -286,9 +286,6 @@ namespace Clinic_Management_System.Controllers
         )
         {
             List<clsAppointment.DoctorSchedule> doctorSchedules = await clsAppointment.FindDoctorSchedulesAsync(doctorId, from, to);
-
-            if (doctorSchedules.Count == 0)
-                return NotFound(doctorSchedules);
 
             return Ok(doctorSchedules);
         }

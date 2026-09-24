@@ -183,7 +183,7 @@ namespace Clinic_DataAccess
                 WHERE A.DoctorID = @DoctorID
                 AND A.StartAt >= @StartAt
                 AND A.EndAt < @EndAt
-                AND A.Status NOT IN (1, 3)";
+                AND A.Status NOT IN (3)";
 
                 using (SqlCommand command = new SqlCommand())
                 {
