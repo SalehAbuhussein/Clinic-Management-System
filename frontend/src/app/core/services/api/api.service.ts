@@ -4,6 +4,8 @@ import { inject, Service } from '@angular/core';
 
 import { map, Observable } from 'rxjs';
 
+import { PagedResult } from '@core/types/api.types';
+
 @Service()
 export class ApiService {
   httpClient = inject(HttpClient);
@@ -47,6 +49,38 @@ export class ApiService {
         params: this._toHttpParams(params()),
       };
     });
+  }
+
+  /**
+   * Sends a GET request for a paged list, as reactive state.
+   *
+   * The resource carries an empty page as its default value, so `value()`
+   * always returns a page and never throws while loading or after a failure.
+   * That is what lets a caller write `resource.value().items` with no guard.
+   *
+   * @param path Route below /api, or a function returning one. Returning null
+   * leaves the resource idle and sends no request.
+   * @param params Function returning the query-string values; unset entries are
+   * dropped. It is re-read on every refresh, so any signal it reads becomes a
+   * dependency and changing that signal refetches.
+   * @returns The resource holding the page.
+   */
+  getPagedResource = <T>(path: string | (() => string | null), params: () => Params = () => ({})) => {
+    return httpResource<PagedResult<T>>(
+      () => {
+        const resolvedPath = typeof path === 'string' ? path : path();
+
+        if (!resolvedPath) {
+          return undefined;
+        }
+
+        return {
+          url: `${this._baseUrl}${resolvedPath}`,
+          params: this._toHttpParams(params()),
+        };
+      },
+      { defaultValue: { items: [], page: 1, perPage: 0, total: 0 } },
+    );
   }
 
   /**

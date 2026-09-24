@@ -2,14 +2,13 @@ import { Component, computed, effect, ElementRef, inject, input, model, untracke
 import { formatDate } from '@angular/common';
 
 import { AppointmentService } from '@shared/services/appointment/appointment.service';
-
-/** The window the strip draws, 08:00 to 16:00, as minutes from midnight. */
-const DAY_START_MINUTES = 8 * 60;
-const DAY_END_MINUTES = 16 * 60;
-const DAY_SPAN_MINUTES = DAY_END_MINUTES - DAY_START_MINUTES;
+import { WorkingDaysService } from '@shared/services/working-days/working-days.service';
 
 /** Start times snap to a quarter hour, matching the time input's step. */
 const STEP_MINUTES = 15;
+
+/** How far apart the labels under the track sit. */
+const TICK_STEP_MINUTES = 2 * 60;
 
 /** One booked appointment, reduced to the two numbers the strip draws. */
 type BusySlot = { startMinutes: number; endMinutes: number };
@@ -29,6 +28,7 @@ type BusySlot = { startMinutes: number; endMinutes: number };
 })
 export class DoctorDayStripComponent {
   appointmentService = inject(AppointmentService);
+  workingDaysService = inject(WorkingDaysService);
 
   /** The chosen doctor. Null dims the strip and sends no request. */
   doctorId = input<number | null>(null);
@@ -69,6 +69,31 @@ export class DoctorDayStripComponent {
     this.rangeStartDate,
     this.rangeEndDate,
   );
+
+  workingDay = computed(() => {
+    const date = this.date();
+    return date ? this.workingDaysService.findByDate(date) : null;
+  });
+
+  dayStartMinutes = computed(() => this.minutesFromTimeText(this.workingDay()?.startAt ?? '08:00'));
+  dayEndMinutes = computed(() => this.minutesFromTimeText(this.workingDay()?.endAt ?? '16:00'));
+  daySpanMinutes = computed(() => this.dayEndMinutes() - this.dayStartMinutes());
+
+  /**
+   * The labels under the track, every two hours from the clinic's opening time
+   * to its closing time. The first one is rounded up to a whole hour, so a day
+   * starting at 08:30 is labelled from 09:00 rather than on the half hour.
+   */
+  ticks = computed(() => {
+    const labels: string[] = [];
+    const firstHour = Math.ceil(this.dayStartMinutes() / 60) * 60;
+
+    for (let minutes = firstHour; minutes <= this.dayEndMinutes(); minutes += TICK_STEP_MINUTES) {
+      labels.push(this.toTimeText(minutes));
+    }
+
+    return labels;
+  });
 
   /** True until a doctor is chosen, which dims the strip and hides the block. */
   isDisabled = computed(() => !this.doctorId());
@@ -121,7 +146,7 @@ export class DoctorDayStripComponent {
    * @param minutes A time as minutes from midnight.
    * @returns The CSS `left` value, as a percentage of the track.
    */
-  leftPercent = (minutes: number): number => ((minutes - DAY_START_MINUTES) / DAY_SPAN_MINUTES) * 100;
+  leftPercent = (minutes: number): number => ((minutes - this.dayStartMinutes()) / this.daySpanMinutes()) * 100;
 
   /**
    * Sizes a length of time across the track.
@@ -129,7 +154,7 @@ export class DoctorDayStripComponent {
    * @param minutes A duration in minutes.
    * @returns The CSS `width` value, as a percentage of the track.
    */
-  widthPercent = (minutes: number): number => (minutes / DAY_SPAN_MINUTES) * 100;
+  widthPercent = (minutes: number): number => (minutes / this.daySpanMinutes()) * 100;
 
   /**
    * Starts a drag and records where inside the block the pointer landed, so
@@ -203,9 +228,9 @@ export class DoctorDayStripComponent {
    * @returns That time, or the nearest one the appointment fits into.
    */
   clampToDay(minutes: number): number {
-    const latestStart = DAY_END_MINUTES - this.durationMinutes();
+    const latestStart = this.dayEndMinutes() - this.durationMinutes();
 
-    return Math.max(DAY_START_MINUTES, Math.min(latestStart, minutes));
+    return Math.max(this.dayStartMinutes(), Math.min(latestStart, minutes));
   }
 
   /**
@@ -224,7 +249,7 @@ export class DoctorDayStripComponent {
    * @returns That gap's start, or the start of the day when nothing fits.
    */
   firstFreeStartMinutes(): number {
-    let candidate = DAY_START_MINUTES;
+    let candidate = this.dayStartMinutes();
 
     for (const slot of this.busySlots()) {
       if (candidate + this.durationMinutes() <= slot.startMinutes) {
@@ -234,7 +259,7 @@ export class DoctorDayStripComponent {
       candidate = Math.max(candidate, Math.ceil(slot.endMinutes / STEP_MINUTES) * STEP_MINUTES);
     }
 
-    return candidate + this.durationMinutes() <= DAY_END_MINUTES ? candidate : DAY_START_MINUTES;
+    return candidate + this.durationMinutes() <= this.dayEndMinutes() ? candidate : this.dayStartMinutes();
   }
 
   /**
@@ -247,7 +272,7 @@ export class DoctorDayStripComponent {
     const track = this.track().nativeElement.getBoundingClientRect();
     const ratio = (event.clientX - track.left) / track.width;
 
-    return DAY_START_MINUTES + ratio * DAY_SPAN_MINUTES;
+    return this.dayStartMinutes() + ratio * this.daySpanMinutes();
   }
 
   /**

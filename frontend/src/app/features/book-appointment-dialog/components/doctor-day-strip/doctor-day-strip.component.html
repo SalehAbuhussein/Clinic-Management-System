@@ -34,11 +34,9 @@
   </div>
 
   <div class="strip__ticks">
-    <span>08:00</span>
-    <span>10:00</span>
-    <span>12:00</span>
-    <span>14:00</span>
-    <span>16:00</span>
+    @for (tick of ticks(); track tick) {
+      <span>{{ tick }}</span>
+    }
   </div>
 
   <p class="strip__clash" aria-live="polite">
