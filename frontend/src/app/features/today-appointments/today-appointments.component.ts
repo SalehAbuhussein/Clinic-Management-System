@@ -13,7 +13,6 @@ import { AppointmentsListEmptyStateComponent } from './components/appointments-l
 import { AppointmentsListErrorStateComponent } from './components/appointments-list-error-state/appointments-list-error-state.component';
 import { BookAppointmentDialogComponent } from '@features/book-appointment-dialog/book-appointment-dialog.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { BookedAppointment } from '@features/book-appointment-dialog/types/book-appointment.types';
 
 
@@ -35,7 +34,6 @@ import { BookedAppointment } from '@features/book-appointment-dialog/types/book-
 export class TodayAppointmentsComponent {
   appointmentService = inject(AppointmentService);
   dialog = inject(MatDialog);
-  snackbar = inject(MatSnackBar);
 
   day = signal(new Date());
 
@@ -66,7 +64,10 @@ export class TodayAppointmentsComponent {
   goToToday = () => this.day.set(new Date());
 
   /**
-   * Open Booking Dialog Flow
+   * Open the booking dialog and show the new appointment.
+   *
+   * The dialog confirms the booking itself; this screen owns the one thing the
+   * dialog cannot do, which is refresh the day behind it.
    */
   openBookingDialog = () => {
     this.dialog.open(BookAppointmentDialogComponent, { width: '560px' })
@@ -76,7 +77,6 @@ export class TodayAppointmentsComponent {
         return;
       }
 
-      this.snackbar.open(`${booked.patientName} booked`, 'Dismiss', { duration: 5000 });
       this.appointmentsResource.reload();
     });
   }

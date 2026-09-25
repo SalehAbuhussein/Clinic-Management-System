@@ -48,8 +48,16 @@ export class DoctorDayStripComponent {
   /** The day after the chosen one. The endpoint excludes the end of its range. */
   rangeEndDate = computed(() => this.asApiDate(this.nextDay(this.date())));
 
-  /** Where the proposed appointment starts. */
-  startMinutes = computed(() => this.minutesFromTimeText(this.time()));
+  /**
+   * Where the proposed appointment starts. Falls back to the start of the
+   * clinic's day while the Time field holds an incomplete value, so the block
+   * stays on the track instead of disappearing mid-keystroke.
+   */
+  startMinutes = computed(() => {
+    const minutes = this.minutesFromTimeText(this.time());
+
+    return Number.isNaN(minutes) ? this.dayStartMinutes() : minutes;
+  });
 
   /** Where it ends, which is the start plus the chosen duration. */
   endMinutes = computed(() => this.startMinutes() + this.durationMinutes());
@@ -75,8 +83,8 @@ export class DoctorDayStripComponent {
     return date ? this.workingDaysService.findByDate(date) : null;
   });
 
-  dayStartMinutes = computed(() => this.minutesFromTimeText(this.workingDay()?.startAt ?? '08:00'));
-  dayEndMinutes = computed(() => this.minutesFromTimeText(this.workingDay()?.endAt ?? '16:00'));
+  dayStartMinutes = computed(() => this.minutesFromTimeText(this.workingDay()?.startTime ?? '08:00'));
+  dayEndMinutes = computed(() => this.minutesFromTimeText(this.workingDay()?.endTime ?? '16:00'));
   daySpanMinutes = computed(() => this.dayEndMinutes() - this.dayStartMinutes());
 
   /**
@@ -295,15 +303,17 @@ export class DoctorDayStripComponent {
   snapToStep = (minutes: number) => Math.round(minutes / STEP_MINUTES) * STEP_MINUTES;
 
   /**
-   * Reads the Time field's value.
+   * Reads the Time field's value. A time input reports an empty string while
+   * it is being edited or after it is cleared, so the result can be NaN and
+   * every caller has to expect it.
    *
-   * @param time A time as `HH:mm`.
-   * @returns Minutes from midnight.
+   * @param time A time as `HH:mm`, possibly incomplete.
+   * @returns Minutes from midnight, or NaN when the text is not a full time.
    */
-  minutesFromTimeText = (time: string) => {
+  minutesFromTimeText = (time: string): number => {
     const [hours, minutes] = time.split(':').map(Number);
 
-    return hours * 60 + minutes;
+    return Number.isFinite(hours) && Number.isFinite(minutes) ? hours * 60 + minutes : NaN;
   }
 
   /**

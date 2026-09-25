@@ -22,3 +22,21 @@ textarea {
   gap: 8px;
   justify-content: flex-end;
 }
+
+.book__error {
+  align-items: flex-start;
+  background-color: var(--mat-sys-error-container);
+  border-radius: var(--mat-sys-corner-medium);
+  color: var(--mat-sys-on-error-container);
+  display: flex;
+  font: var(--mat-sys-body-medium);
+  gap: 12px;
+  margin: 0 24px 12px;
+  padding: 12px 14px;
+}
+
+.book__spinner {
+  display: inline-block;
+  margin-inline-end: 8px;
+  vertical-align: middle;
+}

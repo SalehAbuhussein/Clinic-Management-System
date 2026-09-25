@@ -4,7 +4,10 @@ import { MatButton } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialogContent, MatDialogTitle, MatDialogActions, MatDialogClose, MatDialogRef } from '@angular/material/dialog';
 import { MatFormField, MatLabel, MatHint } from '@angular/material/form-field';
+import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { AppointmentService } from '@shared/services/appointment/appointment.service';
 
@@ -15,8 +18,9 @@ import { DateInputComponent } from './components/date-input/date-input.component
 import { DoctorDayStripComponent } from './components/doctor-day-strip/doctor-day-strip.component';
 import { DoctorSelectorInputComponent } from './components/doctor-selector-input/doctor-selector-input.component';
 import { PatientSelectorInputComponent } from './components/patient-selector-input/patient-selector-input.component';
-import { CreateAppointmentRequest } from '@shared/services/appointment/appointment.types';
+
 import { ApiError } from '@core/auth/types/auth.types';
+import { CreateAppointmentRequest } from '@shared/services/appointment/appointment.types';
 
 @Component({
   imports: [
@@ -32,8 +36,10 @@ import { ApiError } from '@core/auth/types/auth.types';
     MatDialogTitle,
     MatFormField,
     MatHint,
+    MatIcon,
     MatInput,
     MatLabel,
+    MatProgressSpinner,
     PatientSelectorInputComponent,
   ],
   selector: 'app-book-appointment-dialog',
@@ -43,6 +49,7 @@ import { ApiError } from '@core/auth/types/auth.types';
 export class BookAppointmentDialogComponent {
   appointmentService = inject(AppointmentService);
   dialogRef = inject(MatDialogRef<BookAppointmentDialogComponent>);
+  snackbar = inject(MatSnackBar);
 
   readonly DURATIONS = [15, 30, 45, 60];
 
@@ -67,11 +74,15 @@ export class BookAppointmentDialogComponent {
     this.error.set('');
 
     this.appointmentService.createAppointment(body).subscribe({
-      next: (response) => this.dialogRef.close({
-        id: response!.id,
-        patientName: this.patient()!.fullname,
-        startAt: body.startAt,
-      }),
+      next: (response) => {
+        this.snackbar.open(`${this.patient()!.fullname} booked`, 'Dismiss', { duration: 5000 });
+
+        this.dialogRef.close({
+          id: response!.id,
+          patientName: this.patient()!.fullname,
+          startAt: body.startAt,
+        });
+      },
       error: (error: ApiError) => {
         this.isSaving.set(false);
         this.error.set(error.message);
