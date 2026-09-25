@@ -1,4 +1,4 @@
-﻿using Clinic_DataAccess;
+using Clinic_DataAccess;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -19,8 +19,8 @@ namespace Clinic_Business.Entities
         public int? VisitID { get; set; }
         public int AppointmentID { get; set; }
         public clsAppointment? AppointmentInfo { get; set; }
-        public DateTime CheckinTime { get; set; }
-        public DateTime? CheckoutTime { get; set; }
+        public DateTimeOffset CheckinTime { get; set; }
+        public DateTimeOffset? CheckoutTime { get; set; }
         public string? Notes { get; set; }
         public bool IsLocked { get; set; }
         private enMode _Mode = enMode.Add;
@@ -33,8 +33,8 @@ namespace Clinic_Business.Entities
         private clsVisit(
             int? visitID,
             int appointmentID,
-            DateTime checkinTime,
-            DateTime? checkoutTime,
+            DateTimeOffset checkinTime,
+            DateTimeOffset? checkoutTime,
             string? notes,
             bool isLocked
         )
@@ -75,8 +75,8 @@ namespace Clinic_Business.Entities
             return new clsVisit(
                 row.Field<int>("VisitID"),
                 row.Field<int>("AppointmentID"),
-                row.Field<DateTime>("CheckinTime"),
-                row.Field<DateTime?>("CheckoutTime"),
+                row.Field<DateTimeOffset>("CheckinTime"),
+                row.Field<DateTimeOffset?>("CheckoutTime"),
                 row.Field<string>("Notes"),
                 row.Field<bool>("IsLocked")
             );

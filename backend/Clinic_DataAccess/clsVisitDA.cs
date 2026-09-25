@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -170,8 +170,8 @@ namespace Clinic_DataAccess
 
         public static async Task<int?> CreateAsync(
             int appointmentID,
-            DateTime checkinTime,
-            DateTime? checkoutTime,
+            DateTimeOffset checkinTime,
+            DateTimeOffset? checkoutTime,
             string? notes
         )
         {
@@ -219,8 +219,8 @@ namespace Clinic_DataAccess
         public static async Task<bool> UpdateAsync(
             int? id,
             int appointmentID,
-            DateTime checkinTime,
-            DateTime? checkoutTime,
+            DateTimeOffset checkinTime,
+            DateTimeOffset? checkoutTime,
             string? notes,
             bool isLocked
         )

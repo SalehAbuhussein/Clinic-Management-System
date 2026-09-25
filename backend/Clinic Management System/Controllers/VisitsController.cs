@@ -1,4 +1,4 @@
-﻿using Clinic_Business.Entities;
+using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Visits;
 using Microsoft.AspNetCore.Authorization;
@@ -40,8 +40,8 @@ namespace Clinic_Management_System.Controllers
                 {
                     Id = visit.VisitID ?? 0,
                     AppointmentID = visit.AppointmentID,
-                    CheckinTime = AsUtc(visit.CheckinTime),
-                    CheckoutTime = AsUtc(visit.CheckoutTime),
+                    CheckinTime = visit.CheckinTime,
+                    CheckoutTime = visit.CheckoutTime,
                     Notes = visit.Notes,
                 }).ToList();
 
@@ -66,8 +66,8 @@ namespace Clinic_Management_System.Controllers
             {
                 Id = visit.VisitID,
                 AppointmentID = visit.AppointmentID,
-                CheckinTime = AsUtc(visit.CheckinTime),
-                CheckoutTime = AsUtc(visit.CheckoutTime),
+                CheckinTime = visit.CheckinTime,
+                CheckoutTime = visit.CheckoutTime,
                 Notes = visit.Notes,
             };
 
@@ -101,8 +101,8 @@ namespace Clinic_Management_System.Controllers
                 return Problem(statusCode: StatusCodes.Status400BadRequest,
                     detail: "Checkin time is required.");
 
-            DateTime checkinTimeUtc = checkinTime.UtcDateTime;
-            if (checkinTimeUtc > DateTime.UtcNow)
+            DateTimeOffset checkinTimeUtc = checkinTime;
+            if (checkinTimeUtc > DateTimeOffset.UtcNow)
                 return Problem(statusCode: StatusCodes.Status400BadRequest,
                     detail: "Checkin time cannot be in the future.");
 
@@ -148,14 +148,14 @@ namespace Clinic_Management_System.Controllers
                 return Problem(statusCode: StatusCodes.Status400BadRequest,
                     detail: "Checkin time is required.");
 
-            DateTime checkinTimeUtc = checkinTime.UtcDateTime;
+            DateTimeOffset checkinTimeUtc = checkinTime;
 
             if (visit.CheckoutTime.HasValue && checkinTimeUtc > visit.CheckoutTime.Value)
                 return Problem(statusCode: StatusCodes.Status400BadRequest,
                     detail: "Checkin time cannot be later than the checkout time.");
             else
             {
-                if (checkinTimeUtc > DateTime.UtcNow)
+                if (checkinTimeUtc > DateTimeOffset.UtcNow)
                     return Problem(statusCode: StatusCodes.Status400BadRequest,
                         detail: "Checkin time cannot be in the future.");
             }
@@ -241,9 +241,5 @@ namespace Clinic_Management_System.Controllers
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
                 detail: "The visit could not be deleted.");
         }
-
-        private static DateTimeOffset AsUtc(DateTime stored) => new DateTimeOffset(DateTime.SpecifyKind(stored, DateTimeKind.Utc), TimeSpan.Zero);
-
-        private static DateTimeOffset? AsUtc(DateTime? stored) => stored is DateTime d ? AsUtc(d) : null;
     }
 }

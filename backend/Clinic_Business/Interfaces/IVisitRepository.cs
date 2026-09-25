@@ -1,4 +1,4 @@
-﻿using Clinic_Business.Entities;
+using Clinic_Business.Entities;
 
 namespace Clinic_Business.Interfaces
 {
