@@ -59,8 +59,8 @@ namespace Clinic_Management_System.Controllers
                     DoctorName = appointment.DoctorInfo?.UserInfo.PersonInfo.Fullname ?? string.Empty,
                     PatientId = appointment.PatientID,
                     PatientName = appointment.PatientInfo?.Fullname ?? string.Empty,
-                    StartAt = AsUtc(appointment.StartAt),
-                    EndAt = AsUtc(appointment.EndAt),
+                    StartAt = appointment.StartAt,
+                    EndAt = appointment.EndAt,
                     Status = appointment.Status,
                     Notes = appointment.Notes
                 }).ToList();
@@ -101,8 +101,8 @@ namespace Clinic_Management_System.Controllers
                 PatientName = appointment.PatientInfo?.Fullname ?? string.Empty,
                 DoctorId = appointment.DoctorID,
                 DoctorName = appointment.DoctorInfo?.UserInfo.PersonInfo.Fullname ?? string.Empty,
-                StartAt = AsUtc(appointment.StartAt),
-                EndAt = AsUtc(appointment.EndAt),
+                StartAt = appointment.StartAt,
+                EndAt = appointment.EndAt,
                 Notes = appointment.Notes,
                 Status = appointment.Status,
             };
@@ -126,11 +126,11 @@ namespace Clinic_Management_System.Controllers
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: "The doctor or patient referenced by this appointment does not exist.");
 
-            if (await _appointmentRepository.HasPatientConflictAsync(appointmentDTO.PatientID, appointmentDTO.StartAt.UtcDateTime, appointmentDTO.EndAt.UtcDateTime))
+            if (await _appointmentRepository.HasPatientConflictAsync(appointmentDTO.PatientID, appointmentDTO.StartAt, appointmentDTO.EndAt))
                 return Problem(statusCode: StatusCodes.Status409Conflict,
                     detail: "The patient already has an appointment in that time slot.");
 
-            if (await _appointmentRepository.HasDoctorConflictAsync(appointmentDTO.DoctorID, appointmentDTO.StartAt.UtcDateTime, appointmentDTO.EndAt.UtcDateTime))
+            if (await _appointmentRepository.HasDoctorConflictAsync(appointmentDTO.DoctorID, appointmentDTO.StartAt, appointmentDTO.EndAt))
                 return Problem(statusCode: StatusCodes.Status409Conflict,
                     detail: "The doctor already has an appointment in that time slot.");
 
@@ -139,8 +139,8 @@ namespace Clinic_Management_System.Controllers
             clsAppointment newAppointment = new clsAppointment();
             newAppointment.DoctorID = appointmentDTO.DoctorID;
             newAppointment.PatientID = appointmentDTO.PatientID;
-            newAppointment.StartAt = appointmentDTO.StartAt.UtcDateTime;
-            newAppointment.EndAt = appointmentDTO.EndAt.UtcDateTime;
+            newAppointment.StartAt = appointmentDTO.StartAt;
+            newAppointment.EndAt = appointmentDTO.EndAt;
             newAppointment.Status = appointmentDTO.Status;
             newAppointment.Notes = appointmentDTO.Notes;
 
@@ -154,8 +154,8 @@ namespace Clinic_Management_System.Controllers
                     Id = newAppointment.AppointmentID,
                     PatientId = newAppointment.PatientID,
                     DoctorId = newAppointment.DoctorID,
-                    StartAt = AsUtc(newAppointment.StartAt),
-                    EndAt = AsUtc(newAppointment.EndAt),
+                    StartAt = newAppointment.StartAt,
+                    EndAt = newAppointment.EndAt,
                     Notes = newAppointment.Notes,
                     Status = newAppointment.Status,
                 };
@@ -191,8 +191,8 @@ namespace Clinic_Management_System.Controllers
                 return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
                     detail: "The appointment is not in a valid state to be updated.");
 
-            DateTime newStart = updatedAppointmentDTO.StartAt.UtcDateTime;
-            DateTime newEnd = updatedAppointmentDTO.EndAt.UtcDateTime;
+            DateTimeOffset newStart = updatedAppointmentDTO.StartAt;
+            DateTimeOffset newEnd = updatedAppointmentDTO.EndAt;
 
             if (newEnd <= newStart)
                 return Problem(statusCode: StatusCodes.Status400BadRequest,
@@ -265,8 +265,8 @@ namespace Clinic_Management_System.Controllers
                     DoctorName = appointment.DoctorInfo?.UserInfo.PersonInfo.Fullname ?? string.Empty,
                     PatientId = appointment.PatientID,
                     PatientName = appointment.PatientInfo?.Fullname ?? string.Empty,
-                    StartAt = AsUtc(appointment.StartAt),
-                    EndAt = AsUtc(appointment.EndAt),
+                    StartAt = appointment.StartAt,
+                    EndAt = appointment.EndAt,
                     Status = appointment.Status,
                     Notes = appointment.Notes
                 }).ToList();
@@ -293,8 +293,8 @@ namespace Clinic_Management_System.Controllers
                     AppointmentID = schedule.AppointmentID,
                     DoctorID = schedule.DoctorID,
                     PatientID = schedule.PatientID,
-                    StartAt = AsUtc(schedule.StartAt),
-                    EndAt = AsUtc(schedule.EndAt),
+                    StartAt = schedule.StartAt,
+                    EndAt = schedule.EndAt,
                     Status = schedule.Status
                 }).ToList();
 
@@ -427,8 +427,5 @@ namespace Clinic_Management_System.Controllers
 
         // Stored appointment times are UTC, but datetime2 carries no Kind, so the value
         // arrives as Unspecified. SpecifyKind states what it is; without it, an implicit
-        // DateTime -> DateTimeOffset conversion would stamp the server's local offset,
-        // and a Kind=Local value would throw instead.
-        private static DateTimeOffset AsUtc(DateTime stored) => new DateTimeOffset(DateTime.SpecifyKind(stored, DateTimeKind.Utc), TimeSpan.Zero);
     }
 }

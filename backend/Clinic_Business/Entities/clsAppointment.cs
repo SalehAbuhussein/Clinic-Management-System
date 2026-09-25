@@ -18,8 +18,8 @@ namespace Clinic_Business.Entities
         public clsDoctor? DoctorInfo { get; set; }
         public int PatientID { get; set; }
         public clsPatient? PatientInfo { get; set; }
-        public DateTime StartAt { get; set; }
-        public DateTime EndAt { get; set; }
+        public DateTimeOffset StartAt { get; set; }
+        public DateTimeOffset EndAt { get; set; }
         public byte Status { get; set; }
         public string? Notes { get; set; }
         public DateTime CreatedAt { get; set; }
@@ -37,8 +37,8 @@ namespace Clinic_Business.Entities
             int id, 
             int doctorId, 
             int patientID, 
-            DateTime startAt, 
-            DateTime endAt,
+            DateTimeOffset startAt, 
+            DateTimeOffset endAt,
             byte status, 
             string? notes, 
             DateTime createdAt, 
@@ -76,9 +76,9 @@ namespace Clinic_Business.Entities
             return new PagedResult<clsAppointment>(appointments, pageNumber, pageSize, total);
         }
 
-        public record DoctorSchedule(int AppointmentID, int DoctorID, int PatientID, DateTime StartAt, DateTime EndAt, byte Status);
+        public record DoctorSchedule(int AppointmentID, int DoctorID, int PatientID, DateTimeOffset StartAt, DateTimeOffset EndAt, byte Status);
 
-        public static async Task<List<DoctorSchedule>> FindDoctorSchedulesAsync(int doctorId, DateTime from, DateTime to)
+        public static async Task<List<DoctorSchedule>> FindDoctorSchedulesAsync(int doctorId, DateTimeOffset from, DateTimeOffset to)
         {
             DataTable table = await clsAppointmentDA.FindDoctorSchedules(doctorId, from, to);
 
@@ -86,8 +86,8 @@ namespace Clinic_Business.Entities
                 row.Field<int>("AppointmentID"),
                 row.Field<int>("DoctorID"),
                 row.Field<int>("PatientID"),
-                row.Field<DateTime>("StartAt"),
-                row.Field<DateTime>("EndAt"),
+                row.Field<DateTimeOffset>("StartAt"),
+                row.Field<DateTimeOffset>("EndAt"),
                 row.Field<byte>("Status")
             )).ToList();
         }
@@ -109,8 +109,8 @@ namespace Clinic_Business.Entities
                 row.Field<int>("AppointmentID"),
                 row.Field<int>("DoctorID"),
                 row.Field<int>("PatientID"),
-                row.Field<DateTime>("StartAt"),
-                row.Field<DateTime>("EndAt"),
+                row.Field<DateTimeOffset>("StartAt"),
+                row.Field<DateTimeOffset>("EndAt"),
                 row.Field<byte>("Status"),
                 row.Field<string>("Notes"),
                 row.Field<DateTime>("CreatedAt"),
@@ -178,12 +178,12 @@ namespace Clinic_Business.Entities
             return clsAppointmentDA.DeleteAsync(id);
         }
 
-        public static Task<bool> HasDoctorExistingAppointmentAsync(int? doctorId, DateTime startAt, DateTime endAt, int? excludeAppointmentID = null)
+        public static Task<bool> HasDoctorExistingAppointmentAsync(int? doctorId, DateTimeOffset startAt, DateTimeOffset endAt, int? excludeAppointmentID = null)
         {
             return clsAppointmentDA.HasDoctorExistingAppointmentAsync(doctorId, startAt, endAt, excludeAppointmentID);
         }
 
-        public static Task<bool> HasPatientExistingAppointmentAsync(int patientId, DateTime startAt, DateTime endAt, int? excludeAppointmentID = null)
+        public static Task<bool> HasPatientExistingAppointmentAsync(int patientId, DateTimeOffset startAt, DateTimeOffset endAt, int? excludeAppointmentID = null)
         {
             return clsAppointmentDA.HasPatientExistingAppointmentAsync(patientId, startAt, endAt, excludeAppointmentID);
         }
@@ -274,7 +274,7 @@ namespace Clinic_Business.Entities
         public bool IsValid()
         {
             bool isValidRange = EndAt > StartAt;
-            bool isValidStart = _Mode == enMode.Update || StartAt >= DateTime.UtcNow;
+            bool isValidStart = _Mode == enMode.Update || StartAt >= DateTimeOffset.UtcNow;
 
             return isValidRange && isValidStart;
         }

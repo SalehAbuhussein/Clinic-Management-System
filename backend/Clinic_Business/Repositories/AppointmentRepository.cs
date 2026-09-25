@@ -23,10 +23,10 @@ namespace Clinic_Business.Repositories
 
         public Task<bool> IsCancelledAsync(int? id) => clsAppointment.IsAppointmentCancelledAsync(id);
 
-        public Task<bool> HasDoctorConflictAsync(int? doctorId, DateTime startAt, DateTime endAt, int? excludeAppointmentID = null)
+        public Task<bool> HasDoctorConflictAsync(int? doctorId, DateTimeOffset startAt, DateTimeOffset endAt, int? excludeAppointmentID = null)
             => clsAppointment.HasDoctorExistingAppointmentAsync(doctorId, startAt, endAt, excludeAppointmentID);
 
-        public Task<bool> HasPatientConflictAsync(int patientId, DateTime startAt, DateTime endAt, int? excludeAppointmentID = null)
+        public Task<bool> HasPatientConflictAsync(int patientId, DateTimeOffset startAt, DateTimeOffset endAt, int? excludeAppointmentID = null)
             => clsAppointment.HasPatientExistingAppointmentAsync(patientId, startAt, endAt, excludeAppointmentID);
     }
 }

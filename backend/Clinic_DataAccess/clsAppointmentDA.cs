@@ -166,7 +166,7 @@ namespace Clinic_DataAccess
             return dt.Rows.Count > 0 ? dt.Rows[0] : null;
         }
 
-        public static async Task<DataTable> FindDoctorSchedules(int doctorId, DateTime from, DateTime to)
+        public static async Task<DataTable> FindDoctorSchedules(int doctorId, DateTimeOffset from, DateTimeOffset to)
         {
             DataTable dt = new DataTable();
 
@@ -324,8 +324,8 @@ namespace Clinic_DataAccess
         public static async Task<int?> CreateAsync(
             int? doctorID,
             int patientID,
-            DateTime startAt,
-            DateTime endAt,
+            DateTimeOffset startAt,
+            DateTimeOffset endAt,
             byte status,
             string? notes,
             int createdBy
@@ -380,8 +380,8 @@ namespace Clinic_DataAccess
             int? id,
             int? doctorID,
             int patientID,
-            DateTime startAt,
-            DateTime endAt,
+            DateTimeOffset startAt,
+            DateTimeOffset endAt,
             byte status,
             string? notes
         )
@@ -445,7 +445,7 @@ namespace Clinic_DataAccess
             return rowsAffected > 0;
         }
 
-        public static async Task<bool> HasDoctorExistingAppointmentAsync(int? doctorId, DateTime startAt, DateTime endAt, int? excludeAppointmentID = null)
+        public static async Task<bool> HasDoctorExistingAppointmentAsync(int? doctorId, DateTimeOffset startAt, DateTimeOffset endAt, int? excludeAppointmentID = null)
         {
             if (!doctorId.HasValue)
                 return false;
@@ -480,7 +480,7 @@ namespace Clinic_DataAccess
             return hasOverlap;
         }
 
-        public static async Task<bool> HasPatientExistingAppointmentAsync(int patientId, DateTime startAt, DateTime endAt, int? excludeAppointmentID = null)
+        public static async Task<bool> HasPatientExistingAppointmentAsync(int patientId, DateTimeOffset startAt, DateTimeOffset endAt, int? excludeAppointmentID = null)
         {
             bool hasOverlap = false;
 
