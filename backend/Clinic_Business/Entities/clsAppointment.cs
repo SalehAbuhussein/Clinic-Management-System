@@ -76,7 +76,7 @@ namespace Clinic_Business.Entities
             return new PagedResult<clsAppointment>(appointments, pageNumber, pageSize, total);
         }
 
-        public record DoctorSchedule(int AppointmentID, DateTime StartAt, DateTime EndAt, byte Status);
+        public record DoctorSchedule(int AppointmentID, int DoctorID, int PatientID, DateTime StartAt, DateTime EndAt, byte Status);
 
         public static async Task<List<DoctorSchedule>> FindDoctorSchedulesAsync(int doctorId, DateTime from, DateTime to)
         {
@@ -84,6 +84,8 @@ namespace Clinic_Business.Entities
 
             return table.AsEnumerable().Select(row => new DoctorSchedule(
                 row.Field<int>("AppointmentID"),
+                row.Field<int>("DoctorID"),
+                row.Field<int>("PatientID"),
                 row.Field<DateTime>("StartAt"),
                 row.Field<DateTime>("EndAt"),
                 row.Field<byte>("Status")

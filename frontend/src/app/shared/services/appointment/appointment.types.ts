@@ -25,9 +25,21 @@ export type GetAppointmentsResponse = PagedResult<AppointmentCard>;
 
 export type AppointmentSchedule = {
   appointmentID: number;
+  doctorID: number;
+  patientID: number;
   startAt: string;
   endAt: string;
   status: number;
 };
 
 export type GetDoctorSchedulesResponse = AppointmentSchedule[];
+
+export type CreateAppointmentRequest = {
+  doctorId: number;
+  patientId: number;
+  startAt: string;
+  endAt: string;
+  notes?: string;
+};
+
+export type CreateDoctorAppoinmentResponse = AppointmentCard;

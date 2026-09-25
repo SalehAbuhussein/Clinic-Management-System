@@ -279,7 +279,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult> GetDoctorAppointmentSchedules(
+        public async Task<ActionResult<List<AppointmentScheduleDTO>>> GetDoctorAppointmentSchedules(
             [Range(1, int.MaxValue)] int doctorId,
             DateTime from,
             DateTime to
@@ -287,7 +287,18 @@ namespace Clinic_Management_System.Controllers
         {
             List<clsAppointment.DoctorSchedule> doctorSchedules = await clsAppointment.FindDoctorSchedulesAsync(doctorId, from, to);
 
-            return Ok(doctorSchedules);
+            List<AppointmentScheduleDTO> schedulesList = doctorSchedules
+                .Select(schedule => new AppointmentScheduleDTO
+                {
+                    AppointmentID = schedule.AppointmentID,
+                    DoctorID = schedule.DoctorID,
+                    PatientID = schedule.PatientID,
+                    StartAt = AsUtc(schedule.StartAt),
+                    EndAt = AsUtc(schedule.EndAt),
+                    Status = schedule.Status
+                }).ToList();
+
+            return Ok(schedulesList);
         }
 
         [Authorize(Roles = "Admin,Staff")]

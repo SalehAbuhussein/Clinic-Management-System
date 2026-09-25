@@ -1,4 +1,4 @@
-﻿using Clinic_Business.Common;
+using Clinic_Business.Common;
 using Clinic_DataAccess;
 using System;
 using System.Collections.Generic;
@@ -46,7 +46,7 @@ namespace Clinic_Business.Entities
             string lastname,
             string phone,
             bool gender,
-            DateTime dateOfBirth,
+            DateOnly dateOfBirth,
             string? profileImage,
             string nationalNo
         )
@@ -129,7 +129,7 @@ namespace Clinic_Business.Entities
                 row.Field<string>("Lastname") ?? string.Empty,
                 row.Field<string>("Phone") ?? string.Empty,
                 row.Field<bool>("Gender"),
-                row.Field<DateTime>("DateOfBirth"),
+                DateOnly.FromDateTime(row.Field<DateTime>("DateOfBirth")),
                 row.Field<string>("ProfileImage"),
                 row.Field<string>("NationalNo") ?? string.Empty
             );

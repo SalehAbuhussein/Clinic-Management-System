@@ -4,8 +4,8 @@ namespace Clinic_Management_System.DTOs.Models.WorkingDays
     {
         public int Id { get; set; }
         public string WorkingDay { get; set; } = string.Empty;
-        public TimeSpan? StartAt { get; set; }
-        public TimeSpan? EndAt { get; set; }
+        public TimeOnly? StartTime { get; set; }
+        public TimeOnly? EndTime { get; set; }
         public bool IsWorkingDay { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Clinic_Business.Interfaces;
+using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.People;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

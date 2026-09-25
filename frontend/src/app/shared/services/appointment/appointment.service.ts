@@ -2,7 +2,7 @@ import { inject, Service } from '@angular/core';
 
 import { ApiService } from '@core/services/api/api.service';
 
-import { AppointmentFilters, GetAppointmentsResponse, GetDoctorSchedulesResponse } from './appointment.types';
+import { AppointmentFilters, CreateAppointmentRequest, CreateDoctorAppoinmentResponse, GetAppointmentsResponse, GetDoctorSchedulesResponse } from './appointment.types';
 
 @Service()
 export class AppointmentService {
@@ -15,10 +15,6 @@ export class AppointmentService {
 
   /**
    * Appointments as reactive state, filtered however the caller wants.
-   *
-   * The filters function is re-read on every refresh, so any signal read
-   * inside it becomes a dependency: changing it refetches and cancels the
-   * request already in flight.
    *
    * @param filters Returns the query parameters; defaults to no filter at all.
    * @returns The resource holding the appointment list.
@@ -38,9 +34,6 @@ export class AppointmentService {
   /**
    * The slots a doctor already has booked between two days.
    *
-   * Stays idle until a doctor is chosen: the path carries the id, so without
-   * one there is no URL to request.
-   *
    * @param doctorId Returns the chosen doctor, or null when none is.
    * @param from Returns the first day as `yyyy-MM-dd`.
    * @param to Returns the last day as `yyyy-MM-dd`.
@@ -51,4 +44,12 @@ export class AppointmentService {
       () => (doctorId() ? `/Appointments/doctor/${doctorId()}/schedules` : null),
       () => ({ from: from(), to: to() }),
     );
+
+  /**
+   * Create Appointment for a patient
+   * 
+   * @param body 
+   * @returns 
+   */
+  createAppointment = (body: CreateAppointmentRequest) => this.apiService.post<CreateDoctorAppoinmentResponse>("/Appointments", body);
 }

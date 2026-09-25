@@ -32,8 +32,8 @@ namespace Clinic_Management_System.Controllers
                 {
                     Id = workingDay.Id,
                     WorkingDay = workingDay.WorkingDay,
-                    StartAt = workingDay.StartAt,
-                    EndAt = workingDay.EndAt,
+                    StartTime = workingDay.StartTime,
+                    EndTime = workingDay.EndTime,
                     IsWorkingDay = workingDay.IsWorkingDay
                 }).ToList();
 

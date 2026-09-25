@@ -1,4 +1,4 @@
-﻿using Clinic_Business.Entities;
+using Clinic_Business.Entities;
 using System.ComponentModel.DataAnnotations;
 
 namespace Clinic_Management_System.Validation
@@ -16,7 +16,7 @@ namespace Clinic_Management_System.Validation
             if (value is null)
                 return ValidationResult.Success;
 
-            if (value is DateTime dateOfBirth && PersonValidators.IsValidDateOfBirth(dateOfBirth))
+            if (value is DateOnly dateOfBirth && PersonValidators.IsValidDateOfBirth(dateOfBirth))
                 return ValidationResult.Success;
 
             return new ValidationResult(

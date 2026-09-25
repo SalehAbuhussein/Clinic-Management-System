@@ -1,9 +1,12 @@
-﻿namespace Clinic_Management_System.DTOs.Models.Appointments
+namespace Clinic_Management_System.DTOs.Models.Appointments
 {
     public class AppointmentScheduleDTO
     {
-        public int Id { get; set; }
-        public DateTime From { get; set; }
-        public DateTime To { get; set; }
+        public int AppointmentID { get; set; }
+        public int DoctorID { get; set; }
+        public int PatientID { get; set; }
+        public DateTimeOffset StartAt { get; set; }
+        public DateTimeOffset EndAt { get; set; }
+        public byte Status { get; set; }
     }
 }

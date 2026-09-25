@@ -1,4 +1,4 @@
-﻿using Clinic_Business.Common;
+using Clinic_Business.Common;
 using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 

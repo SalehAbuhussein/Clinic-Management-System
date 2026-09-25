@@ -1,4 +1,4 @@
-﻿using Clinic_DataAccess;
+using Clinic_DataAccess;
 using System.Data;
 
 namespace Clinic_Business.Entities
@@ -13,12 +13,12 @@ namespace Clinic_Business.Entities
         public string NationalNo { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;
         public bool Gender { get; set; }
-        public DateTime DateOfBirth { get; set; }
+        public DateOnly DateOfBirth { get; set; }
         public int Age
         {
             get
             {
-                return DateTime.Now.Year - DateOfBirth.Year;
+                return DateOnly.FromDateTime(DateTime.Today).Year - DateOfBirth.Year;
             }
         }
         public string Fullname {
@@ -42,7 +42,7 @@ namespace Clinic_Business.Entities
             string nationalNo,
             string phone,
             bool gender,
-            DateTime dateOfBirth,
+            DateOnly dateOfBirth,
             string? profileImage
         )
         {
@@ -92,7 +92,7 @@ namespace Clinic_Business.Entities
                 row.Field<string>("NationalNo") ?? string.Empty,
                 row.Field<string>("Phone") ?? string.Empty,
                 row.Field<bool>("Gender"),
-                row.Field<DateTime>("DateOfBirth"),
+                DateOnly.FromDateTime(row.Field<DateTime>("DateOfBirth")),
                 row.Field<string>("ProfileImage"));
         }
 
@@ -116,12 +116,14 @@ namespace Clinic_Business.Entities
             );
         }
 
-        public static bool IsValidDateOfBirth(DateTime dateOfBirth)
+        public static bool IsValidDateOfBirth(DateOnly dateOfBirth)
         {
-            if (dateOfBirth.Date > DateTime.Today)
+            DateOnly today = DateOnly.FromDateTime(DateTime.Today);
+
+            if (dateOfBirth > today)
                 return false;
 
-            int age = DateTime.Today.Year - dateOfBirth.Year;
+            int age = today.Year - dateOfBirth.Year;
 
             if (age > 100 || age < 0)
                 return false;

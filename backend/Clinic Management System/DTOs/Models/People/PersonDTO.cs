@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Clinic_Management_System.DTOs.Models.People
 {
@@ -11,7 +11,7 @@ namespace Clinic_Management_System.DTOs.Models.People
         public string Lastname { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;
         public bool Gender { get; set; }
-        public DateTime DateOfBirth { get; set; }
+        public DateOnly DateOfBirth { get; set; }
         public string? ProfileImage { get; set; }
     }
 }

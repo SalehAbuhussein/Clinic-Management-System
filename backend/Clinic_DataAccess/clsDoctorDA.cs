@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -143,7 +143,7 @@ namespace Clinic_DataAccess
             string nationalNo,
             string phone,
             bool? gender,
-            DateTime dateOfBirth,
+            DateOnly dateOfBirth,
             string? profileImage,
 
             string passwordHash,
@@ -217,7 +217,7 @@ namespace Clinic_DataAccess
             string lastname,
             string phone,
             bool? gender,
-            DateTime dateOfBirth,
+            DateOnly dateOfBirth,
             string? profileImage
         )
         {

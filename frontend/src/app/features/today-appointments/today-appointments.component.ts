@@ -13,6 +13,8 @@ import { AppointmentsListEmptyStateComponent } from './components/appointments-l
 import { AppointmentsListErrorStateComponent } from './components/appointments-list-error-state/appointments-list-error-state.component';
 import { BookAppointmentDialogComponent } from '@features/book-appointment-dialog/book-appointment-dialog.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { BookedAppointment } from '@features/book-appointment-dialog/types/book-appointment.types';
 
 
 @Component({
@@ -33,6 +35,7 @@ import { PaginationComponent } from '@shared/components/pagination/pagination.co
 export class TodayAppointmentsComponent {
   appointmentService = inject(AppointmentService);
   dialog = inject(MatDialog);
+  snackbar = inject(MatSnackBar);
 
   day = signal(new Date());
 
@@ -50,9 +53,6 @@ export class TodayAppointmentsComponent {
   appointmentsResource = this.appointmentService.getTodayAppointmentResource(this.dayParam, this.page);
   appointments = computed(() => this.appointmentsResource.hasValue() ? this.appointmentsResource.value().items : []);
 
-  constructor() {
-  }
-
   /**
    * Move the shown day.
    *
@@ -69,6 +69,15 @@ export class TodayAppointmentsComponent {
    * Open Booking Dialog Flow
    */
   openBookingDialog = () => {
-    this.dialog.open(BookAppointmentDialogComponent, { width: '560px' });
+    this.dialog.open(BookAppointmentDialogComponent, { width: '560px' })
+    .afterClosed()
+    .subscribe((booked: BookedAppointment | undefined) => {
+      if (!booked) {
+        return;
+      }
+
+      this.snackbar.open(`${booked.patientName} booked`, 'Dismiss', { duration: 5000 });
+      this.appointmentsResource.reload();
+    });
   }
 }
