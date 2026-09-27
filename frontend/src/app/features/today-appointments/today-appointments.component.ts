@@ -1,14 +1,12 @@
 import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
-
-import { Observable } from 'rxjs';
 import { MatIcon } from '@angular/material/icon';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { formatDate } from '@angular/common';
 
+import { Observable } from 'rxjs';
 
-import { ApiError } from '@core/auth/types/auth.types';
 import { AppointmentService } from '@shared/services/appointment/appointment.service';
 
 import { AppointmentCardShimmerComponent } from '@shared/components/appointment-card-shimmer/appointment-card-shimmer.component';
@@ -16,9 +14,12 @@ import { AppointmentsListComponent } from './components/appointments-list/appoin
 import { AppointmentsListEmptyStateComponent } from './components/appointments-list-empty-state/appointments-list-empty-state.component';
 import { AppointmentsListErrorStateComponent } from './components/appointments-list-error-state/appointments-list-error-state.component';
 import { BookAppointmentDialogComponent } from '@features/book-appointment-dialog/book-appointment-dialog.component';
+import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
+import { ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.types';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
-import { BookedAppointment } from '@features/book-appointment-dialog/types/book-appointment.types';
 
+import { ApiError } from '@core/auth/types/auth.types';
+import { BookedAppointment } from '@features/book-appointment-dialog/types/book-appointment.types';
 
 @Component({
   imports: [
@@ -30,7 +31,7 @@ import { BookedAppointment } from '@features/book-appointment-dialog/types/book-
     MatIcon,
     MatIconButton,
     PaginationComponent,
-],
+  ],
   selector: 'app-today-appointments',
   styleUrl: './today-appointments.component.scss',
   templateUrl: './today-appointments.component.html',
@@ -91,21 +92,70 @@ export class TodayAppointmentsComponent {
    *
    * @param id The appointment.
    */
-  attendAppointment = (id: number) => this.runStatusChange(this.appointmentService.attendAppointment(id), 'Marked as attended');
+  attendAppointment = (id: number) => this.confirmThen(
+    {
+      title: 'Mark this appointment as attended?',
+      message: 'This records that the patient came. There is no way back to Scheduled.',
+      confirmLabel: 'Mark attended',
+    },
+    this.appointmentService.attendAppointment(id),
+    'Marked as attended',
+  );
 
   /**
    * Record that a patient did not come.
    *
    * @param id The appointment.
    */
-  markNoShow = (id: number) => this.runStatusChange(this.appointmentService.markAppointmentNoShow(id), 'Marked as no-show');
+  markNoShow = (id: number) => this.confirmThen(
+    {
+      title: 'Mark this patient as a no-show?',
+      message: 'This records that the patient did not come. There is no way back to Scheduled.',
+      confirmLabel: 'Mark no-show',
+    },
+    this.appointmentService.markAppointmentNoShow(id),
+    'Marked as no-show',
+  );
 
   /**
    * Cancel an appointment. The row keeps its place in the day.
    *
    * @param id The appointment.
    */
-  cancelAppointment = (id: number) => this.runStatusChange(this.appointmentService.cancelAppointment(id), 'Appointment cancelled');
+  cancelAppointment = (id: number) => this.confirmThen(
+    {
+      title: 'Cancel this appointment?',
+      message: 'It stays in the day marked cancelled, so the slot reads as booked and then freed. This cannot be undone.',
+      confirmLabel: 'Cancel appointment',
+      dismissLabel: 'Keep appointment',
+      destructive: true,
+    },
+    this.appointmentService.cancelAppointment(id),
+    'Appointment cancelled',
+  );
+
+  /**
+   * Asks before a status change, then runs it.
+   *
+   * All three transitions are one way: the API has no route back to Scheduled,
+   * so a mis-click on any of them needs an admin to fix.
+   *
+   * @param data What the dialog should say.
+   * @param request The call to make once confirmed. Cold, so nothing is sent
+   * until the subscribe inside runStatusChange.
+   * @param message What to say when it succeeds.
+   */
+  confirmThen(data: ConfirmDialogData, request: Observable<void>, message: string): void {
+    this.dialog.open(ConfirmDialogComponent, { width: '400px', data })
+      .afterClosed()
+      .subscribe((confirmed: boolean | undefined) => {
+        if (!confirmed) {
+          return;
+        }
+
+        this.runStatusChange(request, message);
+      });
+  }
 
   /**
    * Runs one of the status transitions and refreshes the day.

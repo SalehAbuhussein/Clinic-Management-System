@@ -1,0 +1,18 @@
+<h2 class="confirm__title" matDialogTitle>{{ data.title }}</h2>
+
+<div class="confirm__content" matDialogContent>
+  <p class="confirm__message">{{ data.message }}</p>
+</div>
+
+<div class="confirm__actions" matDialogActions>
+  <button matButton type="button" matDialogClose>{{ data.dismissLabel ?? 'Keep' }}</button>
+
+  <button
+    class="confirm__go"
+    matButton="filled"
+    type="button"
+    [class.confirm__go--destructive]="data.destructive"
+    [matDialogClose]="true">
+    {{ data.confirmLabel }}
+  </button>
+</div>

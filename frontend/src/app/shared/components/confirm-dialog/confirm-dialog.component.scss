@@ -1,0 +1,23 @@
+@use '@angular/material' as mat;
+
+.confirm__message {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+  margin: 0;
+  max-width: 44ch;
+}
+
+.confirm__actions {
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+// The error role rather than a hard-coded red, so the button stays legible in
+// both themes and matches the cancelled card and the error banner.
+.confirm__go--destructive {
+  @include mat.button-overrides((
+    filled-container-color: var(--mat-sys-error),
+    filled-label-text-color: var(--mat-sys-on-error),
+    filled-state-layer-color: var(--mat-sys-on-error),
+  ));
+}
