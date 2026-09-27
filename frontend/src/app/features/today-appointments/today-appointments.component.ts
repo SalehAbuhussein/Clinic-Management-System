@@ -1,4 +1,5 @@
-import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Component, computed, effect, inject, linkedSignal, signal } from '@angular/core';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
@@ -40,23 +41,57 @@ import { BookedAppointment } from '@features/book-appointment-dialog/types/book-
 export class TodayAppointmentsComponent {
   appointmentService = inject(AppointmentService);
   dialog = inject(MatDialog);
+  route = inject(ActivatedRoute);
+  router = inject(Router);
   snackbar = inject(MatSnackBar);
 
-  day = signal(new Date());
+  day = signal(this.dayFromUrl());
 
   dayParam = computed(() => formatDate(this.day(), 'yyyy-MM-dd', 'en-US'));
   dayLabel = computed(() => formatDate(this.day(), 'EEEE d MMMM', 'en-US'));
   isToday = computed(() => this.dayParam() === formatDate(new Date(), 'yyyy-MM-dd', 'en-US'));
 
-  page = linkedSignal({
+  page = linkedSignal<string, number>({
     source: this.dayParam,
-    computation: () => 1
+    computation: (_, previous) => previous ? 1 : this.pageFromUrl(),
   });
   total = computed(() => this.appointmentsResource.hasValue() ? this.appointmentsResource.value().total : 0);
   perPage = computed(() => this.appointmentsResource.hasValue() ? this.appointmentsResource.value().perPage : 10);
 
   appointmentsResource = this.appointmentService.getTodayAppointmentResource(this.dayParam, this.page);
   appointments = computed(() => this.appointmentsResource.hasValue() ? this.appointmentsResource.value().items : []);
+
+  constructor() {
+    effect(() => {
+      this.router.navigate([], {
+        queryParams: { day: this.dayParam(), page: this.page() },
+        relativeTo: this.route,
+        replaceUrl: true,
+      });
+    });
+  }
+
+  /**
+   * Reads the day to show. A date with no time parses as UTC, so the midnight
+   * is spelled out to keep it local.
+   *
+   * @returns The day from the URL, or today.
+   */
+  dayFromUrl(): Date {
+    const value = this.route.snapshot.queryParamMap.get('day');
+    const day = value ? new Date(`${value}T00:00:00`) : null;
+
+    return day && !Number.isNaN(day.getTime()) ? day : new Date();
+  }
+
+  /**
+   * @returns The page from the URL, or the first one.
+   */
+  pageFromUrl(): number {
+    const page = Number(this.route.snapshot.queryParamMap.get('page'));
+
+    return Number.isInteger(page) && page > 0 ? page : 1;
+  }
 
   /**
    * Move the shown day.
