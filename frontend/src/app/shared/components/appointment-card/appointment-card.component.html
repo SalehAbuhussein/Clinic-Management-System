@@ -1,6 +1,6 @@
-<button
+<div
   class="appointment"
-  type="button"
+  (click)="openMenu()"
   [style.--card-accent]="status().accent"
   [class.appointment--not-attended]="item().status === 2"
   [class.appointment--cancelled]="item().status === 3">
@@ -18,4 +18,35 @@
     <mat-icon>{{ status().icon }}</mat-icon>
     {{ status().label }}
   </span>
-</button>
+
+  @if (hasActions()) {
+    <button
+      class="appointment__actions"
+      matIconButton
+      type="button"
+      aria-label="Appointment actions"
+      [matMenuTriggerFor]="menu"
+      (click)="$event.stopPropagation()">
+      <mat-icon>more_vert</mat-icon>
+    </button>
+
+    <mat-menu #menu="matMenu">
+      @if (isScheduled()) {
+        <button mat-menu-item type="button" (click)="attend.emit(item().id)">
+          <mat-icon>check_circle</mat-icon>
+          Mark attended
+        </button>
+
+        <button mat-menu-item type="button" (click)="noShow.emit(item().id)">
+          <mat-icon>person_off</mat-icon>
+          Mark no-show
+        </button>
+
+        <button mat-menu-item type="button" (click)="cancel.emit(item().id)">
+          <mat-icon>event_busy</mat-icon>
+          Cancel appointment
+        </button>
+      }
+    </mat-menu>
+  }
+</div>

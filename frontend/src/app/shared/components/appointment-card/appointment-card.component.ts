@@ -1,17 +1,36 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, input, output, viewChild } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
+import { MatIconButton } from '@angular/material/button';
+import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 
 import { AppointmentCard } from '@shared/services/appointment/appointment.types';
 
 @Component({
-  imports: [DatePipe, MatIcon],
+  imports: [DatePipe, MatIcon, MatIconButton, MatMenu, MatMenuItem, MatMenuTrigger],
   selector: 'app-appointment-card',
   styleUrl: './appointment-card.component.scss',
   templateUrl: './appointment-card.component.html',
 })
 export class AppointmentCardComponent {
   item = input.required<AppointmentCard>();
+
+  attend = output<number>();
+  noShow = output<number>();
+  cancel = output<number>();
+
+  /** Only a scheduled appointment can still be attended, missed or called off. */
+  isScheduled = computed(() => this.item().status === 0);
+
+  hasActions = computed(() => this.isScheduled());
+
+  menuTrigger = viewChild(MatMenuTrigger);
+
+  /**
+   * Opens the menu from anywhere on the card. It still anchors to the icon
+   * button, so the menu appears in the same place however it was opened.
+   */
+  openMenu = () => this.menuTrigger()?.openMenu();
 
   /**
    * Everything the chip needs for the four appointment statuses: its wording,

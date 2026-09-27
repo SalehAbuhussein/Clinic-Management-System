@@ -52,4 +52,27 @@ export class AppointmentService {
    * @returns 
    */
   createAppointment = (body: CreateAppointmentRequest) => this.apiService.post<CreateDoctorAppoinmentResponse>("/Appointments", body);
+
+  /**
+   * Record that the patient came. One way: the API has no route back to
+   * Scheduled, so a mis-click needs an admin.
+   *
+   * @param id The appointment.
+   */
+  attendAppointment = (id: number) => this.apiService.patch(`/Appointments/${id}/attend`);
+
+  /**
+   * Record that the patient did not come.
+   *
+   * @param id The appointment.
+   */
+  markAppointmentNoShow = (id: number) => this.apiService.patch(`/Appointments/${id}/no-show`);
+
+  /**
+   * Cancel the appointment. The row keeps its place in the day with status 3,
+   * so the slot still reads as booked and then freed.
+   *
+   * @param id The appointment.
+   */
+  cancelAppointment = (id: number) => this.apiService.patch(`/Appointments/${id}/cancel`);
 }

@@ -8,7 +8,7 @@
   </div>
 
   <nav class="today__days" aria-label="Change day">
-    <button matIconButton type="button" aria-label="Previous day" (click)="shiftDay(-1)">
+    <button matIconButton type="button" aria-label="Previous day" (click)="shiftDayBy(-1)">
       <mat-icon>chevron_left</mat-icon>
     </button>
 
@@ -16,7 +16,7 @@
       <button matButton type="button" (click)="goToToday()">Today</button>
     }
 
-    <button matIconButton type="button" aria-label="Next day" (click)="shiftDay(1)">
+    <button matIconButton type="button" aria-label="Next day" (click)="shiftDayBy(1)">
       <mat-icon>chevron_right</mat-icon>
     </button>
   </nav>
@@ -30,7 +30,11 @@
   @let appointmentList = appointments();
 
   @if (appointmentList.length) {
-    <app-appointments-list [data]="appointmentList" />
+    <app-appointments-list
+      [data]="appointmentList"
+      (attend)="attendAppointment($event)"
+      (noShow)="markNoShow($event)"
+      (cancel)="cancelAppointment($event)" />
 
     @if (total() > perPage()) {
       <app-pagination [(page)]="page" [total]="total()" [pageSize]="perPage()" />

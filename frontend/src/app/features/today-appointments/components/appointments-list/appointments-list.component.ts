@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 
 import { AppointmentCardComponent } from '@shared/components/appointment-card/appointment-card.component';
 
@@ -12,4 +12,8 @@ import { AppointmentCard } from '@shared/services/appointment/appointment.types'
 })
 export class AppointmentsListComponent {
   data = input.required<AppointmentCard[]>();
+
+  attend = output<number>();
+  noShow = output<number>();
+  cancel = output<number>();
 }

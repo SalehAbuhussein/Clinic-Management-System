@@ -1,10 +1,14 @@
 import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
+import { Observable } from 'rxjs';
 import { MatIcon } from '@angular/material/icon';
 import { formatDate } from '@angular/common';
 
 
+import { ApiError } from '@core/auth/types/auth.types';
 import { AppointmentService } from '@shared/services/appointment/appointment.service';
 
 import { AppointmentCardShimmerComponent } from '@shared/components/appointment-card-shimmer/appointment-card-shimmer.component';
@@ -34,6 +38,7 @@ import { BookedAppointment } from '@features/book-appointment-dialog/types/book-
 export class TodayAppointmentsComponent {
   appointmentService = inject(AppointmentService);
   dialog = inject(MatDialog);
+  snackbar = inject(MatSnackBar);
 
   day = signal(new Date());
 
@@ -56,7 +61,7 @@ export class TodayAppointmentsComponent {
    *
    * @param days Offset in days; negative goes back.
    */
-  shiftDay = (days: number) => this.day.update((current) => new Date(current.getFullYear(), current.getMonth(), current.getDate() + days));
+  shiftDayBy = (days: number) => this.day.update((current) => new Date(current.getFullYear(), current.getMonth(), current.getDate() + days));
 
   /**
    * Jump back to the current day.
@@ -78,6 +83,46 @@ export class TodayAppointmentsComponent {
       }
 
       this.appointmentsResource.reload();
+    });
+  }
+
+  /**
+   * Record that a patient came.
+   *
+   * @param id The appointment.
+   */
+  attendAppointment = (id: number) => this.runStatusChange(this.appointmentService.attendAppointment(id), 'Marked as attended');
+
+  /**
+   * Record that a patient did not come.
+   *
+   * @param id The appointment.
+   */
+  markNoShow = (id: number) => this.runStatusChange(this.appointmentService.markAppointmentNoShow(id), 'Marked as no-show');
+
+  /**
+   * Cancel an appointment. The row keeps its place in the day.
+   *
+   * @param id The appointment.
+   */
+  cancelAppointment = (id: number) => this.runStatusChange(this.appointmentService.cancelAppointment(id), 'Appointment cancelled');
+
+  /**
+   * Runs one of the status transitions and refreshes the day.
+   *
+   * The three endpoints differ only in their URL, so the confirmation, the
+   * refresh and the error handling are written once.
+   *
+   * @param request The call to make.
+   * @param message What to say when it succeeds.
+   */
+  runStatusChange(request: Observable<void>, message: string): void {
+    request.subscribe({
+      next: () => {
+        this.snackbar.open(message, 'Dismiss', { duration: 4000 });
+        this.appointmentsResource.reload();
+      },
+      error: (error: ApiError) => this.snackbar.open(error.message, 'Dismiss', { duration: 8000 }),
     });
   }
 }

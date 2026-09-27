@@ -1,5 +1,9 @@
 <div class="list-container">
   @for (item of data(); track item.id) {
-    <app-appointment-card [item]="item" />
+    <app-appointment-card
+      [item]="item"
+      (attend)="attend.emit($event)"
+      (noShow)="noShow.emit($event)"
+      (cancel)="cancel.emit($event)" />
   }
 </div>
