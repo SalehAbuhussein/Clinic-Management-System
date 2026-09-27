@@ -42,6 +42,11 @@
           Mark no-show
         </button>
 
+        <button mat-menu-item type="button" (click)="reschedule.emit(item())">
+          <mat-icon>edit_calendar</mat-icon>
+          Reschedule
+        </button>
+
         <button mat-menu-item type="button" (click)="cancel.emit(item().id)">
           <mat-icon>event_busy</mat-icon>
           Cancel appointment

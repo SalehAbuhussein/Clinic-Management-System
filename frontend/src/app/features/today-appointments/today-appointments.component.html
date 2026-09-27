@@ -34,7 +34,8 @@
       [data]="appointmentList"
       (attend)="attendAppointment($event)"
       (noShow)="markNoShow($event)"
-      (cancel)="cancelAppointment($event)" />
+      (cancel)="cancelAppointment($event)"
+      (reschedule)="rescheduleAppointment($event)" />
 
     @if (total() > perPage()) {
       <app-pagination [(page)]="page" [total]="total()" [pageSize]="perPage()" />

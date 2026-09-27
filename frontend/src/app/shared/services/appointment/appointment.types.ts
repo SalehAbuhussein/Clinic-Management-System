@@ -43,3 +43,9 @@ export type CreateAppointmentRequest = {
 };
 
 export type CreateDoctorAppoinmentResponse = AppointmentCard;
+
+export type RescheduleAppointmentRequest = {
+  startAt: string;
+  endAt: string;
+  notes?: string;
+};

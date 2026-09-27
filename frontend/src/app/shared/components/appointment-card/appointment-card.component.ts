@@ -18,6 +18,7 @@ export class AppointmentCardComponent {
   attend = output<number>();
   noShow = output<number>();
   cancel = output<number>();
+  reschedule = output<AppointmentCard>();
 
   /** Only a scheduled appointment can still be attended, missed or called off. */
   isScheduled = computed(() => this.item().status === 0);

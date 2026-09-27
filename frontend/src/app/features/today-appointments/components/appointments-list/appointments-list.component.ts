@@ -16,4 +16,5 @@ export class AppointmentsListComponent {
   attend = output<number>();
   noShow = output<number>();
   cancel = output<number>();
+  reschedule = output<AppointmentCard>();
 }

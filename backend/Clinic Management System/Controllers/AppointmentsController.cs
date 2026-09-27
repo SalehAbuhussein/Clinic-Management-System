@@ -42,8 +42,6 @@ namespace Clinic_Management_System.Controllers
             [Range(1, 10)] int perPage = 10
         )
         {
-            perPage = Math.Clamp(perPage, 1, 10);
-
             if (from.HasValue && to.HasValue && from > to)
             {
                 return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "The start of the range must be on or before its end.");
@@ -240,8 +238,6 @@ namespace Clinic_Management_System.Controllers
             [Range(1, 10)] int perPage = 10
         )
         {
-            perPage = Math.Clamp(perPage, 1, 10);
-
             if (await _doctorRepository.FindByIdAsync(doctorId) == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Doctor with id {doctorId} not found");
@@ -424,8 +420,5 @@ namespace Clinic_Management_System.Controllers
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
                 detail: "The appointment could not be deleted.");
         }
-
-        // Stored appointment times are UTC, but datetime2 carries no Kind, so the value
-        // arrives as Unspecified. SpecifyKind states what it is; without it, an implicit
     }
 }

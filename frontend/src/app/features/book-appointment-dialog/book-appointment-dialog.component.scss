@@ -9,6 +9,28 @@ textarea {
   gap: 18px;
 }
 
+.book__people {
+  background-color: var(--mat-sys-surface-container-high);
+  border-radius: var(--mat-sys-corner-medium);
+  column-gap: 16px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  margin: 0;
+  padding: 12px 14px;
+  row-gap: 4px;
+}
+
+.book__people-label {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-medium);
+}
+
+.book__people-name {
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  margin: 0;
+}
+
 .book__dates {
   display: flex;
   gap: 12px;

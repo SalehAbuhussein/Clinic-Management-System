@@ -2,7 +2,7 @@ import { inject, Service } from '@angular/core';
 
 import { ApiService } from '@core/services/api/api.service';
 
-import { AppointmentFilters, CreateAppointmentRequest, CreateDoctorAppoinmentResponse, GetAppointmentsResponse, GetDoctorSchedulesResponse } from './appointment.types';
+import { AppointmentFilters, CreateAppointmentRequest, CreateDoctorAppoinmentResponse, GetAppointmentsResponse, GetDoctorSchedulesResponse, RescheduleAppointmentRequest } from './appointment.types';
 
 @Service()
 export class AppointmentService {
@@ -75,4 +75,13 @@ export class AppointmentService {
    * @param id The appointment.
    */
   cancelAppointment = (id: number) => this.apiService.patch(`/Appointments/${id}/cancel`);
+
+  /**
+   * Move an appointment. Only the time window and the notes can change; the
+   * patient and the doctor are fixed once it exists.
+   *
+   * @param id The appointment.
+   * @param body The new window.
+   */
+  rescheduleAppointment = (id: number, body: RescheduleAppointmentRequest) => this.apiService.put(`/Appointments/${id}`, body);
 }

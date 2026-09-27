@@ -19,6 +19,7 @@ import { ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dia
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
 
 import { ApiError } from '@core/auth/types/auth.types';
+import { AppointmentCard } from '@shared/services/appointment/appointment.types';
 import { BookedAppointment } from '@features/book-appointment-dialog/types/book-appointment.types';
 
 @Component({
@@ -85,6 +86,24 @@ export class TodayAppointmentsComponent {
 
       this.appointmentsResource.reload();
     });
+  }
+
+  /**
+   * Move an appointment. The booking dialog opens with the people fixed and
+   * the window pre-filled, because only the time and the notes can change.
+   *
+   * @param appointment The row that was picked.
+   */
+  rescheduleAppointment = (appointment: AppointmentCard) => {
+    this.dialog.open(BookAppointmentDialogComponent, { width: '560px', data: appointment })
+      .afterClosed()
+      .subscribe((moved: BookedAppointment | undefined) => {
+        if (!moved) {
+          return;
+        }
+
+        this.appointmentsResource.reload();
+      });
   }
 
   /**

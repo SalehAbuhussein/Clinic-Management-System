@@ -17,9 +17,9 @@ type BusySlot = { startMinutes: number; endMinutes: number };
  * Draws a doctor's day as a horizontal bar, so a clash shows up while the
  * receptionist is choosing instead of arriving as a 409 after they submit.
  *
- * The component keeps no state of its own. It reads four values from the
- * booking dialog and writes one back, the start time, which the Time field
- * edits as well.
+ * Almost everything here is derived. The dialog owns the doctor, the day, the
+ * duration and the start time; the strip reads those, writes the start time
+ * back, and keeps only the drag offset of its own.
  */
 @Component({
   selector: 'app-doctor-day-strip',
@@ -39,6 +39,12 @@ export class DoctorDayStripComponent {
   /** How long the appointment runs, set by the duration chips. */
   durationMinutes = input(30);
 
+  /**
+   * The appointment being rescheduled, which must not count as busy against
+   * itself. Null when booking something new.
+   */
+  excludeAppointmentId = input<number | null>(null);
+
   /** The start time as `HH:mm`, shared with the Time field so the two agree. */
   time = model.required<string>();
 
@@ -49,9 +55,9 @@ export class DoctorDayStripComponent {
   rangeEndDate = computed(() => this.asApiDate(this.nextDay(this.date())));
 
   /**
-   * Where the proposed appointment starts. Falls back to the start of the
-   * clinic's day while the Time field holds an incomplete value, so the block
-   * stays on the track instead of disappearing mid-keystroke.
+   * Where the proposed appointment starts. Falls back to the clinic's opening
+   * time while the Time field holds an incomplete value, so the block stays on
+   * the track instead of disappearing mid-keystroke.
    */
   startMinutes = computed(() => {
     const minutes = this.minutesFromTimeText(this.time());
@@ -59,7 +65,7 @@ export class DoctorDayStripComponent {
     return Number.isNaN(minutes) ? this.dayStartMinutes() : minutes;
   });
 
-  /** Where it ends, which is the start plus the chosen duration. */
+  /** Where the proposed appointment ends: its start plus the chosen duration. */
   endMinutes = computed(() => this.startMinutes() + this.durationMinutes());
 
   /** The start time, for the slider's `aria-valuetext`. */
@@ -78,11 +84,14 @@ export class DoctorDayStripComponent {
     this.rangeEndDate,
   );
 
+  /** The clinic's row for the weekday being booked, once the list has loaded. */
   workingDay = computed(() => {
     const date = this.date();
     return date ? this.workingDaysService.findByDate(date) : null;
   });
 
+  // The window the track spans. The literals are a fallback for the moment
+  // before the working days arrive, not the clinic's real hours.
   dayStartMinutes = computed(() => this.minutesFromTimeText(this.workingDay()?.startTime ?? '08:00'));
   dayEndMinutes = computed(() => this.minutesFromTimeText(this.workingDay()?.endTime ?? '16:00'));
   daySpanMinutes = computed(() => this.dayEndMinutes() - this.dayStartMinutes());
@@ -103,12 +112,15 @@ export class DoctorDayStripComponent {
     return labels;
   });
 
-  /** True until a doctor is chosen, which dims the strip and hides the block. */
+  /** True until a doctor is chosen. Dims the track and hides the block. */
   isDisabled = computed(() => !this.doctorId());
 
   /**
-   * The booked slots in minutes, sorted by start. `firstFreeStartMinutes`
-   * walks them in order and gives a wrong answer if they arrive unsorted.
+   * The doctor's booked slots in minutes, without the one being rescheduled:
+   * an appointment must not clash with itself.
+   *
+   * Sorted by start, because `firstFreeStartMinutes` walks them in order and
+   * gives a wrong answer if they arrive unsorted.
    */
   busySlots = computed<BusySlot[]>(() => {
     if (!this.schedulesResource.hasValue()) {
@@ -117,6 +129,7 @@ export class DoctorDayStripComponent {
 
     return this.schedulesResource
       .value()
+      .filter((schedule) => schedule.appointmentID !== this.excludeAppointmentId())
       .map((schedule) => ({
         startMinutes: this.minutesFromDate(new Date(schedule.startAt)),
         endMinutes: this.minutesFromDate(new Date(schedule.endAt)),
@@ -137,10 +150,14 @@ export class DoctorDayStripComponent {
     // A new doctor or a new day means a new set of gaps, so the suggestion moves
     // to the first that fits. The duration is read untracked: changing a chip
     // should resize the block, not send it back to the top of the day.
+    //
+    // Rescheduling is exempt. The caller has already set the time to where the
+    // appointment is now, and suggesting a slot would throw that away the
+    // moment the schedules arrived.
     effect(() => {
       this.busySlots();
 
-      if (!this.doctorId()) {
+      if (!this.doctorId() || this.excludeAppointmentId()) {
         return;
       }
 
@@ -149,29 +166,13 @@ export class DoctorDayStripComponent {
   }
 
   /**
-   * Places a time across the track.
-   *
-   * @param minutes A time as minutes from midnight.
-   * @returns The CSS `left` value, as a percentage of the track.
-   */
-  leftPercent = (minutes: number): number => ((minutes - this.dayStartMinutes()) / this.daySpanMinutes()) * 100;
-
-  /**
-   * Sizes a length of time across the track.
-   *
-   * @param minutes A duration in minutes.
-   * @returns The CSS `width` value, as a percentage of the track.
-   */
-  widthPercent = (minutes: number): number => (minutes / this.daySpanMinutes()) * 100;
-
-  /**
    * Starts a drag and records where inside the block the pointer landed, so
    * the block moves with the pointer instead of jumping its left edge under
    * the cursor.
    *
    * @param event The pointerdown on the block.
    */
-  onPointerDown(event: PointerEvent): void {
+  onPointerDown = (event: PointerEvent): void => {
     if (!this.doctorId()) {
       return;
     }
@@ -188,7 +189,7 @@ export class DoctorDayStripComponent {
    *
    * @param event The pointermove on the block.
    */
-  onPointerMove(event: PointerEvent): void {
+  onPointerMove = (event: PointerEvent): void => {
     if (!this.doctorId()) {
       return;
     }
@@ -215,40 +216,15 @@ export class DoctorDayStripComponent {
   }
 
   /**
-   * Moves the block by whole steps, which is what the arrow keys do.
-   *
-   * @param steps How many quarter hours to move. Negative moves earlier.
-   */
-  shift = (steps: number): void => this.moveTo(this.startMinutes() + steps * STEP_MINUTES);
-
-  /**
-   * Writes a new start time. Dragging, clicking and the arrow keys all come
-   * through here, so the snap and the clamp are applied in one place.
-   *
-   * @param minutes The wanted start, before snapping and clamping.
-   */
-  moveTo = (minutes: number): void => this.time.set(this.toTimeText(this.clampToDay(this.snapToStep(minutes))));
-
-  /**
    * Keeps the whole appointment inside the drawn day.
    *
    * @param minutes A start time in minutes.
    * @returns That time, or the nearest one the appointment fits into.
    */
-  clampToDay(minutes: number): number {
+  clampToDay = (minutes: number): number => {
     const latestStart = this.dayEndMinutes() - this.durationMinutes();
-
     return Math.max(this.dayStartMinutes(), Math.min(latestStart, minutes));
   }
-
-  /**
-   * Tests the proposed appointment against one booked slot. The API runs this
-   * same comparison before it accepts a booking.
-   *
-   * @param slot A slot the doctor already has.
-   * @returns True when the two overlap.
-   */
-  overlaps = (slot: BusySlot): boolean => this.startMinutes() < slot.endMinutes && this.endMinutes() > slot.startMinutes;
 
   /**
    * Finds the earliest gap the chosen duration fits into. Each booked slot
@@ -256,7 +232,7 @@ export class DoctorDayStripComponent {
    *
    * @returns That gap's start, or the start of the day when nothing fits.
    */
-  firstFreeStartMinutes(): number {
+  firstFreeStartMinutes = (): number => {
     let candidate = this.dayStartMinutes();
 
     for (const slot of this.busySlots()) {
@@ -271,17 +247,55 @@ export class DoctorDayStripComponent {
   }
 
   /**
+   * Reads the Time field's value. A time input reports an empty string while
+   * it is being edited or after it is cleared, so the result can be NaN and
+   * every caller has to expect it.
+   *
+   * @param time A time as `HH:mm`, possibly incomplete.
+   * @returns Minutes from midnight, or NaN when the text is not a full time.
+   */
+  minutesFromTimeText = (time: string): number => {
+    const [hours, minutes] = time.split(':').map(Number);
+
+    return Number.isFinite(hours) && Number.isFinite(minutes) ? hours * 60 + minutes : NaN;
+  }
+
+  /**
    * Reads the time under the pointer by measuring the track.
    *
    * @param event A pointer event on the track or the block.
    * @returns The time at that position, in minutes, unsnapped.
    */
-  minutesAtPointer(event: PointerEvent): number {
-    const track = this.track().nativeElement.getBoundingClientRect();
-    const ratio = (event.clientX - track.left) / track.width;
+  minutesAtPointer = (event: PointerEvent): number => {
+   const track = this.track().nativeElement.getBoundingClientRect();
+   const ratio = (event.clientX - track.left) / track.width;
 
-    return this.dayStartMinutes() + ratio * this.daySpanMinutes();
+   return this.dayStartMinutes() + ratio * this.daySpanMinutes();
   }
+
+  /**
+   * Tests the proposed appointment against one booked slot. The API runs this
+   * same comparison before it accepts a booking.
+   *
+   * @param slot A slot the doctor already has.
+   * @returns True when the two overlap.
+   */
+  overlaps = (slot: BusySlot): boolean => this.startMinutes() < slot.endMinutes && this.endMinutes() > slot.startMinutes;
+
+  /**
+   * Moves the block by whole steps, which is what the arrow keys do.
+   *
+   * @param steps How many quarter hours to move. Negative moves earlier.
+   */
+  shift = (steps: number): void => this.moveTo(this.startMinutes() + steps * STEP_MINUTES);
+
+  /**
+   * Writes a new start time. Dragging, clicking and the arrow keys all come
+   * through here, so the snap and the clamp are applied in one place.
+   *
+   * @param minutes The wanted start, before snapping and clamping.
+   */
+  moveTo = (minutes: number): void => this.time.set(this.toTimeText(this.clampToDay(this.snapToStep(minutes))));
 
   /**
    * @param date Any day, or null.
@@ -303,20 +317,6 @@ export class DoctorDayStripComponent {
   snapToStep = (minutes: number) => Math.round(minutes / STEP_MINUTES) * STEP_MINUTES;
 
   /**
-   * Reads the Time field's value. A time input reports an empty string while
-   * it is being edited or after it is cleared, so the result can be NaN and
-   * every caller has to expect it.
-   *
-   * @param time A time as `HH:mm`, possibly incomplete.
-   * @returns Minutes from midnight, or NaN when the text is not a full time.
-   */
-  minutesFromTimeText = (time: string): number => {
-    const [hours, minutes] = time.split(':').map(Number);
-
-    return Number.isFinite(hours) && Number.isFinite(minutes) ? hours * 60 + minutes : NaN;
-  }
-
-  /**
    * Reads the clock time out of an appointment's timestamp, in local time.
    *
    * @param date A parsed timestamp from the API.
@@ -329,4 +329,20 @@ export class DoctorDayStripComponent {
    * @returns The time as `HH:mm`, zero padded.
    */
   toTimeText = (totalMinutes: number) => `${String(Math.floor(totalMinutes / 60)).padStart(2, '0')}:${String(totalMinutes % 60).padStart(2, '0')}`;
+
+  /**
+   * Places a time across the track.
+   *
+   * @param minutes A time as minutes from midnight.
+   * @returns The CSS `left` value, as a percentage of the track.
+   */
+  leftPercent = (minutes: number): number => ((minutes - this.dayStartMinutes()) / this.daySpanMinutes()) * 100;
+
+  /**
+   * Sizes a length of time across the track.
+   *
+   * @param minutes A duration in minutes.
+   * @returns The CSS `width` value, as a percentage of the track.
+   */
+  widthPercent = (minutes: number): number => (minutes / this.daySpanMinutes()) * 100;
 }

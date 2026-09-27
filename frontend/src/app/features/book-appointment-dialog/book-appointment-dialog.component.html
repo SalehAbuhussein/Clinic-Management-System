@@ -1,9 +1,19 @@
-<h2 class="book__title" matDialogTitle>Book Appointment</h2>
+<h2 class="book__title" matDialogTitle>{{ isRescheduling ? 'Reschedule Appointment' : 'Book Appointment' }}</h2>
 
 <div class="book__content" matDialogContent>
-  <app-patient-selector-input [(patient)]="patient" />
+  @if (existingAppointment; as appointment) {
+    <dl class="book__people">
+      <dt class="book__people-label">Patient</dt>
+      <dd class="book__people-name">{{ appointment.patientName }}</dd>
 
-  <app-doctor-selector-input [(doctor)]="doctor" />
+      <dt class="book__people-label">Doctor</dt>
+      <dd class="book__people-name">{{ appointment.doctorName }}</dd>
+    </dl>
+  } @else {
+    <app-patient-selector-input [(patient)]="patient" />
+
+    <app-doctor-selector-input [(doctor)]="doctor" />
+  }
 
   <div class="book__dates">
     <app-date-input [(date)]="date" />
@@ -23,7 +33,8 @@
 
   <app-doctor-day-strip
     #doctorDay
-    [doctorId]="doctor()?.id ?? null"
+    [doctorId]="existingAppointment?.doctorId ?? doctor()?.id ?? null"
+    [excludeAppointmentId]="existingAppointment?.id ?? null"
     [date]="date()"
     [(time)]="time"
     [durationMinutes]="minutes()" />
@@ -52,6 +63,6 @@
       <mat-progress-spinner class="book__spinner" diameter="18" mode="indeterminate" />
     }
 
-    Book Appointment
+    {{ isRescheduling ? 'Save changes' : 'Book Appointment' }}
   </button>
 </div>
