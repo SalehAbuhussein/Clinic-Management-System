@@ -14,5 +14,8 @@ namespace Clinic_Management_System.DTOs.Models.Visits
         public DateTimeOffset CheckinTime { get; set; }
         public DateTimeOffset? CheckoutTime { get; set; }
         public string? Notes { get; set; }
+        public string? PatientName { get; set; }
+        public string? DoctorName { get; set; }
+        public DateTimeOffset? AppointmentStartAt { get; set; }
     }
 }

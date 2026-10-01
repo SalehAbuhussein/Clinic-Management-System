@@ -1,3 +1,4 @@
+using Clinic_Business.Common;
 using Clinic_Business.Entities;
 
 namespace Clinic_Business.Interfaces
@@ -6,7 +7,7 @@ namespace Clinic_Business.Interfaces
     {
         Task<clsVisit?> FindByIdAsync(int? id);
         Task<clsVisit?> FindByAppointmentIdAsync(int? id);
-        Task<List<clsVisit>> FindAllAsync(int pageNumber = 1, int pageSize = 10);
+        Task<PagedResult<clsVisit.VisitItem>> FindAllAsync(int pageNumber = 1, int pageSize = 10);
         Task<bool> ExistsByAppointmentIdAsync(int id);
         Task<bool> DeleteAsync(int? id);
         Task<bool> HasCheckedOutAsync(int? id);

@@ -1,3 +1,4 @@
+using Clinic_Business.Common;
 using Clinic_DataAccess;
 using System;
 using System.Collections.Generic;
@@ -49,11 +50,26 @@ namespace Clinic_Business.Entities
             IsLocked = isLocked;
         }
 
-        public static async Task<List<clsVisit>> FindAllAsync(int pageNumber = 1, int pageSize = 10)
+        public record VisitItem(int Id, int AppointmentID, string? PatientName, string? DoctorName, DateTimeOffset AppointmentStartAt, DateTimeOffset CheckinTime, DateTimeOffset? CheckoutTime, string? Notes);
+
+        public static async Task<PagedResult<VisitItem>> FindAllAsync(int pageNumber = 1, int pageSize = 10)
         {
             DataTable table = await clsVisitDA.FindAllAsync(pageNumber, pageSize);
 
-            return table.AsEnumerable().Select(MapVisit).ToList();
+            List<VisitItem> visits = table.AsEnumerable().Select(row => new VisitItem(
+                row.Field<int>("VisitID"),
+                row.Field<int>("AppointmentID"),
+                row.Field<string>("PatientName"),
+                row.Field<string>("DoctorName"),
+                row.Field<DateTimeOffset>("StartAt"),
+                row.Field<DateTimeOffset>("CheckinTime"),
+                row.Field<DateTimeOffset?>("CheckoutTime"),
+                row.Field<string>("Notes")
+            )).ToList();
+
+            int total = table.Rows.Count == 0 ? 0 : table.Rows[0].Field<int>("TotalCount");
+
+            return new PagedResult<VisitItem>(visits, pageNumber, pageSize, total);
         }
 
         public static async Task<clsVisit?> FindAsync(int? id)

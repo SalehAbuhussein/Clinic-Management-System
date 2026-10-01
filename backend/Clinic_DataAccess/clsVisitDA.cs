@@ -19,9 +19,25 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"SELECT *
-                FROM Visits
-                ORDER BY VisitID
+                string query = @"SELECT
+                    COUNT(*) OVER() AS TotalCount,
+
+                    V.VisitID, V.AppointmentID, V.CheckinTime, V.CheckoutTime, V.Notes, V.IsLocked,
+
+                    A.StartAt,
+
+                    CONCAT_WS(' ', PP.Firstname, PP.Midname, PP.Thirdname, PP.Lastname) AS PatientName,
+                    CONCAT_WS(' ', DP.Firstname, DP.Midname, DP.Thirdname, DP.Lastname) AS DoctorName
+
+                FROM Visits V
+                INNER JOIN Appointments A ON A.AppointmentID = V.AppointmentID
+                INNER JOIN Patients PT ON PT.PatientID = A.PatientID
+                INNER JOIN People PP ON PP.PersonID = PT.PersonID
+                INNER JOIN Doctors D ON D.DoctorID = A.DoctorID
+                INNER JOIN Users U ON U.UserID = D.UserID
+                INNER JOIN People DP ON DP.PersonID = U.PersonID
+
+                ORDER BY V.CheckinTime DESC
                 OFFSET (@PageNumber - 1) * @PageSize ROWS
                 FETCH NEXT @PageSize ROWS ONLY;";
 

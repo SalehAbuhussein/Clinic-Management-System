@@ -1,3 +1,4 @@
+using Clinic_Business.Common;
 using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 
@@ -9,7 +10,7 @@ namespace Clinic_Business.Repositories
 
         public Task<clsVisit?> FindByAppointmentIdAsync(int? id) => clsVisit.FindByAppointmentIDAsync(id);
 
-        public Task<List<clsVisit>> FindAllAsync(int pageNumber = 1, int pageSize = 10)
+        public Task<PagedResult<clsVisit.VisitItem>> FindAllAsync(int pageNumber = 1, int pageSize = 10)
             => clsVisit.FindAllAsync(pageNumber, pageSize);
 
         public Task<bool> ExistsByAppointmentIdAsync(int id) => clsVisit.IsExistByAppointmentIDAsync(id);

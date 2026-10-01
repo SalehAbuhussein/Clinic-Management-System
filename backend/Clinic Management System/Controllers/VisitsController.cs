@@ -1,3 +1,4 @@
+using Clinic_Business.Common;
 using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Visits;
@@ -31,21 +32,26 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<List<VisitDTO>>> GetVisits([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
+        public async Task<ActionResult<PagedResult<VisitDTO>>> GetVisits([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
             perPage = Math.Clamp(perPage, 1, 10);
 
-            List<VisitDTO> visitsList = (await _visitRepository.FindAllAsync(page, perPage))
+            PagedResult<clsVisit.VisitItem> visitsPage = await _visitRepository.FindAllAsync(page, perPage);
+
+            List<VisitDTO> visitsList = visitsPage.Items
                 .Select(visit => new VisitDTO
                 {
-                    Id = visit.VisitID ?? 0,
+                    Id = visit.Id,
                     AppointmentID = visit.AppointmentID,
+                    PatientName = visit.PatientName,
+                    DoctorName = visit.DoctorName,
+                    AppointmentStartAt = visit.AppointmentStartAt,
                     CheckinTime = visit.CheckinTime,
                     CheckoutTime = visit.CheckoutTime,
                     Notes = visit.Notes,
                 }).ToList();
 
-            return Ok(visitsList);
+            return Ok(new PagedResult<VisitDTO>(visitsList, visitsPage.Page, visitsPage.PerPage, visitsPage.Total));
         }
 
         [Authorize(Roles = "Admin, Staff")]
