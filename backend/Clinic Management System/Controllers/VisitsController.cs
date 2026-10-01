@@ -97,18 +97,15 @@ namespace Clinic_Management_System.Controllers
                 return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
                     detail: "The appointment has been cancelled, so no visit can be created for it.");
 
-            if (visitDTO.CheckinTime is not DateTimeOffset checkinTime)
-                return Problem(statusCode: StatusCodes.Status400BadRequest,
-                    detail: "Checkin time is required.");
+            DateTimeOffset checkinTime = visitDTO.CheckinTime ?? DateTimeOffset.Now;
 
-            DateTimeOffset checkinTimeUtc = checkinTime;
-            if (checkinTimeUtc > DateTimeOffset.UtcNow)
+            if (checkinTime > DateTimeOffset.UtcNow)
                 return Problem(statusCode: StatusCodes.Status400BadRequest,
                     detail: "Checkin time cannot be in the future.");
 
             clsVisit newVisit = new clsVisit();
             newVisit.AppointmentID = visitDTO.AppointmentID;
-            newVisit.CheckinTime = checkinTimeUtc;
+            newVisit.CheckinTime = checkinTime;
             newVisit.Notes = visitDTO.Notes;
 
             if (await newVisit.SaveAsync())

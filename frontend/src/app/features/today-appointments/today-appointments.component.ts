@@ -9,6 +9,7 @@ import { formatDate } from '@angular/common';
 import { Observable } from 'rxjs';
 
 import { AppointmentService } from '@shared/services/appointment/appointment.service';
+import { VisitService } from '@shared/services/visit/visit.service';
 
 import { AppointmentCardShimmerComponent } from '@shared/components/appointment-card-shimmer/appointment-card-shimmer.component';
 import { AppointmentsListComponent } from './components/appointments-list/appointments-list.component';
@@ -44,6 +45,7 @@ export class TodayAppointmentsComponent {
   route = inject(ActivatedRoute);
   router = inject(Router);
   snackbar = inject(MatSnackBar);
+  visitService = inject(VisitService);
 
   day = signal(this.dayFromUrl());
 
@@ -142,6 +144,22 @@ export class TodayAppointmentsComponent {
   }
 
   /**
+   * Open a visit for a patient who has arrived. This also marks the
+   * appointment attended, so it replaces that step rather than following it.
+   *
+   * @param id The appointment.
+   */
+  checkInPatient = (id: number) => this.confirmThen(
+    {
+      title: 'Check this patient in?',
+      message: 'This opens their visit and marks the appointment attended. There is no way back to Scheduled.',
+      confirmLabel: 'Check in',
+    },
+    this.visitService.checkIn(id),
+    'Patient checked in',
+  );
+
+  /**
    * Record that a patient came.
    *
    * @param id The appointment.
@@ -191,15 +209,16 @@ export class TodayAppointmentsComponent {
   /**
    * Asks before a status change, then runs it.
    *
-   * All three transitions are one way: the API has no route back to Scheduled,
-   * so a mis-click on any of them needs an admin to fix.
+   * Every one of them is one way: the API has no route back to Scheduled, so a
+   * mis-click on any of them needs an admin to fix.
    *
    * @param data What the dialog should say.
    * @param request The call to make once confirmed. Cold, so nothing is sent
-   * until the subscribe inside runStatusChange.
+   * until the subscribe inside runStatusChange. Its value is ignored; only
+   * success or failure matters here.
    * @param message What to say when it succeeds.
    */
-  confirmThen(data: ConfirmDialogData, request: Observable<void>, message: string): void {
+  confirmThen(data: ConfirmDialogData, request: Observable<unknown>, message: string): void {
     this.dialog.open(ConfirmDialogComponent, { width: '400px', data })
       .afterClosed()
       .subscribe((confirmed: boolean | undefined) => {
@@ -214,13 +233,13 @@ export class TodayAppointmentsComponent {
   /**
    * Runs one of the status transitions and refreshes the day.
    *
-   * The three endpoints differ only in their URL, so the confirmation, the
+   * The endpoints differ only in what they send, so the confirmation, the
    * refresh and the error handling are written once.
    *
    * @param request The call to make.
    * @param message What to say when it succeeds.
    */
-  runStatusChange(request: Observable<void>, message: string): void {
+  runStatusChange(request: Observable<unknown>, message: string): void {
     request.subscribe({
       next: () => {
         this.snackbar.open(message, 'Dismiss', { duration: 4000 });

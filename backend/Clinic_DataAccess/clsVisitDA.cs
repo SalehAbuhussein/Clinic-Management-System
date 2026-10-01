@@ -181,35 +181,43 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"UPDATE [dbo].[Appointments]
-	            SET [Status] = 1
-                WHERE AppointmentID = @AppointmentID;
-                INSERT INTO [dbo].[Visits]
-                    ([AppointmentID]
-                    ,[CheckinTime]
-                    ,[CheckoutTime]
-                    ,[Notes])
-                VALUES
-                    (@AppointmentID
-                    ,@CheckinTime
-                    ,@CheckoutTime
-                    ,@Notes); UPDATE [dbo].[Appointments]
-                    SET [Status] = 1
-                WHERE AppointmentID = @AppointmentID; SELECT SCOPE_IDENTITY();";
-
-                using (SqlCommand command = new SqlCommand(query, connection))
+                using (SqlTransaction transaction = (SqlTransaction)await connection.BeginTransactionAsync())
                 {
-                    command.Parameters.AddWithValue("@AppointmentID", appointmentID);
-                    command.Parameters.AddWithValue("@CheckinTime", checkinTime);
-                    command.Parameters.AddWithValue("@CheckoutTime", checkoutTime == null ? DBNull.Value : checkoutTime);
-                    command.Parameters.AddWithValue("@Notes", string.IsNullOrEmpty(notes) ? DBNull.Value : notes);
+                    string query = @"INSERT INTO [dbo].[Visits]
+                        ([AppointmentID]
+                        ,[CheckinTime]
+                        ,[CheckoutTime]
+                        ,[Notes])
+                    VALUES
+                        (@AppointmentID
+                        ,@CheckinTime
+                        ,@CheckoutTime
+                        ,@Notes);
 
-                    object? result = await command.ExecuteScalarAsync();
+                    DECLARE @VisitID INT = SCOPE_IDENTITY();
 
-                    if (result != null && int.TryParse(result.ToString(), out int insertedId))
+                    UPDATE [dbo].[Appointments]
+                    SET [Status] = 1
+                    WHERE AppointmentID = @AppointmentID;
+
+                    SELECT @VisitID;";
+
+                    using (SqlCommand command = new SqlCommand(query, connection, transaction))
                     {
-                        id = insertedId;
+                        command.Parameters.AddWithValue("@AppointmentID", appointmentID);
+                        command.Parameters.AddWithValue("@CheckinTime", checkinTime);
+                        command.Parameters.AddWithValue("@CheckoutTime", checkoutTime == null ? DBNull.Value : checkoutTime);
+                        command.Parameters.AddWithValue("@Notes", string.IsNullOrEmpty(notes) ? DBNull.Value : notes);
+
+                        object? result = await command.ExecuteScalarAsync();
+
+                        if (result != null && int.TryParse(result.ToString(), out int insertedId))
+                        {
+                            id = insertedId;
+                        }
                     }
+
+                    await transaction.CommitAsync();
                 }
             }
 

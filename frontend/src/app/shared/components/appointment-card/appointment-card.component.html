@@ -32,6 +32,11 @@
 
     <mat-menu #menu="matMenu">
       @if (isScheduled()) {
+        <button mat-menu-item type="button" (click)="checkIn.emit(item().id)">
+          <mat-icon>how_to_reg</mat-icon>
+          Check in
+        </button>
+
         <button mat-menu-item type="button" (click)="attend.emit(item().id)">
           <mat-icon>check_circle</mat-icon>
           Mark attended
