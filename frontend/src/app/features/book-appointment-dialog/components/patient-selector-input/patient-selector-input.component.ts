@@ -54,7 +54,7 @@ export class PatientSelectorInputComponent {
   });
 
 
-  patients = computed(() => (this.patientsResource.hasValue() ? this.patientsResource.value().items : []));
+  patients = computed(() => this.patientsResource.value().items);
   hasNoResults = computed(() => !!this.searchTerm() && !this.patientsResource.isLoading() && this.patients().length === 0);
   patientsResource = this.patientService.getPatientResource(() => ({ fullname: this.searchTerm() }));
 

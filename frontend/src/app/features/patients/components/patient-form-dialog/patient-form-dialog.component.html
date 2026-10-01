@@ -1,0 +1,98 @@
+<h2 class="patient-form__title" matDialogTitle>{{ isEditing ? 'Edit Patient' : 'New Patient' }}</h2>
+
+<div class="patient-form__content" matDialogContent>
+  <div class="patient-form__row">
+    <mat-form-field>
+      <mat-label>First name</mat-label>
+      <input matInput maxlength="20" [(ngModel)]="firstname">
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Middle name</mat-label>
+      <input matInput maxlength="20" [(ngModel)]="midname">
+    </mat-form-field>
+  </div>
+
+  <div class="patient-form__row">
+    <mat-form-field>
+      <mat-label>Third name</mat-label>
+      <input matInput maxlength="20" [(ngModel)]="thirdname">
+      <mat-hint>Optional</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Last name</mat-label>
+      <input matInput maxlength="20" [(ngModel)]="lastname">
+    </mat-form-field>
+  </div>
+
+  <div class="patient-form__row">
+    <mat-form-field>
+      <mat-label>National number</mat-label>
+      <input matInput maxlength="15" [(ngModel)]="nationalNo" [disabled]="isEditing">
+
+      @if (isEditing) {
+        <mat-hint>Cannot be changed</mat-hint>
+      }
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Phone</mat-label>
+      <input matInput type="tel" maxlength="15" [(ngModel)]="phone">
+    </mat-form-field>
+  </div>
+
+  <div class="patient-form__row">
+    <mat-form-field>
+      <mat-label>Gender</mat-label>
+
+      <mat-select [ngModel]="gender()" (ngModelChange)="gender.set($event)">
+        <mat-option [value]="true">Male</mat-option>
+        <mat-option [value]="false">Female</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Date of birth</mat-label>
+
+      <input matInput [matDatepicker]="picker" [(ngModel)]="dateOfBirth" readonly>
+
+      <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+  </div>
+
+  <div class="patient-form__row">
+    <mat-form-field>
+      <mat-label>Emergency contact</mat-label>
+      <input matInput maxlength="50" [(ngModel)]="emergencyContactName">
+      <mat-hint>Optional</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Emergency phone</mat-label>
+      <input matInput type="tel" maxlength="30" [(ngModel)]="emergencyContactNumber">
+      <mat-hint>Optional</mat-hint>
+    </mat-form-field>
+  </div>
+</div>
+
+@if (error(); as message) {
+  <p class="patient-form__error" role="alert">
+    <mat-icon>error</mat-icon>
+    {{ message }}
+  </p>
+}
+
+<div class="patient-form__actions" matDialogActions>
+  <button matButton type="button" matDialogClose [disabled]="isSaving()">Cancel</button>
+
+  <button matButton="filled" type="button" [disabled]="!canSave() || isSaving()" (click)="savePatient()">
+    @if (isSaving()) {
+      <mat-progress-spinner class="patient-form__spinner" diameter="18" mode="indeterminate" />
+    }
+
+    {{ isEditing ? 'Save changes' : 'Create patient' }}
+  </button>
+</div>

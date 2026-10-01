@@ -1,0 +1,32 @@
+<div class="patient" (click)="openMenu()">
+  <span class="patient__avatar" aria-hidden="true">{{ initials() }}</span>
+
+  <span class="patient__who">
+    <span class="patient__name">{{ patient().fullname }}</span>
+    <span class="patient__meta">{{ emergencyContact() }}</span>
+  </span>
+
+  <span class="patient__phone">{{ patient().phone }}</span>
+
+  <button
+    class="patient__actions"
+    matIconButton
+    type="button"
+    aria-label="Patient actions"
+    [matMenuTriggerFor]="menu"
+    (click)="$event.stopPropagation()">
+    <mat-icon>more_vert</mat-icon>
+  </button>
+
+  <mat-menu #menu="matMenu">
+    <button mat-menu-item type="button" (click)="edit.emit(patient())">
+      <mat-icon>edit</mat-icon>
+      Edit
+    </button>
+
+    <button mat-menu-item type="button" (click)="remove.emit(patient())">
+      <mat-icon>delete</mat-icon>
+      Delete
+    </button>
+  </mat-menu>
+</div>

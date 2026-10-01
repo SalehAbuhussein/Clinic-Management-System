@@ -1,0 +1,54 @@
+<header class="patients__header">
+  <h1 class="patients__title">Patients</h1>
+
+  <button matButton="filled" type="button" (click)="openNewPatientDialog()">
+    <mat-icon>person_add</mat-icon>
+    New patient
+  </button>
+</header>
+
+<div class="patients__filters">
+  <mat-form-field>
+    <mat-label>Name</mat-label>
+
+    <mat-icon matPrefix>search</mat-icon>
+
+    <input matInput type="text" autocomplete="off" [(ngModel)]="fullname">
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>Phone</mat-label>
+
+    <mat-icon matPrefix>call</mat-icon>
+
+    <input matInput type="tel" autocomplete="off" [(ngModel)]="phone">
+  </mat-form-field>
+</div>
+
+@if (patientsResource.isLoading()) {
+  <p class="patients__state" role="status">
+    <mat-progress-spinner diameter="20" mode="indeterminate" />
+    Loading patients…
+  </p>
+} @else if (patientsResource.error()) {
+  <p class="patients__state patients__state--error" role="alert">
+    <mat-icon>error</mat-icon>
+    Could not load the patient list.
+  </p>
+} @else {
+  @let list = patients();
+
+  @if (list.length) {
+    <app-patients-list
+      [data]="list"
+      (edit)="editPatient($event)"
+      (remove)="deletePatient($event)" />
+
+    <app-pagination [(page)]="page" [total]="total()" [pageSize]="perPage()" />
+  } @else {
+    <p class="patients__state">
+      <mat-icon>person_search</mat-icon>
+      {{ isSearching() ? 'No patient matches that search.' : 'No patients yet.' }}
+    </p>
+  }
+}

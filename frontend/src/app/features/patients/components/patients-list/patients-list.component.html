@@ -1,0 +1,8 @@
+<div class="list-container">
+  @for (patient of data(); track patient.id) {
+    <app-patient-row
+      [patient]="patient"
+      (edit)="edit.emit($event)"
+      (remove)="remove.emit($event)" />
+  }
+</div>

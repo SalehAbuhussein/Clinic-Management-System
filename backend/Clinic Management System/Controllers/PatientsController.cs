@@ -66,6 +66,15 @@ namespace Clinic_Management_System.Controllers
             PatientDTO patientDTO = new PatientDTO
             {
                 Id = id,
+                Fullname = patient.Fullname,
+                Firstname = patient.Firstname,
+                Midname = patient.Midname,
+                Thirdname = patient.Thirdname,
+                Lastname = patient.Lastname,
+                NationalNo = patient.NationalNo,
+                Gender = patient.Gender,
+                DateOfBirth = patient.DateOfBirth,
+                Phone = patient.Phone,
                 EmergencyContactName = patient.EmergencyContactName,
                 EmergencyContactNumber = patient.EmergencyContactNumber,
                 PersonID = patient.PersonID

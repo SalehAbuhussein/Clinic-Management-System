@@ -6,12 +6,25 @@
     </button>
 
     <mat-nav-list class="dashboard-side__nav">
-      <a class="dashboard-side__link" mat-list-item [activated]="true">
+      <a
+        class="dashboard-side__link"
+        mat-list-item
+        routerLink="/dashboard"
+        routerLinkActive
+        #today="routerLinkActive"
+        [routerLinkActiveOptions]="{ exact: true }"
+        [activated]="today.isActive">
         <mat-icon class="dashboard-side__icon" matListItemIcon>today</mat-icon>
         <span class="dashboard-side__label" matListItemTitle>Today</span>
       </a>
 
-      <a class="dashboard-side__link" mat-list-item>
+      <a
+        class="dashboard-side__link"
+        mat-list-item
+        routerLink="/dashboard/patients"
+        routerLinkActive
+        #patients="routerLinkActive"
+        [activated]="patients.isActive">
         <mat-icon class="dashboard-side__icon" matListItemIcon>groups</mat-icon>
         <span class="dashboard-side__label" matListItemTitle>Patients</span>
       </a>
