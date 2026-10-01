@@ -160,21 +160,6 @@ export class TodayAppointmentsComponent {
   );
 
   /**
-   * Record that a patient came.
-   *
-   * @param id The appointment.
-   */
-  attendAppointment = (id: number) => this.confirmThen(
-    {
-      title: 'Mark this appointment as attended?',
-      message: 'This records that the patient came. There is no way back to Scheduled.',
-      confirmLabel: 'Mark attended',
-    },
-    this.appointmentService.attendAppointment(id),
-    'Marked as attended',
-  );
-
-  /**
    * Record that a patient did not come.
    *
    * @param id The appointment.

@@ -14,7 +14,6 @@ export class AppointmentsListComponent {
   data = input.required<AppointmentCard[]>();
 
   checkIn = output<number>();
-  attend = output<number>();
   noShow = output<number>();
   cancel = output<number>();
   reschedule = output<AppointmentCard>();

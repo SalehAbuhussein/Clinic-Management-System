@@ -3,7 +3,6 @@
     <app-appointment-card
       [item]="item"
       (checkIn)="checkIn.emit($event)"
-      (attend)="attend.emit($event)"
       (noShow)="noShow.emit($event)"
       (cancel)="cancel.emit($event)"
       (reschedule)="reschedule.emit($event)" />

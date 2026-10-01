@@ -33,7 +33,6 @@
     <app-appointments-list
       [data]="appointmentList"
       (checkIn)="checkInPatient($event)"
-      (attend)="attendAppointment($event)"
       (noShow)="markNoShow($event)"
       (cancel)="cancelAppointment($event)"
       (reschedule)="rescheduleAppointment($event)" />
