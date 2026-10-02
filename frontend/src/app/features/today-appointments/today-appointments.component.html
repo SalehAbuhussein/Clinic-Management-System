@@ -1,6 +1,14 @@
 <header class="today__header">
   <div class="today__heading">
-    <h1 class="today__title">{{ dayLabel() }}</h1>
+    <h1 class="today__title">
+      <button class="today__pick" type="button" aria-label="Pick a day" (click)="picker.open()">
+        {{ dayLabel() }}
+        <mat-icon>arrow_drop_down</mat-icon>
+      </button>
+
+      <input class="today__picker-anchor" [matDatepicker]="picker" [ngModel]="day()" (ngModelChange)="day.set($event)">
+      <mat-datepicker #picker />
+    </h1>
 
     @if (isToday()) {
       <p class="today__subtitle">Today</p>

@@ -1,6 +1,8 @@
 import { ActivatedRoute, Router } from '@angular/router';
 import { Component, computed, effect, inject, linkedSignal, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -31,7 +33,9 @@ import { BookedAppointment } from '@features/book-appointment-dialog/types/book-
     AppointmentsListComponent,
     AppointmentsListEmptyStateComponent,
     AppointmentsListErrorStateComponent,
+    FormsModule,
     MatButton,
+    MatDatepickerModule,
     MatIcon,
     MatIconButton,
     PaginationComponent,
