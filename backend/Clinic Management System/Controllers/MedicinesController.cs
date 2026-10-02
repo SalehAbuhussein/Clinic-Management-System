@@ -71,87 +71,83 @@ namespace Clinic_Management_System.Controllers
             return Ok(medicineDTO);
         }
 
-        [Authorize(Roles = "Admin")]
-        [HttpPost(Name = "AddMedicine")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public async Task<ActionResult<MedicineDTO>> AddMedicine(CreateMedicineDTO medicineDTO)
-        {
-            clsMedicine newMedicine = new clsMedicine();
-            newMedicine.Genericname = medicineDTO.Genericname;
-            newMedicine.Brandname = medicineDTO.Brandname;
-            newMedicine.Form = medicineDTO.Form;
-            newMedicine.Strength = medicineDTO.Strength;
-            newMedicine.RxCUI = medicineDTO.RxCUI;
+        // [Authorize(Roles = "Admin")]
+        // [HttpPost(Name = "AddMedicine")]
+        // [ProducesResponseType(StatusCodes.Status201Created)]
+        // [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        // [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        // [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        // [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+        // public async Task<ActionResult<MedicineDTO>> AddMedicine(CreateMedicineDTO medicineDTO)
+        // {
+        //     clsMedicine newMedicine = new clsMedicine();
+        //     newMedicine.Genericname = medicineDTO.Genericname;
+        //     newMedicine.Brandname = medicineDTO.Brandname;
+        //     newMedicine.Form = medicineDTO.Form;
+        //     newMedicine.Strength = medicineDTO.Strength;
+        //     newMedicine.RxCUI = medicineDTO.RxCUI;
 
-            if (await newMedicine.SaveAsync())
-            {
-                MedicineDTO newMedicineDTO = new MedicineDTO
-                {
-                    Id = newMedicine.MedicineID,
-                    RxCUI = medicineDTO.RxCUI,
-                    Brandname = medicineDTO.Brandname,
-                    Genericname = medicineDTO.Genericname,
-                    Form = medicineDTO.Form,
-                    Strength = medicineDTO.Strength,
-                };
-                return CreatedAtRoute("GetMedicineByID", new { id = newMedicine.MedicineID }, newMedicineDTO);
-            }
+        //     if (await newMedicine.SaveAsync())
+        //     {
+        //         MedicineDTO newMedicineDTO = new MedicineDTO
+        //         {
+        //             Id = newMedicine.MedicineID,
+        //             RxCUI = medicineDTO.RxCUI,
+        //             Brandname = medicineDTO.Brandname,
+        //             Genericname = medicineDTO.Genericname,
+        //             Form = medicineDTO.Form,
+        //             Strength = medicineDTO.Strength,
+        //         };
+        //         return CreatedAtRoute("GetMedicineByID", new { id = newMedicine.MedicineID }, newMedicineDTO);
+        //     }
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The medicine could not be saved. Check RxCUI, generic name, form and strength.");
-        }
+        //     return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The medicine could not be saved. Check RxCUI, generic name, form and strength.");
+        // }
 
-        [Authorize(Roles = "Admin")]
-        [HttpPut("{id}", Name = "UpdateMedicine")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public async Task<ActionResult> UpdateMedicine(int id, UpdateMedicineDTO updatedMedicine)
-        {
-            clsMedicine? medicine = await _medicineRepository.FindByIdAsync(id);
-            if (medicine == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Medicine with id {id} not found");
+        // [Authorize(Roles = "Admin")]
+        // [HttpPut("{id}", Name = "UpdateMedicine")]
+        // [ProducesResponseType(StatusCodes.Status204NoContent)]
+        // [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        // [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        // [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        // [ProducesResponseType(StatusCodes.Status404NotFound)]
+        // [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+        // public async Task<ActionResult> UpdateMedicine(int id, UpdateMedicineDTO updatedMedicine)
+        // {
+        //     clsMedicine? medicine = await _medicineRepository.FindByIdAsync(id);
+        //     if (medicine == null)
+        //         return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Medicine with id {id} not found");
 
-            medicine.Genericname = updatedMedicine.Genericname;
-            medicine.Brandname = updatedMedicine.Brandname;
-            medicine.Form = updatedMedicine.Form;
-            medicine.Strength = updatedMedicine.Strength;
+        //     medicine.Genericname = updatedMedicine.Genericname;
+        //     medicine.Brandname = updatedMedicine.Brandname;
+        //     medicine.Form = updatedMedicine.Form;
+        //     medicine.Strength = updatedMedicine.Strength;
 
-            if (await medicine.SaveAsync())
-                return NoContent();
+        //     if (await medicine.SaveAsync())
+        //         return NoContent();
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The medicine could not be saved. Check RxCUI, generic name, form and strength.");
-        }
+        //     return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The medicine could not be saved. Check RxCUI, generic name, form and strength.");
+        // }
 
-        [Authorize(Roles = "Admin")]
-        [HttpDelete("{id}", Name = "DeleteMedicine")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public async Task<ActionResult> DeleteMedicine([Range(1, int.MaxValue)] int id)
-        {
-            clsMedicine? medicine = await _medicineRepository.FindByIdAsync(id);
-            if (medicine == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Medicine with id {id} not found");
+        // [Authorize(Roles = "Admin")]
+        // [HttpDelete("{id}", Name = "DeleteMedicine")]
+        // [ProducesResponseType(StatusCodes.Status204NoContent)]
+        // [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        // [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        // [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        // [ProducesResponseType(StatusCodes.Status404NotFound)]
+        // [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+        // public async Task<ActionResult> DeleteMedicine([Range(1, int.MaxValue)] int id)
+        // {
+        //     clsMedicine? medicine = await _medicineRepository.FindByIdAsync(id);
+        //     if (medicine == null)
+        //         return Problem(statusCode: StatusCodes.Status404NotFound,
+        //             detail: $"Medicine with id {id} not found");
 
-            if (await _medicineRepository.DeleteAsync(id))
-                return NoContent();
+        //     if (await _medicineRepository.DeleteAsync(id))
+        //         return NoContent();
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The medicine could not be deleted.");
-        }
+        //     return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The medicine could not be deleted.");
+        // }
     }
 }
