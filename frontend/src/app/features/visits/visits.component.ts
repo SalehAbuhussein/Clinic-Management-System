@@ -11,6 +11,7 @@ import { VisitService } from '@shared/services/visit/visit.service';
 
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { DiagnosisDialogComponent } from './components/diagnosis-dialog/diagnosis-dialog.component';
+import { PrescriptionDialogComponent } from './components/prescription-dialog/prescription-dialog.component';
 import { VisitDetailAction, VisitDetailDialogComponent } from './components/visit-detail-dialog/visit-detail-dialog.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
 import { VisitEditDialogComponent } from './components/visit-edit-dialog/visit-edit-dialog.component';
@@ -76,6 +77,9 @@ export class VisitsComponent {
           case 'diagnose':
             this.diagnoseVisit(visit);
             break;
+          case 'prescribe':
+            this.prescribeVisit(visit);
+            break;
           case 'edit':
             this.editVisit(visit);
             break;
@@ -97,6 +101,24 @@ export class VisitsComponent {
    */
   diagnoseVisit = (visit: Visit) => {
     this.dialog.open(DiagnosisDialogComponent, { width: '480px', data: visit })
+      .afterClosed()
+      .subscribe((saved: boolean | undefined) => {
+        if (!saved) {
+          return;
+        }
+
+        this.visitsResource.reload();
+      });
+  }
+
+  /**
+   * Write or replace the visit's prescription. Unlike the diagnosis, checkout
+   * does not require one: plenty of visits end without medication.
+   *
+   * @param visit The row that was picked.
+   */
+  prescribeVisit = (visit: Visit) => {
+    this.dialog.open(PrescriptionDialogComponent, { width: '880px', data: visit })
       .afterClosed()
       .subscribe((saved: boolean | undefined) => {
         if (!saved) {

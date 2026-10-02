@@ -1,0 +1,30 @@
+<mat-form-field class="medicine__field">
+  <mat-label>Medicine</mat-label>
+
+  <input
+    matInput
+    type="text"
+    autocomplete="off"
+    placeholder="Search by name"
+    [matAutocomplete]="auto"
+    [ngModel]="medicine()"
+    (input)="onInput($any($event.target).value)" />
+</mat-form-field>
+
+<mat-autocomplete #auto [displayWith]="showName" (optionSelected)="medicine.set($event.option.value)">
+  @if (medicinesResource.isLoading()) {
+    <mat-option class="medicine__status" disabled>
+      <mat-progress-spinner diameter="20" mode="indeterminate" />
+      Loading medicines…
+    </mat-option>
+  } @else if (hasNoResults()) {
+    <mat-option class="medicine__status" disabled>No medicine matches that name.</mat-option>
+  } @else {
+    @for (option of medicines(); track option.id) {
+      <mat-option [value]="option">
+        <span class="medicine__name">{{ option.genericname }} {{ option.strength }}</span>
+        <span class="medicine__meta">{{ option.form }}@if (option.brandname) { · {{ option.brandname }} }</span>
+      </mat-option>
+    }
+  }
+</mat-autocomplete>

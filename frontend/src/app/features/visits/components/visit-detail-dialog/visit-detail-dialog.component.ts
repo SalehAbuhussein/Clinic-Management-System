@@ -6,16 +6,18 @@ import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 import { DiagnosisService } from '@shared/services/diagnosis/diagnosis.service';
+import { PrescriptionService } from '@shared/services/prescription/prescription.service';
 
 import { ApiError } from '@core/auth/types/auth.types';
 import { Diagnosis } from '@shared/services/diagnosis/diagnosis.types';
+import { PrescriptionItem } from '@shared/services/prescription/prescription.types';
 import { Visit } from '@shared/services/visit/visit.types';
 
 /**
  * What the dialog closes with. The screen owns every one of these, because each
  * opens another dialog and two stacked dialogs read badly.
  */
-export type VisitDetailAction = 'diagnose' | 'edit' | 'checkout' | 'delete';
+export type VisitDetailAction = 'diagnose' | 'prescribe' | 'edit' | 'checkout' | 'delete';
 
 @Component({
   imports: [DatePipe, MatButton, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle, MatIcon, MatProgressSpinner],
@@ -25,6 +27,7 @@ export type VisitDetailAction = 'diagnose' | 'edit' | 'checkout' | 'delete';
 })
 export class VisitDetailDialogComponent implements OnInit {
   diagnosisService = inject(DiagnosisService);
+  prescriptionService = inject(PrescriptionService);
 
   visit = inject<Visit>(MAT_DIALOG_DATA);
 
@@ -32,6 +35,11 @@ export class VisitDetailDialogComponent implements OnInit {
 
   isLoadingDiagnosis = signal(true);
   diagnosisError = signal('');
+
+  prescription = signal<PrescriptionItem[]>([]);
+
+  isLoadingPrescription = signal(true);
+  prescriptionError = signal('');
 
   /** Checking out locks the visit, and the API then refuses every change. */
   isOpen = computed(() => !this.visit.checkoutTime);
@@ -45,6 +53,24 @@ export class VisitDetailDialogComponent implements OnInit {
    */
   initComponent(): void {
     this.loadDiagnosis();
+    this.loadPrescription();
+  }
+
+  /**
+   * Reads the visit's prescription. An empty array means nobody wrote one,
+   * which the API reports with a 200 rather than a 404.
+   */
+  loadPrescription(): void {
+    this.prescriptionService.getPrescription(this.visit.id).subscribe({
+      next: (found) => {
+        this.prescription.set(found);
+        this.isLoadingPrescription.set(false);
+      },
+      error: (error: ApiError) => {
+        this.isLoadingPrescription.set(false);
+        this.prescriptionError.set(error.message);
+      },
+    });
   }
 
   /**

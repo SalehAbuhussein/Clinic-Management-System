@@ -51,6 +51,35 @@
       <p class="visit-detail__state">Not written yet. The visit cannot be checked out until it is.</p>
     }
   </section>
+
+  <section class="visit-detail__prescription">
+    <h3 class="visit-detail__heading">Prescription</h3>
+
+    @if (isLoadingPrescription()) {
+      <p class="visit-detail__state" role="status">
+        <mat-progress-spinner diameter="18" mode="indeterminate" />
+        Loading…
+      </p>
+    } @else if (prescriptionError(); as message) {
+      <p class="visit-detail__state visit-detail__state--error" role="alert">
+        <mat-icon>error</mat-icon>
+        {{ message }}
+      </p>
+    } @else if (prescription(); as lines) {
+      @if (lines.length) {
+        <ul class="visit-detail__medicines">
+          @for (line of lines; track line.id) {
+            <li class="visit-detail__medicine">
+              <span class="visit-detail__medicine-name">{{ line.genericname }} {{ line.strength }} {{ line.form }}</span>
+              <span class="visit-detail__medicine-dose">{{ line.dosage }} · {{ line.frequency }} · {{ line.duration }}</span>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="visit-detail__state">Nothing prescribed.</p>
+      }
+    }
+  </section>
 </div>
 
 <div class="visit-detail__actions" matDialogActions>
@@ -63,6 +92,10 @@
 
     <button matButton type="button" [matDialogClose]="'diagnose'">
       {{ diagnosis() ? 'Edit diagnosis' : 'Add diagnosis' }}
+    </button>
+
+    <button matButton type="button" [matDialogClose]="'prescribe'">
+      {{ prescription().length ? 'Edit prescription' : 'Add prescription' }}
     </button>
 
     <button matButton="filled" type="button" [matDialogClose]="'checkout'">Check out</button>

@@ -48,10 +48,30 @@
   }
 }
 
-.visit-detail__diagnosis {
+.visit-detail__diagnosis,
+.visit-detail__prescription {
   border-top: 1px solid var(--mat-sys-outline-variant);
   margin-top: 20px;
   padding-top: 16px;
+}
+
+.visit-detail__medicines {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.visit-detail__medicine-name {
+  display: block;
+  font: var(--mat-sys-body-medium);
+}
+
+.visit-detail__medicine-dose {
+  color: var(--mat-sys-on-surface-variant);
+  display: block;
+  font: var(--mat-sys-body-small);
 }
 
 .visit-detail__heading {

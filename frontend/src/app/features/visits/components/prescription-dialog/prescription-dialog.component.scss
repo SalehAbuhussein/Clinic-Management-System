@@ -1,0 +1,91 @@
+.prescription__who {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+  margin: 0 0 12px;
+}
+
+.prescription__line {
+  align-items: start;
+  column-gap: 10px;
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+}
+
+.prescription__remove {
+  margin-top: 8px;
+}
+
+.prescription__state {
+  align-items: center;
+  color: var(--mat-sys-on-surface-variant);
+  display: flex;
+  font: var(--mat-sys-body-medium);
+  gap: 12px;
+  justify-content: center;
+  margin: 0;
+  padding: 24px 0;
+}
+
+.prescription__warning {
+  align-items: center;
+  color: var(--mat-sys-error);
+  display: flex;
+  font: var(--mat-sys-body-small);
+  gap: 8px;
+  margin: 0 0 8px;
+}
+
+.prescription__actions {
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.prescription__error {
+  align-items: flex-start;
+  background-color: var(--mat-sys-error-container);
+  border-radius: var(--mat-sys-corner-medium);
+  color: var(--mat-sys-on-error-container);
+  display: flex;
+  font: var(--mat-sys-body-medium);
+  gap: 12px;
+  margin: 0 24px 12px;
+  padding: 12px 14px;
+}
+
+.prescription__spinner {
+  display: inline-block;
+  margin-inline-end: 8px;
+  vertical-align: middle;
+}
+
+@media (width < 700px) {
+  .prescription__line {
+    border-top: 1px solid var(--mat-sys-outline-variant);
+    grid-template-areas:
+      'medicine  medicine  remove'
+      'dosage    frequency frequency'
+      'duration  duration  duration';
+    grid-template-columns: 1fr 1fr auto;
+    padding-top: 12px;
+  }
+
+  .prescription__medicine {
+    grid-area: medicine;
+  }
+
+  .prescription__dosage {
+    grid-area: dosage;
+  }
+
+  .prescription__frequency {
+    grid-area: frequency;
+  }
+
+  .prescription__duration {
+    grid-area: duration;
+  }
+
+  .prescription__remove {
+    grid-area: remove;
+  }
+}

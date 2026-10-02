@@ -1,0 +1,77 @@
+<h2 class="prescription__title" matDialogTitle>Prescription</h2>
+
+<div class="prescription__content" matDialogContent>
+  <p class="prescription__who">{{ visit.patientName }} with {{ visit.doctorName }}</p>
+
+  @if (isLoading()) {
+    <p class="prescription__state" role="status">
+      <mat-progress-spinner diameter="20" mode="indeterminate" />
+      Loading prescription…
+    </p>
+  } @else {
+    @for (line of lines(); track line.key) {
+      <div class="prescription__line">
+        <app-medicine-selector-input
+          class="prescription__medicine"
+          [medicine]="line.medicine"
+          (medicineChange)="setMedicine(line.key, $event)" />
+
+        <mat-form-field class="prescription__dosage">
+          <mat-label>Dosage</mat-label>
+          <input matInput maxlength="50" placeholder="1 tablet" [(ngModel)]="line.dosage">
+        </mat-form-field>
+
+        <mat-form-field class="prescription__frequency">
+          <mat-label>Frequency</mat-label>
+          <input matInput maxlength="50" placeholder="Twice a day" [(ngModel)]="line.frequency">
+        </mat-form-field>
+
+        <mat-form-field class="prescription__duration">
+          <mat-label>Duration</mat-label>
+          <input matInput maxlength="50" placeholder="7 days" [(ngModel)]="line.duration">
+        </mat-form-field>
+
+        <button
+          class="prescription__remove"
+          matIconButton
+          type="button"
+          aria-label="Remove medicine"
+          [disabled]="lines().length === 1"
+          (click)="removeLine(line.key)">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    }
+
+    @if (duplicateMedicineIds().size) {
+      <p class="prescription__warning" role="alert">
+        <mat-icon>error</mat-icon>
+        The same medicine appears twice. Each one may be listed only once.
+      </p>
+    }
+
+    <button class="prescription__add" matButton type="button" (click)="addLine()">
+      <mat-icon>add</mat-icon>
+      Add medicine
+    </button>
+  }
+</div>
+
+@if (error(); as message) {
+  <p class="prescription__error" role="alert">
+    <mat-icon>error</mat-icon>
+    {{ message }}
+  </p>
+}
+
+<div class="prescription__actions" matDialogActions>
+  <button matButton type="button" matDialogClose [disabled]="isSaving()">Cancel</button>
+
+  <button matButton="filled" type="button" [disabled]="isLoading() || !canSave() || isSaving()" (click)="savePrescription()">
+    @if (isSaving()) {
+      <mat-progress-spinner class="prescription__spinner" diameter="18" mode="indeterminate" />
+    }
+
+    Save prescription
+  </button>
+</div>
