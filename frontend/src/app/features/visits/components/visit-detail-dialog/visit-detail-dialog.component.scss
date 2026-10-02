@@ -1,0 +1,99 @@
+.visit-detail__title {
+  margin-bottom: 0;
+}
+
+.visit-detail__doctor {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+  margin: 0 0 12px;
+}
+
+.visit-detail__status {
+  align-items: center;
+  background-color: var(--mat-sys-secondary-container);
+  border-radius: var(--mat-sys-corner-full);
+  color: var(--mat-sys-on-secondary-container);
+  display: inline-flex;
+  font: var(--mat-sys-label-medium);
+  gap: 6px;
+  padding: 4px 12px 4px 8px;
+
+  mat-icon {
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+  }
+}
+
+.visit-detail__status--closed {
+  background-color: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.visit-detail__facts {
+  column-gap: 16px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  margin: 16px 0 0;
+  row-gap: 6px;
+
+  dt {
+    color: var(--mat-sys-on-surface-variant);
+    font: var(--mat-sys-body-small);
+  }
+
+  dd {
+    font: var(--mat-sys-body-medium);
+    margin: 0;
+  }
+}
+
+.visit-detail__diagnosis {
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  margin-top: 20px;
+  padding-top: 16px;
+}
+
+.visit-detail__heading {
+  font: var(--mat-sys-title-small);
+  margin: 0 0 8px;
+}
+
+.visit-detail__diagnosis-text {
+  font: var(--mat-sys-body-medium);
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.visit-detail__diagnosis-notes {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  margin: 6px 0 0;
+  white-space: pre-wrap;
+}
+
+.visit-detail__state {
+  align-items: center;
+  color: var(--mat-sys-on-surface-variant);
+  display: flex;
+  font: var(--mat-sys-body-medium);
+  gap: 10px;
+  margin: 0;
+}
+
+.visit-detail__state--error {
+  color: var(--mat-sys-error);
+}
+
+.visit-detail__actions {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.visit-detail__spacer {
+  flex: 1;
+}
+
+.visit-detail__danger {
+  --mat-button-text-label-text-color: var(--mat-sys-error);
+}

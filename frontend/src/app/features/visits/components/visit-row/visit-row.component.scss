@@ -5,17 +5,22 @@
 .visit {
   align-items: center;
   background-color: var(--mat-sys-surface-container-lowest);
+  border: 0;
   border-radius: var(--mat-sys-corner-medium);
   box-shadow: var(--mat-sys-level1);
   color: var(--mat-sys-on-surface);
+  cursor: pointer;
   display: grid;
+  font: inherit;
   gap: 12px;
-  grid-template-columns: auto 1fr auto auto;
+  grid-template-columns: auto 1fr auto;
+  inline-size: 100%;
   padding: 10px 14px;
-}
+  text-align: start;
 
-.visit__actions {
-  margin-inline: -6px -8px;
+  &:hover {
+    background-color: var(--mat-sys-surface-container-low);
+  }
 }
 
 .visit--closed {
@@ -69,14 +74,10 @@
 @media (width < 600px) {
   .visit {
     grid-template-areas:
-      'time   who    actions'
-      'status status status';
-    grid-template-columns: auto 1fr auto;
+      'time   who'
+      'status status';
+    grid-template-columns: auto 1fr;
     row-gap: 10px;
-  }
-
-  .visit__actions {
-    grid-area: actions;
   }
 
   .visit__time {

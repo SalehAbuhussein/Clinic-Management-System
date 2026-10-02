@@ -11,6 +11,7 @@ import { VisitService } from '@shared/services/visit/visit.service';
 
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { DiagnosisDialogComponent } from './components/diagnosis-dialog/diagnosis-dialog.component';
+import { VisitDetailAction, VisitDetailDialogComponent } from './components/visit-detail-dialog/visit-detail-dialog.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
 import { VisitEditDialogComponent } from './components/visit-edit-dialog/visit-edit-dialog.component';
 import { VisitRowComponent } from './components/visit-row/visit-row.component';
@@ -57,6 +58,35 @@ export class VisitsComponent {
     const page = Number(this.route.snapshot.queryParamMap.get('page'));
 
     return Number.isInteger(page) && page > 0 ? page : 1;
+  }
+
+  /**
+   * Show everything on a visit, and act on whatever the dialog closes with.
+   *
+   * Each action opens another dialog, so the detail closes first rather than
+   * stacking two on top of each other.
+   *
+   * @param visit The row that was picked.
+   */
+  openVisit = (visit: Visit) => {
+    this.dialog.open(VisitDetailDialogComponent, { width: '520px', data: visit })
+      .afterClosed()
+      .subscribe((action: VisitDetailAction | undefined) => {
+        switch (action) {
+          case 'diagnose':
+            this.diagnoseVisit(visit);
+            break;
+          case 'edit':
+            this.editVisit(visit);
+            break;
+          case 'checkout':
+            this.checkoutVisit(visit);
+            break;
+          case 'delete':
+            this.deleteVisit(visit);
+            break;
+        }
+      });
   }
 
   /**

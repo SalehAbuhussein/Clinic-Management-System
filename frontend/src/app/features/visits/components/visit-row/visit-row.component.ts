@@ -1,13 +1,11 @@
-import { Component, computed, input, output, viewChild } from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
-import { MatIconButton } from '@angular/material/button';
-import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 
 import { Visit } from '@shared/services/visit/visit.types';
 
 @Component({
-  imports: [DatePipe, MatIcon, MatIconButton, MatMenu, MatMenuItem, MatMenuTrigger],
+  imports: [DatePipe, MatIcon],
   selector: 'app-visit-row',
   styleUrl: './visit-row.component.scss',
   templateUrl: './visit-row.component.html',
@@ -15,20 +13,8 @@ import { Visit } from '@shared/services/visit/visit.types';
 export class VisitRowComponent {
   visit = input.required<Visit>();
 
-  diagnose = output<Visit>();
-  edit = output<Visit>();
-  checkout = output<Visit>();
-  remove = output<Visit>();
+  open = output<Visit>();
 
-  menuTrigger = viewChild(MatMenuTrigger);
-
-  /**
-   * A visit is open until it is checked out. Checking out also locks the row,
-   * and the API then refuses every edit and the delete, so this one flag
-   * decides both the chip and whether there is a menu at all.
-   */
+  /** A visit is open until it is checked out; there is no other state to read. */
   isOpen = computed(() => !this.visit().checkoutTime);
-
-  /** Opens the menu from anywhere on the row, anchored to the icon button. */
-  openMenu = () => this.menuTrigger()?.openMenu();
 }

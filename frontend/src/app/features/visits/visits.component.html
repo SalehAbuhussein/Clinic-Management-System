@@ -18,12 +18,7 @@
   @if (list.length) {
     <div class="visits__list">
       @for (visit of list; track visit.id) {
-        <app-visit-row
-          [visit]="visit"
-          (diagnose)="diagnoseVisit($event)"
-          (checkout)="checkoutVisit($event)"
-          (edit)="editVisit($event)"
-          (remove)="deleteVisit($event)" />
+        <app-visit-row [visit]="visit" (open)="openVisit($event)" />
       }
     </div>
 

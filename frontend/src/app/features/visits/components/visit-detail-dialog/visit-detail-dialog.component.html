@@ -1,0 +1,74 @@
+<h2 class="visit-detail__title" matDialogTitle>{{ visit.patientName }}</h2>
+
+<div class="visit-detail__content" matDialogContent>
+  <p class="visit-detail__doctor">{{ visit.doctorName }}</p>
+
+  <span class="visit-detail__status" [class.visit-detail__status--closed]="!isOpen()">
+    <mat-icon>{{ isOpen() ? 'hourglass_top' : 'task_alt' }}</mat-icon>
+    {{ isOpen() ? 'In clinic' : 'Checked out' }}
+  </span>
+
+  <dl class="visit-detail__facts">
+    @if (visit.appointmentStartAt) {
+      <dt>Appointment</dt>
+      <dd>{{ visit.appointmentStartAt | date: 'EEE d MMM, HH:mm' }}</dd>
+    }
+
+    <dt>Checked in</dt>
+    <dd>{{ visit.checkinTime | date: 'EEE d MMM, HH:mm' }}</dd>
+
+    @if (visit.checkoutTime) {
+      <dt>Checked out</dt>
+      <dd>{{ visit.checkoutTime | date: 'EEE d MMM, HH:mm' }}</dd>
+    }
+
+    @if (visit.notes) {
+      <dt>Visit notes</dt>
+      <dd>{{ visit.notes }}</dd>
+    }
+  </dl>
+
+  <section class="visit-detail__diagnosis">
+    <h3 class="visit-detail__heading">Diagnosis</h3>
+
+    @if (isLoadingDiagnosis()) {
+      <p class="visit-detail__state" role="status">
+        <mat-progress-spinner diameter="18" mode="indeterminate" />
+        Loading…
+      </p>
+    } @else if (diagnosisError(); as message) {
+      <p class="visit-detail__state visit-detail__state--error" role="alert">
+        <mat-icon>error</mat-icon>
+        {{ message }}
+      </p>
+    } @else if (diagnosis(); as written) {
+      <p class="visit-detail__diagnosis-text">{{ written.diagnosis }}</p>
+
+      @if (written.notes) {
+        <p class="visit-detail__diagnosis-notes">{{ written.notes }}</p>
+      }
+    } @else {
+      <p class="visit-detail__state">Not written yet. The visit cannot be checked out until it is.</p>
+    }
+  </section>
+</div>
+
+<div class="visit-detail__actions" matDialogActions>
+  @if (isOpen()) {
+    <button class="visit-detail__danger" matButton type="button" [matDialogClose]="'delete'">Delete</button>
+
+    <span class="visit-detail__spacer"></span>
+
+    <button matButton type="button" [matDialogClose]="'edit'">Edit visit</button>
+
+    <button matButton type="button" [matDialogClose]="'diagnose'">
+      {{ diagnosis() ? 'Edit diagnosis' : 'Add diagnosis' }}
+    </button>
+
+    <button matButton="filled" type="button" [matDialogClose]="'checkout'">Check out</button>
+  } @else {
+    <span class="visit-detail__spacer"></span>
+
+    <button matButton type="button" matDialogClose>Close</button>
+  }
+</div>
