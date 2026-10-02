@@ -16,12 +16,13 @@ namespace Clinic_Business.Entities
         public string Dosage { get; set; } = string.Empty;
         public string Frequency { get; set; } = string.Empty;
         public string Duration { get; set; } = string.Empty;
+        public clsMedicine? MedicineInfo { get; set; }
 
         public clsPrescriptionItem()
         {
         }
 
-        private clsPrescriptionItem(int id, int visitID, int medicineID, string dosage, string frequency, string duration)
+        private clsPrescriptionItem(int id, int visitID, int medicineID, string dosage, string frequency, string duration, clsMedicine medicineInfo)
         {
 
             PrescriptionItemID = id;
@@ -30,17 +31,23 @@ namespace Clinic_Business.Entities
             Dosage = dosage;
             Frequency = frequency;
             Duration = duration;
+            MedicineInfo = medicineInfo;
         }
 
+        /// <summary>
+        /// Builds an item and its medicine from one joined row. MedicineID is selected
+        /// once, from PrescriptionItems, because the join makes both sides equal.
+        /// </summary>
         private static clsPrescriptionItem MapPrescriptionItem(DataRow row)
         {
             return new clsPrescriptionItem(
-                (int)row["PrescriptionItemID"],
-                (int)row["VisitID"],
-                (int)row["MedicineID"],
-                (string)row["Dosage"],
-                (string)row["Frequency"],
-                (string)row["Duration"]);
+                row.Field<int>("PrescriptionItemID"),
+                row.Field<int>("VisitID"),
+                row.Field<int>("MedicineID"),
+                row.Field<string>("Dosage") ?? string.Empty,
+                row.Field<string>("Frequency") ?? string.Empty,
+                row.Field<string>("Duration") ?? string.Empty,
+                clsMedicine.MapMedicine(row));
         }
 
         public static async Task<List<clsPrescriptionItem>> FindAllByVisitIDAsync(int visitID, int pageNumber, int pageSize)

@@ -40,9 +40,9 @@ namespace Clinic_Business.Entities
             RxCUI = rxCUI;
         }
 
-        public static async Task<List<clsMedicine>> FindAllAsync(int pageNumber = 1, int pageSize = 10)
+        public static async Task<List<clsMedicine>> FindAllAsync(string? name = null, int pageNumber = 1, int pageSize = 10)
         {
-            List<clsMedicineDA.MedicineRow> rows = await clsMedicineDA.FindAllAsync(pageNumber, pageSize);
+            List<clsMedicineDA.MedicineRow> rows = await clsMedicineDA.FindAllAsync(name, pageNumber, pageSize);
 
             return rows.Select(MapMedicine).ToList();
         }
@@ -52,6 +52,22 @@ namespace Clinic_Business.Entities
             clsMedicineDA.MedicineRow? row = await clsMedicineDA.FindAsync(id);
 
             return row == null ? null : MapMedicine(row);
+        }
+
+        /// <summary>
+        /// Builds a medicine from a joined row, for a query that loads one alongside
+        /// something else. The medicine's own lookups go through the record overload.
+        /// </summary>
+        internal static clsMedicine MapMedicine(DataRow row)
+        {
+            return new clsMedicine(
+                row.Field<int>("MedicineID"),
+                row.Field<int>("RxCUI"),
+                row.Field<string>("Genericname") ?? string.Empty,
+                row.Field<string>("Brandname") ?? string.Empty,
+                row.Field<string>("Form") ?? string.Empty,
+                row.Field<string>("Strength") ?? string.Empty
+            );
         }
 
         internal static clsMedicine MapMedicine(clsMedicineDA.MedicineRow row)

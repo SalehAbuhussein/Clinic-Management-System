@@ -66,6 +66,10 @@ namespace Clinic_Management_System.Controllers
                     Dosage = item.Dosage,
                     Frequency = item.Frequency,
                     Duration = item.Duration,
+                    Genericname = item.MedicineInfo?.Genericname ?? string.Empty,
+                    Brandname = item.MedicineInfo?.Brandname,
+                    Form = item.MedicineInfo?.Form ?? string.Empty,
+                    Strength = item.MedicineInfo?.Strength ?? string.Empty,
                 });
             }
 

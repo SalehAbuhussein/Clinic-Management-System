@@ -19,15 +19,17 @@ namespace Clinic_Management_System.Controllers
             _medicineRepository = medicineRepository;
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Doctor")]
         [HttpGet(Name = "GetMedicines")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<List<MedicineDTO>>> GetMedicines([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
+        public async Task<ActionResult<List<MedicineDTO>>> GetMedicines(string? name, [Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
-            List<MedicineDTO> medicinesList = (await _medicineRepository.FindAllAsync(page, perPage))
+            name = name?.Trim().Replace("%", "").Replace("_", "").Replace("[", "");
+
+            List<MedicineDTO> medicinesList = (await _medicineRepository.FindAllAsync(name, page, perPage))
                 .Select(medicine => new MedicineDTO
                 {
                     Id = medicine.MedicineID ?? 0,
@@ -41,7 +43,7 @@ namespace Clinic_Management_System.Controllers
             return Ok(medicinesList);
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Doctor")]
         [HttpGet("{id}", Name = "GetMedicineByID")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

@@ -21,10 +21,22 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"SELECT *
-                FROM PrescriptionItems
-                WHERE VisitID = @VisitID
-                ORDER BY PrescriptionItemID
+                string query = @"SELECT P.[PrescriptionItemID]
+                    ,P.[VisitID]
+                    ,P.[MedicineID]
+                    ,P.[Dosage]
+                    ,P.[Frequency]
+                    ,P.[Duration]
+
+                    ,M.[RxCUI]
+                    ,M.[Genericname]
+                    ,M.[Brandname]
+                    ,M.[Form]
+                    ,M.[Strength]
+                FROM PrescriptionItems P
+                INNER JOIN Medicines M ON M.MedicineID = P.MedicineID
+                WHERE P.VisitID = @VisitID
+                ORDER BY P.PrescriptionItemID
                 OFFSET (@PageNumber - 1) * @PageSize ROWS
                 FETCH NEXT @PageSize ROWS ONLY;";
 

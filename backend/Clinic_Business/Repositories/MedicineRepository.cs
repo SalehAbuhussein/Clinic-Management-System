@@ -10,9 +10,9 @@ namespace Clinic_Business.Repositories
             return clsMedicine.FindAsync(id);
         }
 
-        public Task<List<clsMedicine>> FindAllAsync(int pageNumber = 1, int pageSize = 10)
+        public Task<List<clsMedicine>> FindAllAsync(string? name = null, int pageNumber = 1, int pageSize = 10)
         {
-            return clsMedicine.FindAllAsync(pageNumber, pageSize);
+            return clsMedicine.FindAllAsync(name, pageNumber, pageSize);
         }
 
         public Task<bool> DeleteAsync(int id)

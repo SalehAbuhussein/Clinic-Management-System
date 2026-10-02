@@ -10,7 +10,7 @@ namespace Clinic_DataAccess
 {
     public class clsMedicineDA
     {
-        public static async Task<List<MedicineRow>> FindAllAsync(int pageNumber = 1, int pageSize = 10)
+        public static async Task<List<MedicineRow>> FindAllAsync(string? name = null, int pageNumber = 1, int pageSize = 10)
         {
             List<MedicineRow> rows = new List<MedicineRow>();
 
@@ -19,15 +19,27 @@ namespace Clinic_DataAccess
                 await connection.OpenAsync();
 
                 string query = @"SELECT [MedicineID], [RxCUI], [Genericname], [Brandname], [Form], [Strength]
-                FROM Medicines
-                ORDER BY MedicineID
-                OFFSET (@PageNumber - 1) * @PageSize ROWS
-                FETCH NEXT @PageSize ROWS ONLY;";
+                FROM Medicines";
 
-                using (SqlCommand command = new SqlCommand(query, connection))
+                using (SqlCommand command = new SqlCommand())
                 {
+                    command.Connection = connection;
+
+                    if (!string.IsNullOrWhiteSpace(name))
+                    {
+                        query += "\nWHERE Genericname LIKE @Name OR Brandname LIKE @Name";
+                        command.Parameters.AddWithValue("@Name", $"%{name.Trim()}%");
+                    }
+
+                    query += @"
+                        ORDER BY Genericname
+                        OFFSET (@PageNumber - 1) * @PageSize ROWS
+                        FETCH NEXT @PageSize ROWS ONLY;";
+
                     command.Parameters.AddWithValue("@PageNumber", pageNumber);
                     command.Parameters.AddWithValue("@PageSize", pageSize);
+
+                    command.CommandText = query;
 
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {

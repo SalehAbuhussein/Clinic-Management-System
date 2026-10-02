@@ -8,5 +8,10 @@
         public string Dosage { get; set; } = string.Empty;
         public string Frequency { get; set; } = string.Empty;
         public string Duration { get; set; } = string.Empty;
+
+        public string Genericname { get; set; } = string.Empty;
+        public string? Brandname { get; set; }
+        public string Form { get; set; } = string.Empty;
+        public string Strength { get; set; } = string.Empty;
     }
 }
