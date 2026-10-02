@@ -43,13 +43,9 @@ export class PatientFormDialogComponent implements OnInit {
   patientService = inject(PatientService);
   snackbar = inject(MatSnackBar);
 
-  /** The patient being edited, or null when registering a new one. */
   existingPatient = inject<Patient | null>(MAT_DIALOG_DATA, { optional: true });
 
   readonly isEditing = !!this.existingPatient;
-
-  /** The API stores a bare date, so the picker works in local days only. */
-  readonly API_DATE_FORMAT = 'yyyy-MM-dd';
 
   firstname = signal('');
   midname = signal('');
@@ -73,6 +69,9 @@ export class PatientFormDialogComponent implements OnInit {
     && !!this.dateOfBirth()
     && (this.isEditing || !!this.nationalNo().trim()));
 
+  /**
+   * Angular OnInit lifecycle method
+   */
   ngOnInit(): void {
     this.initComponent();
   }
@@ -159,7 +158,7 @@ export class PatientFormDialogComponent implements OnInit {
     lastname: this.lastname().trim(),
     phone: this.phone().trim(),
     gender: this.gender()!,
-    dateOfBirth: formatDate(this.dateOfBirth()!, this.API_DATE_FORMAT, 'en-US'),
+    dateOfBirth: formatDate(this.dateOfBirth()!, 'yyyy-MM-dd', 'en-US'),
     emergencyContactName: this.emergencyContactName().trim() || undefined,
     emergencyContactNumber: this.emergencyContactNumber().trim() || undefined,
   })

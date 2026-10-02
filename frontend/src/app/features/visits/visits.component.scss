@@ -1,0 +1,38 @@
+:host {
+  display: block;
+}
+
+.visits__header {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.visits__title {
+  font: var(--mat-sys-title-large);
+  margin: 0;
+}
+
+.visits__list {
+  display: grid;
+  gap: 10px;
+}
+
+.visits__state {
+  align-items: center;
+  color: var(--mat-sys-on-surface-variant);
+  display: flex;
+  font: var(--mat-sys-body-medium);
+  gap: 12px;
+  justify-content: center;
+  margin: 0;
+  padding: 32px 16px;
+  text-align: center;
+}
+
+.visits__state--error {
+  color: var(--mat-sys-error);
+}

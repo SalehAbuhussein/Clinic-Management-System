@@ -1,0 +1,38 @@
+<header class="visits__header">
+  <h1 class="visits__title">Visits</h1>
+</header>
+
+@if (visitsResource.isLoading()) {
+  <p class="visits__state" role="status">
+    <mat-progress-spinner diameter="20" mode="indeterminate" />
+    Loading visits…
+  </p>
+} @else if (visitsResource.error(); as error) {
+  <p class="visits__state visits__state--error" role="alert">
+    <mat-icon>error</mat-icon>
+    {{ error.message }}
+  </p>
+} @else {
+  @let list = visits();
+
+  @if (list.length) {
+    <div class="visits__list">
+      @for (visit of list; track visit.id) {
+        <app-visit-row
+          [visit]="visit"
+          (checkout)="checkoutVisit($event)"
+          (edit)="editVisit($event)"
+          (remove)="deleteVisit($event)" />
+      }
+    </div>
+
+    @if (total() > perPage()) {
+      <app-pagination [(page)]="page" [total]="total()" [pageSize]="perPage()" />
+    }
+  } @else {
+    <p class="visits__state">
+      <mat-icon>assignment</mat-icon>
+      No visits yet. Check a patient in from Today to open the first one.
+    </p>
+  }
+}

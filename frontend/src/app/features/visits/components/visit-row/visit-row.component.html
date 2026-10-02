@@ -1,0 +1,42 @@
+<div class="visit" [class.visit--closed]="!isOpen()" (click)="openMenu()">
+  <span class="visit__time">{{ visit().checkinTime | date: 'HH:mm' }}</span>
+
+  <span class="visit__who">
+    <span class="visit__patient">{{ visit().patientName }}</span>
+    <span class="visit__meta">{{ visit().doctorName }}</span>
+  </span>
+
+  <span class="visit__status">
+    <mat-icon>{{ isOpen() ? 'hourglass_top' : 'task_alt' }}</mat-icon>
+    {{ isOpen() ? 'In clinic' : 'Checked out' }}
+  </span>
+
+  @if (isOpen()) {
+    <button
+      class="visit__actions"
+      matIconButton
+      type="button"
+      aria-label="Visit actions"
+      [matMenuTriggerFor]="menu"
+      (click)="$event.stopPropagation()">
+      <mat-icon>more_vert</mat-icon>
+    </button>
+
+    <mat-menu #menu="matMenu">
+      <button mat-menu-item type="button" (click)="checkout.emit(visit())">
+        <mat-icon>logout</mat-icon>
+        Check out
+      </button>
+
+      <button mat-menu-item type="button" (click)="edit.emit(visit())">
+        <mat-icon>edit</mat-icon>
+        Edit visit
+      </button>
+
+      <button mat-menu-item type="button" (click)="remove.emit(visit())">
+        <mat-icon>delete</mat-icon>
+        Delete visit
+      </button>
+    </mat-menu>
+  }
+</div>

@@ -29,7 +29,13 @@
         <span class="dashboard-side__label" matListItemTitle>Patients</span>
       </a>
 
-      <a class="dashboard-side__link" mat-list-item>
+      <a
+        class="dashboard-side__link"
+        mat-list-item
+        routerLink="/dashboard/visits"
+        routerLinkActive
+        #visits="routerLinkActive"
+        [activated]="visits.isActive">
         <mat-icon class="dashboard-side__icon" matListItemIcon>assignment</mat-icon>
         <span class="dashboard-side__label" matListItemTitle>Visits</span>
       </a>

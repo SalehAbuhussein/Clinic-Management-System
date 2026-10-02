@@ -1,0 +1,36 @@
+<h2 class="visit-form__title" matDialogTitle>Edit visit</h2>
+
+<div class="visit-form__content" matDialogContent>
+  <p class="visit-form__who">{{ visit.patientName }} with {{ visit.doctorName }}</p>
+
+  <mat-form-field>
+    <mat-label>Checked in at</mat-label>
+    <input matInput type="datetime-local" [(ngModel)]="checkinTime">
+    <mat-hint>Cannot be in the future</mat-hint>
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>Notes</mat-label>
+    <textarea matInput rows="3" maxlength="255" [(ngModel)]="notes"></textarea>
+    <mat-hint>Optional</mat-hint>
+  </mat-form-field>
+</div>
+
+@if (error(); as message) {
+  <p class="visit-form__error" role="alert">
+    <mat-icon>error</mat-icon>
+    {{ message }}
+  </p>
+}
+
+<div class="visit-form__actions" matDialogActions>
+  <button matButton type="button" matDialogClose [disabled]="isSaving()">Cancel</button>
+
+  <button matButton="filled" type="button" [disabled]="!canSave() || isSaving()" (click)="saveVisit()">
+    @if (isSaving()) {
+      <mat-progress-spinner class="visit-form__spinner" diameter="18" mode="indeterminate" />
+    }
+
+    Save changes
+  </button>
+</div>
