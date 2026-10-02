@@ -28,14 +28,14 @@ namespace Clinic_Business.Entities
         public clsDiagnosis()
         {
             _Mode = enMode.Add;
-            VisitInfo = new clsVisit();
         }
 
-        private clsDiagnosis(int diagnosesID, int? visitID, string diagnosis, string? notes, DateTime createdAt, DateTime updatedAt)
+        private clsDiagnosis(int diagnosesID, int? visitID, clsVisit visitInfo, string diagnosis, string? notes, DateTime createdAt, DateTime updatedAt)
         {
             _Mode = enMode.Update;
             DiagnosesID = diagnosesID;
             VisitID = visitID;
+            VisitInfo = visitInfo;
             Diagnosis = diagnosis;
             Notes = notes;
             CreatedAt = createdAt;
@@ -57,16 +57,21 @@ namespace Clinic_Business.Entities
         }
 
         /// <summary>
-        /// Builds a diagnosis from a row. Both lookups select the same six columns, so one
-        /// mapper serves them and neither can drift.
+        /// Builds a diagnosis and its visit from one joined row. Both lookups select the
+        /// same columns, so one mapper serves them and neither can drift.
+        ///
+        /// The visit's own columns keep their names so clsVisit.MapVisit can read the
+        /// same row; the diagnosis's Notes is the one that gets aliased, because both
+        /// tables have a column by that name.
         /// </summary>
         internal static clsDiagnosis MapDiagnosis(DataRow row)
         {
             return new clsDiagnosis(
                 row.Field<int>("DiagnosesID"),
                 row.Field<int>("VisitID"),
+                clsVisit.MapVisit(row),
                 row.Field<string>("Diagnosis") ?? string.Empty,
-                row.Field<string>("Notes"),
+                row.Field<string>("DiagnosisNotes"),
                 row.Field<DateTime>("CreatedAt"),
                 row.Field<DateTime>("UpdatedAt")
             );

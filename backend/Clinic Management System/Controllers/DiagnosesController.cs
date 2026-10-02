@@ -124,12 +124,10 @@ namespace Clinic_Management_System.Controllers
             clsDiagnosis? diagnosis = await _diagnosisRepository.FindByVisitIdAsync(visitId);
             clsVisit? visit = diagnosis?.VisitInfo;
             if (diagnosis == null || visit == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Visit {visitId} has no diagnosis");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Visit {visitId} has no diagnosis");
 
-            if (visit.IsLocked == false)
-                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                    detail: "The visit is locked, so its diagnosis cannot be changed.");
+            if (visit.IsLocked)
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The visit is locked, so its diagnosis cannot be changed.");
 
             diagnosis.Diagnosis = updateDiagnosesDTO.Diagnosis;
             diagnosis.Notes = updateDiagnosesDTO.Notes;

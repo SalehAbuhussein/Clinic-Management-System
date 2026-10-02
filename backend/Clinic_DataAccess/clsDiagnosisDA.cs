@@ -24,14 +24,21 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"SELECT [DiagnosesID]
-                    ,[VisitID]
-                    ,[Diagnosis]
-                    ,[Notes]
-                    ,[CreatedAt]
-                    ,[UpdatedAt]
-                FROM [ClinicManagementSystem].[dbo].[Diagnoses]
-                WHERE DiagnosesID = @Value";
+                string query = @"SELECT D.[DiagnosesID]
+                    ,D.[Diagnosis]
+                    ,D.[Notes] AS DiagnosisNotes
+                    ,D.[CreatedAt]
+                    ,D.[UpdatedAt]
+
+                    ,V.[VisitID]
+                    ,V.[AppointmentID]
+                    ,V.[CheckinTime]
+                    ,V.[CheckoutTime]
+                    ,V.[Notes]
+                    ,V.[IsLocked]
+                FROM [dbo].[Diagnoses] D
+                INNER JOIN [dbo].[Visits] V ON V.VisitID = D.VisitID
+                WHERE D.DiagnosesID = @Value";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
@@ -59,14 +66,21 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"SELECT [DiagnosesID]
-                    ,[VisitID]
-                    ,[Diagnosis]
-                    ,[Notes]
-                    ,[CreatedAt]
-                    ,[UpdatedAt]
-                FROM [ClinicManagementSystem].[dbo].[Diagnoses]
-                WHERE VisitID = @Value";
+                string query = @"SELECT D.[DiagnosesID]
+                    ,D.[Diagnosis]
+                    ,D.[Notes] AS DiagnosisNotes
+                    ,D.[CreatedAt]
+                    ,D.[UpdatedAt]
+
+                    ,V.[VisitID]
+                    ,V.[AppointmentID]
+                    ,V.[CheckinTime]
+                    ,V.[CheckoutTime]
+                    ,V.[Notes]
+                    ,V.[IsLocked]
+                FROM [dbo].[Diagnoses] D
+                INNER JOIN [dbo].[Visits] V ON V.VisitID = D.VisitID
+                WHERE D.VisitID = @Value";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
