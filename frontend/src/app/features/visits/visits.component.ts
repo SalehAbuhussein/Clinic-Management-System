@@ -10,6 +10,7 @@ import { Observable } from 'rxjs';
 import { VisitService } from '@shared/services/visit/visit.service';
 
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
+import { DiagnosisDialogComponent } from './components/diagnosis-dialog/diagnosis-dialog.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
 import { VisitEditDialogComponent } from './components/visit-edit-dialog/visit-edit-dialog.component';
 import { VisitRowComponent } from './components/visit-row/visit-row.component';
@@ -56,6 +57,24 @@ export class VisitsComponent {
     const page = Number(this.route.snapshot.queryParamMap.get('page'));
 
     return Number.isInteger(page) && page > 0 ? page : 1;
+  }
+
+  /**
+   * Write or correct the visit's diagnosis. Checkout is refused until this
+   * exists, so it is the step between arriving and leaving.
+   *
+   * @param visit The row that was picked.
+   */
+  diagnoseVisit = (visit: Visit) => {
+    this.dialog.open(DiagnosisDialogComponent, { width: '480px', data: visit })
+      .afterClosed()
+      .subscribe((saved: boolean | undefined) => {
+        if (!saved) {
+          return;
+        }
+
+        this.visitsResource.reload();
+      });
   }
 
   /**

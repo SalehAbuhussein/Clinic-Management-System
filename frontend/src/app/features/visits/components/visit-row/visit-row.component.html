@@ -23,6 +23,11 @@
     </button>
 
     <mat-menu #menu="matMenu">
+      <button mat-menu-item type="button" (click)="diagnose.emit(visit())">
+        <mat-icon>description</mat-icon>
+        Diagnosis
+      </button>
+
       <button mat-menu-item type="button" (click)="checkout.emit(visit())">
         <mat-icon>logout</mat-icon>
         Check out

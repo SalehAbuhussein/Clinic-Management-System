@@ -15,6 +15,7 @@ import { Visit } from '@shared/services/visit/visit.types';
 export class VisitRowComponent {
   visit = input.required<Visit>();
 
+  diagnose = output<Visit>();
   edit = output<Visit>();
   checkout = output<Visit>();
   remove = output<Visit>();

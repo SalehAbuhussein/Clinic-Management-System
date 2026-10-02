@@ -20,6 +20,7 @@
       @for (visit of list; track visit.id) {
         <app-visit-row
           [visit]="visit"
+          (diagnose)="diagnoseVisit($event)"
           (checkout)="checkoutVisit($event)"
           (edit)="editVisit($event)"
           (remove)="deleteVisit($event)" />

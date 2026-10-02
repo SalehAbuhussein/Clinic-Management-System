@@ -1,0 +1,47 @@
+.diagnosis-form__content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.diagnosis-form__who {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+  margin: 0 0 12px;
+}
+
+.diagnosis-form__loading {
+  align-items: center;
+  color: var(--mat-sys-on-surface-variant);
+  display: flex;
+  font: var(--mat-sys-body-medium);
+  gap: 12px;
+  justify-content: center;
+  margin: 0;
+  padding: 24px 0;
+}
+
+.diagnosis-form__actions {
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.diagnosis-form__error {
+  align-items: flex-start;
+  background-color: var(--mat-sys-error-container);
+  border-radius: var(--mat-sys-corner-medium);
+  color: var(--mat-sys-on-error-container);
+  display: flex;
+  font: var(--mat-sys-body-medium);
+  gap: 12px;
+  margin: 0 24px 12px;
+  padding: 12px 14px;
+}
+
+// A spinner defaults to display: block, so inside a button's label it stacks
+// above the text instead of sitting beside it.
+.diagnosis-form__spinner {
+  display: inline-block;
+  margin-inline-end: 8px;
+  vertical-align: middle;
+}
