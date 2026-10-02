@@ -8,6 +8,8 @@ export type LoginRequestBody = {
   password: string;
 };
 
+export type Role = 'Admin' | 'Doctor' | 'Staff';
+
 export type ApiError = {
   status: number;
   message: string;
