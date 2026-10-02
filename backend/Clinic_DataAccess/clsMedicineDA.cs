@@ -10,15 +10,17 @@ namespace Clinic_DataAccess
 {
     public class clsMedicineDA
     {
-        public static async Task<List<MedicineRow>> FindAllAsync(string? name = null, int pageNumber = 1, int pageSize = 10)
+        public static async Task<(List<MedicineRow> Rows, int Total)> FindAllAsync(string? name = null, int pageNumber = 1, int pageSize = 10)
         {
             List<MedicineRow> rows = new List<MedicineRow>();
+            int total = 0;
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
                 await connection.OpenAsync();
 
-                string query = @"SELECT [MedicineID], [RxCUI], [Genericname], [Brandname], [Form], [Strength]
+                string query = @"SELECT COUNT(*) OVER() AS TotalCount,
+                    [MedicineID], [RxCUI], [Genericname], [Brandname], [Form], [Strength]
                 FROM Medicines";
 
                 using (SqlCommand command = new SqlCommand())
@@ -45,6 +47,8 @@ namespace Clinic_DataAccess
                     {
                         while (await reader.ReadAsync())
                         {
+                            total = (int)reader["TotalCount"];
+
                             rows.Add(new MedicineRow(
                                 (int)reader["MedicineID"],
                                 (int)reader["RxCUI"],
@@ -58,7 +62,7 @@ namespace Clinic_DataAccess
                 }
             }
 
-            return rows;
+            return (rows, total);
         }
 
         /// <summary>

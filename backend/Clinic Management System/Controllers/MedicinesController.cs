@@ -1,4 +1,4 @@
-﻿using Clinic_Business;
+﻿using Clinic_Business.Common;
 using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Medicines;
@@ -25,11 +25,13 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<List<MedicineDTO>>> GetMedicines(string? name, [Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
+        public async Task<ActionResult<PagedResult<MedicineDTO>>> GetMedicines(string? name, [Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
             name = name?.Trim().Replace("%", "").Replace("_", "").Replace("[", "");
 
-            List<MedicineDTO> medicinesList = (await _medicineRepository.FindAllAsync(name, page, perPage))
+            PagedResult<clsMedicine> medicinesPage = await _medicineRepository.FindAllAsync(name, page, perPage);
+
+            List<MedicineDTO> medicinesList = medicinesPage.Items
                 .Select(medicine => new MedicineDTO
                 {
                     Id = medicine.MedicineID ?? 0,
@@ -40,7 +42,7 @@ namespace Clinic_Management_System.Controllers
                     RxCUI = medicine.RxCUI,
                 }).ToList();
 
-            return Ok(medicinesList);
+            return Ok(new PagedResult<MedicineDTO>(medicinesList, medicinesPage.Page, medicinesPage.PerPage, medicinesPage.Total));
         }
 
         [Authorize(Roles = "Admin,Doctor")]

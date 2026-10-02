@@ -1,4 +1,5 @@
-﻿using Clinic_DataAccess;
+﻿using Clinic_Business.Common;
+using Clinic_DataAccess;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -40,11 +41,11 @@ namespace Clinic_Business.Entities
             RxCUI = rxCUI;
         }
 
-        public static async Task<List<clsMedicine>> FindAllAsync(string? name = null, int pageNumber = 1, int pageSize = 10)
+        public static async Task<PagedResult<clsMedicine>> FindAllAsync(string? name = null, int pageNumber = 1, int pageSize = 10)
         {
-            List<clsMedicineDA.MedicineRow> rows = await clsMedicineDA.FindAllAsync(name, pageNumber, pageSize);
+            (List<clsMedicineDA.MedicineRow> rows, int total) = await clsMedicineDA.FindAllAsync(name, pageNumber, pageSize);
 
-            return rows.Select(MapMedicine).ToList();
+            return new PagedResult<clsMedicine>(rows.Select(row => MapMedicine(row)).ToList(), pageNumber, pageSize, total);
         }
 
         public static async Task<clsMedicine?> FindAsync(int id)

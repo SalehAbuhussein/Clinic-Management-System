@@ -1,4 +1,5 @@
-﻿using Clinic_Business.Entities;
+﻿using Clinic_Business.Common;
+using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 
 namespace Clinic_Business.Repositories
@@ -10,7 +11,7 @@ namespace Clinic_Business.Repositories
             return clsMedicine.FindAsync(id);
         }
 
-        public Task<List<clsMedicine>> FindAllAsync(string? name = null, int pageNumber = 1, int pageSize = 10)
+        public Task<PagedResult<clsMedicine>> FindAllAsync(string? name = null, int pageNumber = 1, int pageSize = 10)
         {
             return clsMedicine.FindAllAsync(name, pageNumber, pageSize);
         }
