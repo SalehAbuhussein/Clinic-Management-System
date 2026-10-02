@@ -13,8 +13,5 @@ import { AppointmentCard } from '@shared/services/appointment/appointment.types'
 export class AppointmentsListComponent {
   data = input.required<AppointmentCard[]>();
 
-  checkIn = output<number>();
-  noShow = output<number>();
-  cancel = output<number>();
-  reschedule = output<AppointmentCard>();
+  open = output<AppointmentCard>();
 }

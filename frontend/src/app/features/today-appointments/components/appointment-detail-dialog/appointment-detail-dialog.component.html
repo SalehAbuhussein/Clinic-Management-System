@@ -1,0 +1,41 @@
+<h2 class="appointment-detail__title" matDialogTitle>{{ appointment.patientName }}</h2>
+
+<div class="appointment-detail__content" matDialogContent>
+  <p class="appointment-detail__doctor">{{ appointment.doctorName }}</p>
+
+  <span class="appointment-detail__status">
+    <mat-icon>{{ status().icon }}</mat-icon>
+    {{ status().label }}
+  </span>
+
+  <dl class="appointment-detail__facts">
+    <dt>Day</dt>
+    <dd>{{ appointment.startAt | date: 'EEEE d MMMM' }}</dd>
+
+    <dt>Time</dt>
+    <dd>{{ appointment.startAt | date: 'HH:mm' }} to {{ appointment.endAt | date: 'HH:mm' }}</dd>
+
+    @if (appointment.notes) {
+      <dt>Notes</dt>
+      <dd>{{ appointment.notes }}</dd>
+    }
+  </dl>
+</div>
+
+<div class="appointment-detail__actions" matDialogActions>
+  @if (isScheduled()) {
+    <button class="appointment-detail__danger" matButton type="button" [matDialogClose]="'cancel'">Cancel appointment</button>
+
+    <span class="appointment-detail__spacer"></span>
+
+    <button matButton type="button" [matDialogClose]="'noShow'">No-show</button>
+
+    <button matButton type="button" [matDialogClose]="'reschedule'">Reschedule</button>
+
+    <button matButton="filled" type="button" [matDialogClose]="'checkIn'">Check in</button>
+  } @else {
+    <span class="appointment-detail__spacer"></span>
+
+    <button matButton type="button" matDialogClose>Close</button>
+  }
+</div>

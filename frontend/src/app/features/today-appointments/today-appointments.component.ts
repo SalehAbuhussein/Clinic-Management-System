@@ -15,6 +15,7 @@ import { AppointmentCardShimmerComponent } from '@shared/components/appointment-
 import { AppointmentsListComponent } from './components/appointments-list/appointments-list.component';
 import { AppointmentsListEmptyStateComponent } from './components/appointments-list-empty-state/appointments-list-empty-state.component';
 import { AppointmentsListErrorStateComponent } from './components/appointments-list-error-state/appointments-list-error-state.component';
+import { AppointmentDetailAction, AppointmentDetailDialogComponent } from './components/appointment-detail-dialog/appointment-detail-dialog.component';
 import { BookAppointmentDialogComponent } from '@features/book-appointment-dialog/book-appointment-dialog.component';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.types';
@@ -123,6 +124,36 @@ export class TodayAppointmentsComponent {
 
       this.appointmentsResource.reload();
     });
+  }
+
+  /**
+   * Show everything on an appointment, and act on whatever the dialog closes
+   * with.
+   *
+   * Each action opens another dialog, so the detail closes first rather than
+   * stacking two on top of each other.
+   *
+   * @param appointment The card that was picked.
+   */
+  openAppointment = (appointment: AppointmentCard) => {
+    this.dialog.open(AppointmentDetailDialogComponent, { width: '480px', data: appointment })
+      .afterClosed()
+      .subscribe((action: AppointmentDetailAction | undefined) => {
+        switch (action) {
+          case 'checkIn':
+            this.checkInPatient(appointment.id);
+            break;
+          case 'reschedule':
+            this.rescheduleAppointment(appointment);
+            break;
+          case 'noShow':
+            this.markNoShow(appointment.id);
+            break;
+          case 'cancel':
+            this.cancelAppointment(appointment.id);
+            break;
+        }
+      });
   }
 
   /**

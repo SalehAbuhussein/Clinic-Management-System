@@ -15,6 +15,7 @@ import { PatientService } from '@shared/services/patient/patient.service';
 
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
+import { PatientDetailAction, PatientDetailDialogComponent } from './components/patient-detail-dialog/patient-detail-dialog.component';
 import { PatientFormDialogComponent } from './components/patient-form-dialog/patient-form-dialog.component';
 import { PatientsListComponent } from './components/patients-list/patients-list.component';
 
@@ -99,6 +100,29 @@ export class PatientsComponent {
     const page = Number(this.route.snapshot.queryParamMap.get('page'));
 
     return Number.isInteger(page) && page > 0 ? page : 1;
+  }
+
+  /**
+   * Show everything on a patient, and act on whatever the dialog closes with.
+   *
+   * Both actions open another dialog, so the detail closes first rather than
+   * stacking two on top of each other.
+   *
+   * @param patient The row that was picked.
+   */
+  openPatient = (patient: Patient) => {
+    this.dialog.open(PatientDetailDialogComponent, { width: '480px', data: patient })
+      .afterClosed()
+      .subscribe((action: PatientDetailAction | undefined) => {
+        switch (action) {
+          case 'edit':
+            this.editPatient(patient);
+            break;
+          case 'delete':
+            this.deletePatient(patient);
+            break;
+        }
+      });
   }
 
   /**

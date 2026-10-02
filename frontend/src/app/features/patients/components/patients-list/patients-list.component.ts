@@ -13,6 +13,5 @@ import { PatientRowComponent } from '../patient-row/patient-row.component';
 export class PatientsListComponent {
   data = input.required<Patient[]>();
 
-  edit = output<Patient>();
-  remove = output<Patient>();
+  open = output<Patient>();
 }

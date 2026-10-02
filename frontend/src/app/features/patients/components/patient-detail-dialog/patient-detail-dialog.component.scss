@@ -1,0 +1,44 @@
+.patient-detail__facts {
+  column-gap: 16px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  margin: 0;
+  row-gap: 8px;
+
+  dt {
+    color: var(--mat-sys-on-surface-variant);
+    font: var(--mat-sys-body-small);
+  }
+
+  dd {
+    font: var(--mat-sys-body-medium);
+    margin: 0;
+  }
+}
+
+.patient-detail__state {
+  align-items: center;
+  color: var(--mat-sys-on-surface-variant);
+  display: flex;
+  font: var(--mat-sys-body-medium);
+  gap: 10px;
+  margin: 0;
+  padding: 16px 0;
+}
+
+.patient-detail__state--error {
+  color: var(--mat-sys-error);
+}
+
+.patient-detail__actions {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.patient-detail__spacer {
+  flex: 1;
+}
+
+.patient-detail__danger {
+  --mat-button-text-label-text-color: var(--mat-sys-error);
+}

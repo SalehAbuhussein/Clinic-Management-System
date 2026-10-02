@@ -1,0 +1,51 @@
+<h2 class="patient-detail__title" matDialogTitle>{{ row.fullname }}</h2>
+
+<div class="patient-detail__content" matDialogContent>
+  @if (isLoading()) {
+    <p class="patient-detail__state" role="status">
+      <mat-progress-spinner diameter="18" mode="indeterminate" />
+      Loading…
+    </p>
+  } @else if (error(); as message) {
+    <p class="patient-detail__state patient-detail__state--error" role="alert">
+      <mat-icon>error</mat-icon>
+      {{ message }}
+    </p>
+  } @else if (patient(); as found) {
+    <dl class="patient-detail__facts">
+      <dt>National number</dt>
+      <dd>{{ found.nationalNo }}</dd>
+
+      <dt>Phone</dt>
+      <dd>{{ found.phone }}</dd>
+
+      <dt>Gender</dt>
+      <dd>{{ found.gender ? 'Male' : 'Female' }}</dd>
+
+      <dt>Date of birth</dt>
+      <dd>{{ found.dateOfBirth | date: 'd MMM y' }}</dd>
+
+      <dt>Emergency contact</dt>
+      <dd>
+        @if (found.emergencyContactName) {
+          {{ found.emergencyContactName }}
+          @if (found.emergencyContactNumber) {
+            , {{ found.emergencyContactNumber }}
+          }
+        } @else {
+          None on file
+        }
+      </dd>
+    </dl>
+  }
+</div>
+
+<div class="patient-detail__actions" matDialogActions>
+  <button class="patient-detail__danger" matButton type="button" [matDialogClose]="'delete'">Delete</button>
+
+  <span class="patient-detail__spacer"></span>
+
+  <button matButton type="button" matDialogClose>Close</button>
+
+  <button matButton="filled" type="button" [disabled]="isLoading()" [matDialogClose]="'edit'">Edit patient</button>
+</div>

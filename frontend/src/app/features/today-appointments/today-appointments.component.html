@@ -30,12 +30,7 @@
   @let appointmentList = appointments();
 
   @if (appointmentList.length) {
-    <app-appointments-list
-      [data]="appointmentList"
-      (checkIn)="checkInPatient($event)"
-      (noShow)="markNoShow($event)"
-      (cancel)="cancelAppointment($event)"
-      (reschedule)="rescheduleAppointment($event)" />
+    <app-appointments-list [data]="appointmentList" (open)="openAppointment($event)" />
 
     @if (total() > perPage()) {
       <app-pagination [(page)]="page" [total]="total()" [pageSize]="perPage()" />

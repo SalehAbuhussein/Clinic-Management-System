@@ -39,10 +39,7 @@
   @let list = patients();
 
   @if (list.length) {
-    <app-patients-list
-      [data]="list"
-      (edit)="editPatient($event)"
-      (remove)="deletePatient($event)" />
+    <app-patients-list [data]="list" (open)="openPatient($event)" />
 
     <app-pagination [(page)]="page" [total]="total()" [pageSize]="perPage()" />
   } @else {
