@@ -51,14 +51,27 @@ export class PatientsComponent {
   phone = signal(this.route.snapshot.queryParamMap.get('phone') ?? '');
 
   /**
-   * The filters, held back until typing pauses. Signals carry no notion of
-   * time, so the delay is an RxJS operator and the values cross back.
+   * Each field, held back until typing pauses. Signals carry no notion of time,
+   * so the delay is an RxJS operator and the value crosses back.
+   *
+   * Debouncing the two strings separately rather than one object matters:
+   * toObservable re-emits its current value on subscribe, so a signal holding
+   * an object would take a second, identical object and count as changed. A
+   * string compares equal to itself and the duplicate dies here.
    */
-  filters = toSignal(
-    toObservable(computed(() => ({ fullname: this.fullname().trim(), phone: this.phone().trim() })))
-      .pipe(debounceTime(300), distinctUntilChanged((left, right) => left.fullname === right.fullname && left.phone === right.phone)),
-    { initialValue: { fullname: this.fullname().trim(), phone: this.phone().trim() } },
+  debouncedFullname = toSignal(
+    toObservable(this.fullname).pipe(debounceTime(300), distinctUntilChanged()),
+    { initialValue: this.fullname() },
   );
+
+  debouncedPhone = toSignal(
+    toObservable(this.phone).pipe(debounceTime(300), distinctUntilChanged()),
+    { initialValue: this.phone() },
+  );
+
+  /** A computed only re-runs when a dependency really changed, so this object
+   * is built once per actual search rather than once per emission. */
+  filters = computed(() => ({ fullname: this.debouncedFullname().trim(), phone: this.debouncedPhone().trim() }));
 
   // Resets to the first page on a new search, but takes the URL's page on the
   // first run so a reload or a shared link lands where it left off.
