@@ -4,6 +4,8 @@ import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, Ma
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 
+import { AuthService } from '@core/auth/service/auth.service';
+
 import { AppointmentCard } from '@shared/services/appointment/appointment.types';
 
 /**
@@ -19,6 +21,8 @@ export type AppointmentDetailAction = 'checkIn' | 'reschedule' | 'noShow' | 'can
   templateUrl: './appointment-detail-dialog.component.html',
 })
 export class AppointmentDetailDialogComponent {
+  authService = inject(AuthService);
+
   appointment = inject<AppointmentCard>(MAT_DIALOG_DATA);
 
   /** Only a scheduled appointment can still be checked in, moved or called off. */

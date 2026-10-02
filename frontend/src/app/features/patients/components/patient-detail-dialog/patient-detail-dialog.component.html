@@ -41,11 +41,15 @@
 </div>
 
 <div class="patient-detail__actions" matDialogActions>
-  <button class="patient-detail__danger" matButton type="button" [matDialogClose]="'delete'">Delete</button>
+  @if (authService.isAdmin()) {
+    <button class="patient-detail__danger" matButton type="button" [matDialogClose]="'delete'">Delete</button>
+  }
 
   <span class="patient-detail__spacer"></span>
 
   <button matButton type="button" matDialogClose>Close</button>
 
-  <button matButton="filled" type="button" [disabled]="isLoading()" [matDialogClose]="'edit'">Edit patient</button>
+  @if (authService.isFrontDesk()) {
+    <button matButton="filled" type="button" [disabled]="isLoading()" [matDialogClose]="'edit'">Edit patient</button>
+  }
 </div>

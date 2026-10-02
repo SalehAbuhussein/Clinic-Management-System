@@ -11,6 +11,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 
+import { AuthService } from '@core/auth/service/auth.service';
 import { PatientService } from '@shared/services/patient/patient.service';
 
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
@@ -41,6 +42,7 @@ import { Patient, PatientFilters } from '@shared/services/patient/patient.types'
   templateUrl: './patients.component.html',
 })
 export class PatientsComponent {
+  authService = inject(AuthService);
   dialog = inject(MatDialog);
   patientService = inject(PatientService);
   route = inject(ActivatedRoute);

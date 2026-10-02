@@ -5,6 +5,7 @@ import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
+import { AuthService } from '@core/auth/service/auth.service';
 import { PatientService } from '@shared/services/patient/patient.service';
 
 import { ApiError } from '@core/auth/types/auth.types';
@@ -23,6 +24,7 @@ export type PatientDetailAction = 'edit' | 'delete';
   templateUrl: './patient-detail-dialog.component.html',
 })
 export class PatientDetailDialogComponent implements OnInit {
+  authService = inject(AuthService);
   patientService = inject(PatientService);
 
   /** The row that was picked. It carries the list's columns and nothing more. */

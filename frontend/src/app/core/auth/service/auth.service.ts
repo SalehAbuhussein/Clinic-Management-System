@@ -1,4 +1,4 @@
-import { inject, Service, signal } from '@angular/core';
+import { computed, inject, Service, signal } from '@angular/core';
 
 import { tap } from 'rxjs';
 
@@ -28,6 +28,25 @@ export class AuthService {
   constructor() {
     this.role.set(this.readRole());
   }
+
+  /**
+   * Mirrors [Authorize(Roles = "Admin")]. Deleting a patient and the admin
+   * screens.
+   */
+  isAdmin = computed(() => this.role() === 'Admin');
+
+  /**
+   * Mirrors [Authorize(Roles = "Admin,Staff")]. Everything reception does:
+   * appointments, patients, and opening or closing a visit.
+   */
+  isFrontDesk = computed(() => this.role() === 'Admin' || this.role() === 'Staff');
+
+  /**
+   * Mirrors the ManageVisitRecord policy, which guards a visit's diagnosis and
+   * its prescription. The API also checks the doctor is on that visit, which
+   * nothing here can know, so this only narrows the menu.
+   */
+  canManageVisitRecord = computed(() => this.role() === 'Admin' || this.role() === 'Doctor');
 
   /**
    * Decodes the access token's payload and pulls the role out of it.

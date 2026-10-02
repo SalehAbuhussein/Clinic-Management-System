@@ -84,21 +84,29 @@
 
 <div class="visit-detail__actions" matDialogActions>
   @if (isOpen()) {
-    <button class="visit-detail__danger" matButton type="button" [matDialogClose]="'delete'">Delete</button>
+    @if (authService.isFrontDesk()) {
+      <button class="visit-detail__danger" matButton type="button" [matDialogClose]="'delete'">Delete</button>
+    }
 
     <span class="visit-detail__spacer"></span>
 
-    <button matButton type="button" [matDialogClose]="'edit'">Edit visit</button>
+    @if (authService.isFrontDesk()) {
+      <button matButton type="button" [matDialogClose]="'edit'">Edit visit</button>
+    }
 
-    <button matButton type="button" [matDialogClose]="'diagnose'">
-      {{ diagnosis() ? 'Edit diagnosis' : 'Add diagnosis' }}
-    </button>
+    @if (authService.canManageVisitRecord()) {
+      <button matButton type="button" [matDialogClose]="'diagnose'">
+        {{ diagnosis() ? 'Edit diagnosis' : 'Add diagnosis' }}
+      </button>
 
-    <button matButton type="button" [matDialogClose]="'prescribe'">
-      {{ prescription().length ? 'Edit prescription' : 'Add prescription' }}
-    </button>
+      <button matButton type="button" [matDialogClose]="'prescribe'">
+        {{ prescription().length ? 'Edit prescription' : 'Add prescription' }}
+      </button>
+    }
 
-    <button matButton="filled" type="button" [matDialogClose]="'checkout'">Check out</button>
+    @if (authService.isFrontDesk()) {
+      <button matButton="filled" type="button" [matDialogClose]="'checkout'">Check out</button>
+    }
   } @else {
     <span class="visit-detail__spacer"></span>
 

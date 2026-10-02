@@ -5,6 +5,7 @@ import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
+import { AuthService } from '@core/auth/service/auth.service';
 import { DiagnosisService } from '@shared/services/diagnosis/diagnosis.service';
 import { PrescriptionService } from '@shared/services/prescription/prescription.service';
 
@@ -26,6 +27,7 @@ export type VisitDetailAction = 'diagnose' | 'prescribe' | 'edit' | 'checkout' |
   templateUrl: './visit-detail-dialog.component.html',
 })
 export class VisitDetailDialogComponent implements OnInit {
+  authService = inject(AuthService);
   diagnosisService = inject(DiagnosisService);
   prescriptionService = inject(PrescriptionService);
 

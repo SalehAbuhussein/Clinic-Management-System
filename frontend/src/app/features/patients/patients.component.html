@@ -1,10 +1,12 @@
 <header class="patients__header">
   <h1 class="patients__title">Patients</h1>
 
-  <button matButton="filled" type="button" (click)="openNewPatientDialog()">
-    <mat-icon>person_add</mat-icon>
-    New patient
-  </button>
+  @if (authService.isFrontDesk()) {
+    <button matButton="filled" type="button" (click)="openNewPatientDialog()">
+      <mat-icon>person_add</mat-icon>
+      New patient
+    </button>
+  }
 </header>
 
 <div class="patients__filters">

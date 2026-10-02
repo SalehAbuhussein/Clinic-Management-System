@@ -1,4 +1,4 @@
-<h2 class="appointment-detail__title" matDialogTitle>{{ appointment.patientName }}</h2>
+﻿<h2 class="appointment-detail__title" matDialogTitle>{{ appointment.patientName }}</h2>
 
 <div class="appointment-detail__content" matDialogContent>
   <p class="appointment-detail__doctor">{{ appointment.doctorName }}</p>
@@ -23,7 +23,7 @@
 </div>
 
 <div class="appointment-detail__actions" matDialogActions>
-  @if (isScheduled()) {
+  @if (isScheduled() && authService.isFrontDesk()) {
     <button class="appointment-detail__danger" matButton type="button" [matDialogClose]="'cancel'">Cancel appointment</button>
 
     <span class="appointment-detail__spacer"></span>
