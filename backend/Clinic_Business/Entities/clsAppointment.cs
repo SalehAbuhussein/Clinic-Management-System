@@ -63,8 +63,8 @@ namespace Clinic_Business.Entities
         public static async Task<PagedResult<clsAppointment>> FindAllAsync(
             int? doctorId,
             int? patientId,
-            DateOnly? from,
-            DateOnly? to,
+            DateTimeOffset? from,
+            DateTimeOffset? to,
             int pageNumber = 1,
             int pageSize = 10)
         {

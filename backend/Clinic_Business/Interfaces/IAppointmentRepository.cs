@@ -9,8 +9,8 @@ namespace Clinic_Business.Interfaces
         Task<PagedResult<clsAppointment>> FindAllAsync(
             int? doctorId,
             int? patientId,
-            DateOnly? from,
-            DateOnly? to,
+            DateTimeOffset? from,
+            DateTimeOffset? to,
             int pageNumber = 1,
             int pageSize = 10);
         Task<bool> ExistsAsync(int? id);

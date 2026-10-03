@@ -1,5 +1,4 @@
 import { Component, computed, effect, ElementRef, inject, input, model, untracked, viewChild } from '@angular/core';
-import { formatDate } from '@angular/common';
 
 import { AppointmentService } from '@shared/services/appointment/appointment.service';
 import { WorkingDaysService } from '@shared/services/working-days/working-days.service';
@@ -48,12 +47,6 @@ export class DoctorDayStripComponent {
   /** The start time as `HH:mm`, shared with the Time field so the two agree. */
   time = model.required<string>();
 
-  /** The chosen day, formatted for the query string. */
-  rangeStartDate = computed(() => this.asApiDate(this.date()));
-
-  /** The day after the chosen one. The endpoint excludes the end of its range. */
-  rangeEndDate = computed(() => this.asApiDate(this.nextDay(this.date())));
-
   /**
    * Where the proposed appointment starts. Falls back to the clinic's opening
    * time while the Time field holds an incomplete value, so the block stays on
@@ -80,8 +73,7 @@ export class DoctorDayStripComponent {
    */
   schedulesResource = this.appointmentService.getDoctorSchedulesResource(
     () => this.doctorId(),
-    this.rangeStartDate,
-    this.rangeEndDate,
+    () => this.date(),
   );
 
   /** The clinic's row for the weekday being booked, once the list has loaded. */
@@ -267,10 +259,10 @@ export class DoctorDayStripComponent {
    * @returns The time at that position, in minutes, unsnapped.
    */
   minutesAtPointer = (event: PointerEvent): number => {
-   const track = this.track().nativeElement.getBoundingClientRect();
-   const ratio = (event.clientX - track.left) / track.width;
+    const track = this.track().nativeElement.getBoundingClientRect();
+    const ratio = (event.clientX - track.left) / track.width;
 
-   return this.dayStartMinutes() + ratio * this.daySpanMinutes();
+    return this.dayStartMinutes() + ratio * this.daySpanMinutes();
   }
 
   /**
@@ -296,19 +288,6 @@ export class DoctorDayStripComponent {
    * @param minutes The wanted start, before snapping and clamping.
    */
   moveTo = (minutes: number): void => this.time.set(this.toTimeText(this.clampToDay(this.snapToStep(minutes))));
-
-  /**
-   * @param date Any day, or null.
-   * @returns The next day at local midnight, or null.
-   */
-  nextDay = (date: Date | null): Date | null => date ? new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1) : null;
-
-  /**
-   * @param date Any day, or null.
-   * @returns The day as `yyyy-MM-dd`, or an empty string, which the query
-   * string then drops.
-   */
-  asApiDate = (date: Date | null): string => date ? formatDate(date, 'yyyy-MM-dd', 'en-US') : '';
 
   /**
    * @param minutes A time in minutes.

@@ -36,8 +36,8 @@ namespace Clinic_Management_System.Controllers
         public async Task<ActionResult<PagedResult<AppointmentDTO>>> GetAppointments(
             int? doctorId,
             int? patientId,
-            DateOnly? from,
-            DateOnly? to,
+            DateTimeOffset? from,
+            DateTimeOffset? to,
             [Range(1, int.MaxValue)] int page = 1,
             [Range(1, 10)] int perPage = 10
         )
@@ -277,8 +277,8 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<List<AppointmentScheduleDTO>>> GetDoctorAppointmentSchedules(
             [Range(1, int.MaxValue)] int doctorId,
-            DateTime from,
-            DateTime to
+            DateTimeOffset from,
+            DateTimeOffset to
         )
         {
             List<clsAppointment.DoctorSchedule> doctorSchedules = await clsAppointment.FindDoctorSchedulesAsync(doctorId, from, to);

@@ -11,7 +11,7 @@ namespace Clinic_DataAccess
 {
     public class clsVisitDA
     {
-        public static async Task<DataTable> FindAllAsync(int? doctorId = null, DateOnly? day = null, int pageNumber = 1, int pageSize = 10)
+        public static async Task<DataTable> FindAllAsync(int? doctorId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, int pageNumber = 1, int pageSize = 10)
         {
             DataTable dt = new DataTable();
 
@@ -49,10 +49,16 @@ namespace Clinic_DataAccess
                         command.Parameters.AddWithValue("@DoctorID", doctorId.Value);
                     }
 
-                    if (day.HasValue)
+                    if (from.HasValue)
                     {
-                        conditions.Add("V.CheckinTime >= @Day AND V.CheckinTime < DATEADD(day, 1, @Day)");
-                        command.Parameters.AddWithValue("@Day", day.Value);
+                        conditions.Add("V.CheckinTime >= @From");
+                        command.Parameters.AddWithValue("@From", from.Value);
+                    }
+
+                    if (to.HasValue)
+                    {
+                        conditions.Add("V.CheckinTime < @To");
+                        command.Parameters.AddWithValue("@To", to.Value);
                     }
 
                     if (conditions.Count > 0)

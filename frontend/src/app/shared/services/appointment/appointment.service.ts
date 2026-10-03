@@ -2,6 +2,8 @@ import { inject, Service } from '@angular/core';
 
 import { ApiService } from '@core/services/api/api.service';
 
+import { dayRange } from '@core/utils/day.utils';
+
 import { AppointmentFilters, CreateAppointmentRequest, CreateDoctorAppoinmentResponse, GetAppointmentsResponse, GetDoctorSchedulesResponse, RescheduleAppointmentRequest } from './appointment.types';
 
 @Service()
@@ -24,32 +26,36 @@ export class AppointmentService {
   /**
    * Appointments for a single calendar day.
    *
-   * A day is a range of one, so both bounds take the same value.
+   * The bounds go out as instants carrying this browser's offset, because the
+   * API compares them against stored instants. A bare date would widen to UTC
+   * midnight in SQL Server and cut the day at the wrong hour.
    *
-   * @param day Returns the day as `yyyy-MM-dd` in local time, never an instant.
+   * @param day Returns the day to show; the time of day is ignored.
    * @returns The resource holding that day's appointments.
    */
-  getTodayAppointmentResource = (day: () => string, page: () => number) => this.getAppointmentResource(() => ({ from: day(), to: day(), page: page() }));
+  getTodayAppointmentResource = (day: () => Date, page: () => number) => this.getAppointmentResource(() => ({
+    ...dayRange(day()),
+    page: page(),
+  }));
 
   /**
    * The slots a doctor already has booked between two days.
    *
    * @param doctorId Returns the chosen doctor, or null when none is.
-   * @param from Returns the first day as `yyyy-MM-dd`.
-   * @param to Returns the last day as `yyyy-MM-dd`.
+   * @param day Returns the day being booked, or null while none is chosen.
    * @returns The resource holding that doctor's booked slots.
    */
-  getDoctorSchedulesResource = (doctorId: () => number | null, from: () => string, to: () => string) =>
+  getDoctorSchedulesResource = (doctorId: () => number | null, day: () => Date | null) =>
     this.apiService.getResource<GetDoctorSchedulesResponse>(
-      () => (doctorId() ? `/Appointments/doctor/${doctorId()}/schedules` : null),
-      () => ({ from: from(), to: to() }),
+      () => (doctorId() && day() ? `/Appointments/doctor/${doctorId()}/schedules` : null),
+      () => dayRange(day()!),
     );
 
   /**
    * Create Appointment for a patient
-   * 
-   * @param body 
-   * @returns 
+   *
+   * @param body
+   * @returns
    */
   createAppointment = (body: CreateAppointmentRequest) => this.apiService.post<CreateDoctorAppoinmentResponse>("/Appointments", body);
 

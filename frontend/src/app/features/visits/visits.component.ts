@@ -51,7 +51,7 @@ export class VisitsComponent {
     computation: (_, previous) => previous ? 1 : this.pageFromUrl(),
   });
 
-  visitsResource = this.visitService.getVisitResource(this.dayParam, this.page);
+  visitsResource = this.visitService.getVisitResource(this.day, this.page);
 
   visits = computed(() => this.visitsResource.value().items);
   total = computed(() => this.visitsResource.value().total);

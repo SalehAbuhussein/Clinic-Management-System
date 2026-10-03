@@ -11,8 +11,8 @@ namespace Clinic_Business.Repositories
         public Task<PagedResult<clsAppointment>> FindAllAsync(
             int? doctorId,
             int? patientId,
-            DateOnly? from,
-            DateOnly? to,
+            DateTimeOffset? from,
+            DateTimeOffset? to,
             int pageNumber = 1,
             int pageSize = 10)
             => clsAppointment.FindAllAsync(doctorId, patientId, from, to, pageNumber, pageSize);

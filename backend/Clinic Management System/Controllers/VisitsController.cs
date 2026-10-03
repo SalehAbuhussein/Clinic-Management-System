@@ -36,9 +36,13 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<PagedResult<VisitDTO>>> GetVisits(int? doctorId, DateOnly? day, [Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
+        public async Task<ActionResult<PagedResult<VisitDTO>>> GetVisits(int? doctorId, DateTimeOffset? from, DateTimeOffset? to, [Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
             perPage = Math.Clamp(perPage, 1, 10);
+
+            if (from.HasValue && to.HasValue && from > to)
+                return Problem(statusCode: StatusCodes.Status400BadRequest,
+                    detail: "The start of the range must be on or before its end.");
 
             // If Docotor tries to get visits get them the visits of there own only 
             if (User.IsInRole("Doctor"))
@@ -51,7 +55,7 @@ namespace Clinic_Management_System.Controllers
                 doctorId = doctor.DoctorID;
             }
 
-            PagedResult<clsVisit.VisitItem> visitsPage = await _visitRepository.FindAllAsync(doctorId, day, page, perPage);
+            PagedResult<clsVisit.VisitItem> visitsPage = await _visitRepository.FindAllAsync(doctorId, from, to, page, perPage);
 
             List<VisitDTO> visitsList = visitsPage.Items
                 .Select(visit => new VisitDTO

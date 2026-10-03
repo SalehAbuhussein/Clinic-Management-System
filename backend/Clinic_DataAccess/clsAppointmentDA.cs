@@ -15,8 +15,8 @@ namespace Clinic_DataAccess
         public static async Task<DataTable> FindAllAsync(
             int? doctorId,
             int? patientId,
-            DateOnly? from,
-            DateOnly? to,
+            DateTimeOffset? from,
+            DateTimeOffset? to,
             int pageNumber = 1,
             int pageSize = 10
         )
@@ -81,7 +81,7 @@ namespace Clinic_DataAccess
 
                     if (to.HasValue)
                     {
-                        conditions.Add("A.StartAt < DATEADD(day, 1, @To)");
+                        conditions.Add("A.StartAt < @To");
                         command.Parameters.AddWithValue("@To", to.Value);
                     }
 

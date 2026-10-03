@@ -2,6 +2,8 @@ import { inject, Service } from '@angular/core';
 
 import { ApiService } from '@core/services/api/api.service';
 
+import { dayRange } from '@core/utils/day.utils';
+
 import { Visit } from './visit.types';
 
 @Service()
@@ -12,12 +14,11 @@ export class VisitService {
    * One day's visits, newest check-in first. A doctor gets their own patients
    * whatever they ask for; the API ignores any doctor the caller names.
    *
-   * @param day Returns the day as `yyyy-MM-dd` in local time, never an instant.
+   * @param day Returns the day to show; the time of day is ignored.
    * @param page Returns the page to show.
    * @returns The resource holding the page.
    */
-  getVisitResource = (day: () => string, page: () => number) =>
-    this.apiService.getPagedResource<Visit>('/Visits', () => ({ day: day(), page: page() }));
+  getVisitResource = (day: () => Date, page: () => number) => this.apiService.getPagedResource<Visit>('/Visits', () => ({ ...dayRange(day()), page: page() }));
 
   /**
    * Open a visit for an appointment. The API also flips the appointment to

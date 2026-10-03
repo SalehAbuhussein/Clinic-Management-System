@@ -65,7 +65,7 @@ export class TodayAppointmentsComponent {
   total = computed(() => this.appointmentsResource.hasValue() ? this.appointmentsResource.value().total : 0);
   perPage = computed(() => this.appointmentsResource.hasValue() ? this.appointmentsResource.value().perPage : 10);
 
-  appointmentsResource = this.appointmentService.getTodayAppointmentResource(this.dayParam, this.page);
+  appointmentsResource = this.appointmentService.getTodayAppointmentResource(this.day, this.page);
   appointments = computed(() => this.appointmentsResource.hasValue() ? this.appointmentsResource.value().items : []);
 
   constructor() {
