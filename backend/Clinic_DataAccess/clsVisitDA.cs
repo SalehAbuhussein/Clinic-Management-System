@@ -11,7 +11,7 @@ namespace Clinic_DataAccess
 {
     public class clsVisitDA
     {
-        public static async Task<DataTable> FindAllAsync(int? doctorId = null, DateOnly? day = null, bool openOnly = false, int pageNumber = 1, int pageSize = 10)
+        public static async Task<DataTable> FindAllAsync(int? doctorId = null, DateOnly? day = null, int pageNumber = 1, int pageSize = 10)
         {
             DataTable dt = new DataTable();
 
@@ -54,9 +54,6 @@ namespace Clinic_DataAccess
                         conditions.Add("V.CheckinTime >= @Day AND V.CheckinTime < DATEADD(day, 1, @Day)");
                         command.Parameters.AddWithValue("@Day", day.Value);
                     }
-
-                    if (openOnly)
-                        conditions.Add("V.CheckoutTime IS NULL");
 
                     if (conditions.Count > 0)
                         query += $"\nWHERE {string.Join(" AND ", conditions)}";
