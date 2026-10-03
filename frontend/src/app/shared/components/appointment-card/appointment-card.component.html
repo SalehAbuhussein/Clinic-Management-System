@@ -5,7 +5,7 @@
   [style.--card-accent]="status().accent"
   [class.appointment--not-attended]="item().status === 2"
   [class.appointment--cancelled]="item().status === 3">
-  <span class="appointment__time">{{ item().startAt | date: 'HH:mm' }}</span>
+  <span class="appointment__time">{{ item().startAt | date: 'h:mm a' }}</span>
 
   <span class="appointment__who">
     <span class="appointment__patient">{{ item().patientName }}</span>
