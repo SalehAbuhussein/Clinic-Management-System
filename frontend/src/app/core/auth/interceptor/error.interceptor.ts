@@ -2,7 +2,7 @@ import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 
 import { catchError, throwError } from 'rxjs';
 
-import { ApiError } from '../types/auth.types';
+import { ApiError } from '@core/auth/types/auth.types';
 
 const MESSAGE_BY_STATUS: Record<number, string> = {
   401: 'Your session has ended. Sign in again.',

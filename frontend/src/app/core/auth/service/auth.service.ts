@@ -5,47 +5,21 @@ import { tap } from 'rxjs';
 import { ApiService } from '@core/services/api/api.service';
 import { LocalStorageService } from '@core/services/local-storage/local-storage.service';
 
-import { LoginRequestBody, Role, TokenResponse } from '../types/auth.types';
+import { LoginRequestBody, Role, TokenResponse } from '@core/auth/types/auth.types';
 
 @Service()
 export class AuthService {
   apiService = inject(ApiService);
   localStorage = inject(LocalStorageService);
 
-  /**
-   * The signed-in user's role, read from the access token rather than asked of
-   * the server, so the UI and the API decide from the same claim.
-   *
-   * It hides menu items. It is not a security control: every endpoint checks
-   * the role itself.
-   *
-   * Seeded in the constructor, not here. Field initializers run in declaration
-   * order, and readRole reaches getAuthToken, which is an arrow property
-   * declared further down and therefore still undefined at this point.
-   */
   role = signal<Role | null>(null);
 
   constructor() {
     this.role.set(this.readRole());
   }
 
-  /**
-   * Mirrors [Authorize(Roles = "Admin")]. Deleting a patient and the admin
-   * screens.
-   */
   isAdmin = computed(() => this.role() === 'Admin');
-
-  /**
-   * Mirrors [Authorize(Roles = "Admin,Staff")]. Everything reception does:
-   * appointments, patients, and opening or closing a visit.
-   */
   isFrontDesk = computed(() => this.role() === 'Admin' || this.role() === 'Staff');
-
-  /**
-   * Mirrors the ManageVisitRecord policy, which guards a visit's diagnosis and
-   * its prescription. The API also checks the doctor is on that visit, which
-   * nothing here can know, so this only narrows the menu.
-   */
   canManageVisitRecord = computed(() => this.role() === 'Admin' || this.role() === 'Doctor');
 
   /**
