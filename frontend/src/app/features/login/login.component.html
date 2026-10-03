@@ -72,7 +72,7 @@
         class="login__submit"
         mat-flat-button
         type="submit"
-        [disabled]="loading() || loginForm().invalid()">
+        [disabled]="loading()">
         @if (loading()) {
           <mat-spinner diameter="18" />
           <span>Signing in</span>

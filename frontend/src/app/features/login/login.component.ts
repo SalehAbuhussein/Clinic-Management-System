@@ -77,7 +77,7 @@ export class LoginComponent implements OnDestroy {
   /**
    * Submit Login form
    */
-  onFormSubmit(event: Event): void {
+  onFormSubmit = (event: Event): void => {
     event.preventDefault();
 
     if (this.loginForm().invalid()) {
@@ -113,9 +113,6 @@ export class LoginComponent implements OnDestroy {
    * Angular onDestroy lifecycle method
    */
   ngOnDestroy(): void {
-    this.error.set({
-      message: '',
-      tone: '',
-    });
+    this.error.set({ message: '', tone: '' });
   }
 }
