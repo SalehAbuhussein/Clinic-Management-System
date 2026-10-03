@@ -1,4 +1,5 @@
-﻿using Clinic_DataAccess;
+﻿using Clinic_Business.Common;
+using Clinic_DataAccess;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -54,17 +55,21 @@ namespace Clinic_Business.Entities
             PersonInfo = new clsPerson();
         }
 
-        public static async Task<List<UserItem>> FindUsersAsync(int pageNumber = 1, int pageSize = 10)
+        public static async Task<PagedResult<UserItem>> FindUsersAsync(int pageNumber = 1, int pageSize = 10)
         {
             DataTable table = await clsUserDA.FindUsersAsync(pageNumber, pageSize);
 
-            return table.AsEnumerable().Select(row => new UserItem(
+            List<UserItem> users = table.AsEnumerable().Select(row => new UserItem(
                 row.Field<int>("UserID"),
                 row.Field<string>("Fullname") ?? string.Empty,
                 row.Field<string>("Email") ?? string.Empty,
                 row.Field<string>("Role") ?? string.Empty,
                 row.Field<bool>("Active")
             )).ToList();
+
+            int total = table.Rows.Count == 0 ? 0 : table.Rows[0].Field<int>("TotalCount");
+
+            return new PagedResult<UserItem>(users, pageNumber, pageSize, total);
         }
 
         public static async Task<clsUser?> FindUserAsync(int? id)

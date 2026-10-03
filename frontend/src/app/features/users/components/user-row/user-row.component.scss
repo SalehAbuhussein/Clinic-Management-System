@@ -1,0 +1,112 @@
+:host {
+  display: block;
+}
+
+.user {
+  align-items: center;
+  background-color: var(--mat-sys-surface-container-lowest);
+  border: 0;
+  border-radius: var(--mat-sys-corner-medium);
+  box-shadow: var(--mat-sys-level1);
+  color: var(--mat-sys-on-surface);
+  cursor: pointer;
+  display: grid;
+  font: inherit;
+  gap: 12px;
+  grid-template-columns: 40px 1fr auto auto;
+  inline-size: 100%;
+  padding: 10px 14px;
+  text-align: start;
+
+  &:hover {
+    background-color: var(--mat-sys-surface-container-low);
+  }
+}
+
+.user--inactive {
+  opacity: 0.72;
+}
+
+.user__avatar {
+  align-items: center;
+  background-color: var(--mat-sys-primary-container);
+  block-size: 40px;
+  border-radius: 50%;
+  color: var(--mat-sys-on-primary-container);
+  display: flex;
+  font: var(--mat-sys-label-large);
+  inline-size: 40px;
+  justify-content: center;
+}
+
+.user__who {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.user__name {
+  font: var(--mat-sys-title-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user__email {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user__role {
+  background-color: var(--mat-sys-surface-container-high);
+  border-radius: var(--mat-sys-corner-full);
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-medium);
+  padding: 4px 12px;
+  white-space: nowrap;
+}
+
+.user__inactive {
+  align-items: center;
+  color: var(--mat-sys-error);
+  display: flex;
+  font: var(--mat-sys-label-medium);
+  gap: 4px;
+  white-space: nowrap;
+
+  mat-icon {
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+  }
+}
+
+@media (width < 600px) {
+  .user {
+    grid-template-areas:
+      'avatar who'
+      'role   inactive';
+    grid-template-columns: 40px 1fr;
+    row-gap: 10px;
+  }
+
+  .user__avatar {
+    grid-area: avatar;
+  }
+
+  .user__who {
+    grid-area: who;
+  }
+
+  .user__role {
+    grid-area: role;
+    justify-self: start;
+  }
+
+  .user__inactive {
+    grid-area: inactive;
+  }
+}

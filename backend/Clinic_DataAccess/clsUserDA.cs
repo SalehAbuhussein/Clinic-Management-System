@@ -20,6 +20,8 @@ namespace Clinic_DataAccess
                 await connection.OpenAsync();
 
                 string query = @"SELECT
+                    COUNT(*) OVER() AS TotalCount,
+
 	                U.UserID,
 	                Fullname = CONCAT_WS(' ', P.Firstname, P.Midname, P.Thirdname, P.Lastname),
 	                U.Email,

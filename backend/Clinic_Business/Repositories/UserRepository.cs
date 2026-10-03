@@ -1,4 +1,5 @@
-﻿using Clinic_Business.Entities;
+﻿using Clinic_Business.Common;
+using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 
 namespace Clinic_Business.Repositories
@@ -20,7 +21,7 @@ namespace Clinic_Business.Repositories
             return clsUser.FindUserAsync(userID);
         }
 
-        public Task<List<clsUser.UserItem>> FindUsersAsync(int pageNumber = 1, int pageSize = 10)
+        public Task<PagedResult<clsUser.UserItem>> FindUsersAsync(int pageNumber = 1, int pageSize = 10)
         {
             return clsUser.FindUsersAsync(pageNumber, pageSize);
         }

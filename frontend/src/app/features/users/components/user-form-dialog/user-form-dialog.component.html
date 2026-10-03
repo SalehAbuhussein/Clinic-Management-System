@@ -1,0 +1,110 @@
+<h2 class="user-form__title" matDialogTitle>{{ isEditing ? 'Edit user' : 'New user' }}</h2>
+
+<div class="user-form__content" matDialogContent>
+  @if (!isEditing) {
+    <div class="user-form__row">
+      <mat-form-field>
+        <mat-label>First name</mat-label>
+        <input matInput maxlength="20" [(ngModel)]="firstname">
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Middle name</mat-label>
+        <input matInput maxlength="20" [(ngModel)]="midname">
+      </mat-form-field>
+    </div>
+
+    <div class="user-form__row">
+      <mat-form-field>
+        <mat-label>Third name</mat-label>
+        <input matInput maxlength="20" [(ngModel)]="thirdname">
+        <mat-hint>Optional</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Last name</mat-label>
+        <input matInput maxlength="20" [(ngModel)]="lastname">
+      </mat-form-field>
+    </div>
+
+    <div class="user-form__row">
+      <mat-form-field>
+        <mat-label>National number</mat-label>
+        <input matInput maxlength="15" [(ngModel)]="nationalNo">
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Phone</mat-label>
+        <input matInput type="tel" maxlength="15" [(ngModel)]="phone">
+      </mat-form-field>
+    </div>
+
+    <div class="user-form__row">
+      <mat-form-field>
+        <mat-label>Gender</mat-label>
+
+        <mat-select [ngModel]="gender()" (ngModelChange)="gender.set($event)">
+          <mat-option [value]="true">Male</mat-option>
+          <mat-option [value]="false">Female</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Date of birth</mat-label>
+
+        <input matInput readonly [matDatepicker]="picker" [(ngModel)]="dateOfBirth" (click)="picker.open()">
+
+        <mat-datepicker-toggle matIconSuffix [for]="picker" />
+        <mat-datepicker #picker />
+      </mat-form-field>
+    </div>
+  }
+
+  <div class="user-form__row">
+    <mat-form-field>
+      <mat-label>Email</mat-label>
+      <input matInput type="email" maxlength="255" autocomplete="off" [(ngModel)]="email">
+    </mat-form-field>
+
+    @if (isEditing) {
+      <mat-form-field>
+        <mat-label>Role</mat-label>
+
+        <mat-select [ngModel]="role()" (ngModelChange)="role.set($event)">
+          <mat-option value="Admin">Admin</mat-option>
+          <mat-option value="Doctor">Doctor</mat-option>
+          <mat-option value="Staff">Staff</mat-option>
+        </mat-select>
+      </mat-form-field>
+    } @else {
+      <mat-form-field>
+        <mat-label>Password</mat-label>
+        <input matInput type="password" maxlength="255" autocomplete="new-password" [(ngModel)]="password">
+        <mat-hint>At least 6 characters</mat-hint>
+      </mat-form-field>
+    }
+  </div>
+
+  @if (!isEditing) {
+    <p class="user-form__note">New accounts start as Staff. Change the role once the user exists.</p>
+  }
+</div>
+
+@if (error(); as message) {
+  <p class="user-form__error" role="alert">
+    <mat-icon>error</mat-icon>
+    {{ message }}
+  </p>
+}
+
+<div class="user-form__actions" matDialogActions>
+  <button matButton type="button" matDialogClose [disabled]="isSaving()">Cancel</button>
+
+  <button matButton="filled" type="button" [disabled]="!canSave() || isSaving()" (click)="saveUser()">
+    @if (isSaving()) {
+      <mat-progress-spinner class="user-form__spinner" diameter="18" mode="indeterminate" />
+    }
+
+    {{ isEditing ? 'Save changes' : 'Create user' }}
+  </button>
+</div>

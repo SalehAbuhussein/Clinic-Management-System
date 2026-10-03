@@ -1,0 +1,39 @@
+<header class="users__header">
+  <h1 class="users__title">Users</h1>
+
+  <button matButton="filled" type="button" (click)="openNewUserDialog()">
+    <mat-icon>person_add</mat-icon>
+    New user
+  </button>
+</header>
+
+@if (usersResource.isLoading()) {
+  <p class="users__state" role="status">
+    <mat-progress-spinner diameter="20" mode="indeterminate" />
+    Loading users…
+  </p>
+} @else if (usersResource.error(); as error) {
+  <p class="users__state users__state--error" role="alert">
+    <mat-icon>error</mat-icon>
+    {{ error.message }}
+  </p>
+} @else {
+  @let list = users();
+
+  @if (list.length) {
+    <div class="users__list">
+      @for (user of list; track user.id) {
+        <app-user-row [user]="user" (open)="openUser($event)" />
+      }
+    </div>
+
+    @if (total() > perPage()) {
+      <app-pagination [(page)]="page" [total]="total()" [pageSize]="perPage()" />
+    }
+  } @else {
+    <p class="users__state">
+      <mat-icon>group</mat-icon>
+      No users yet.
+    </p>
+  }
+}

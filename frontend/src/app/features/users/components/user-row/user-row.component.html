@@ -1,0 +1,17 @@
+<button class="user" type="button" [class.user--inactive]="!user().active" (click)="open.emit(user())">
+  <span class="user__avatar" aria-hidden="true">{{ initials() }}</span>
+
+  <span class="user__who">
+    <span class="user__name">{{ user().fullname }}</span>
+    <span class="user__email">{{ user().email }}</span>
+  </span>
+
+  <span class="user__role">{{ user().role }}</span>
+
+  @if (!user().active) {
+    <span class="user__inactive">
+      <mat-icon>block</mat-icon>
+      Inactive
+    </span>
+  }
+</button>

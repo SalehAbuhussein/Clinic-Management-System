@@ -13,9 +13,10 @@ export class AuthService {
   localStorage = inject(LocalStorageService);
 
   role = signal<Role | null>(null);
+  userId = signal<number | null>(null);
 
   constructor() {
-    this.role.set(this.readRole());
+    this.readToken();
   }
 
   isAdmin = computed(() => this.role() === 'Admin');
@@ -23,20 +24,30 @@ export class AuthService {
   canManageVisitRecord = computed(() => this.role() === 'Admin' || this.role() === 'Doctor');
 
   /**
-   * Decodes the access token's payload and pulls the role out of it.
-   *
-   * The two replaceAll calls turn base64url back into standard base64, which
-   * is the only one atob takes. .NET writes claims under schema URIs, so there
-   * is no plain `role` key to read.
-   *
-   * @returns The role claim, or null when there is no usable token.
+   * Pulls what the UI needs out of the access token. Called wherever the token
+   * changes, so the signals and the token can never disagree.
    */
-  readRole(): Role | null {
+  readToken(): void {
+    const claims = this.decodeToken();
+
+    this.role.set((claims?.['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] as Role) ?? null);
+    this.userId.set(Number(claims?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']) || null);
+  }
+
+  /**
+   * Decodes the access token's payload.
+   *
+   * The two replaceAll calls turn base64url back into standard base64, which is
+   * the only one atob takes. .NET writes claims under schema URIs, so there are
+   * no plain `role` or `sub` keys to read.
+   *
+   * @returns The claims, or null when there is no usable token.
+   */
+  decodeToken(): Record<string, string> | null {
     try {
       const payload = this.getAuthToken().split('.')[1].replaceAll('-', '+').replaceAll('_', '/');
-      const claims = JSON.parse(atob(payload));
 
-      return claims['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ?? null;
+      return JSON.parse(atob(payload));
     } catch {
       return null;
     }
@@ -70,7 +81,7 @@ export class AuthService {
     this.localStorage.set("refreshToken", response.refreshToken);
     this.localStorage.set("email", body.email);
 
-    this.role.set(this.readRole());
+    this.readToken();
   }));
 
   /**
@@ -88,7 +99,7 @@ export class AuthService {
         this.localStorage.set("accessToken", response.accessToken);
         this.localStorage.set("refreshToken", response.refreshToken);
 
-        this.role.set(this.readRole());
+        this.readToken();
       })
     );
   }
@@ -101,6 +112,6 @@ export class AuthService {
     this.localStorage.remove("refreshToken");
     this.localStorage.remove("email");
 
-    this.role.set(null);
+    this.readToken();
   }
 }

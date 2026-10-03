@@ -1,4 +1,5 @@
-﻿using Clinic_Business.Entities;
+﻿using Clinic_Business.Common;
+using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Users;
 using Microsoft.AspNetCore.Authorization;
@@ -29,11 +30,13 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<List<UserDTO>>> GetUsers([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
+        public async Task<ActionResult<PagedResult<UserDTO>>> GetUsers([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
-            List<clsUser.UserItem> users = await _userRepository.FindUsersAsync(page, perPage);
+            perPage = Math.Clamp(perPage, 1, 10);
 
-            List<UserDTO> usersList = users
+            PagedResult<clsUser.UserItem> usersPage = await _userRepository.FindUsersAsync(page, perPage);
+
+            List<UserDTO> usersList = usersPage.Items
                 .Select(user => new UserDTO
                 {
                     Id = user.Id,
@@ -43,7 +46,7 @@ namespace Clinic_Management_System.Controllers
                     Role = user.Role,
                 }).ToList();
 
-            return Ok(usersList);
+            return Ok(new PagedResult<UserDTO>(usersList, usersPage.Page, usersPage.PerPage, usersPage.Total));
         }
 
         [Authorize(Roles = "Admin")]

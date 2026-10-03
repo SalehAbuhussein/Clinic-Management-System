@@ -1,0 +1,43 @@
+<h2 class="user-detail__title" matDialogTitle>{{ user.fullname }}</h2>
+
+<div class="user-detail__content" matDialogContent>
+  <dl class="user-detail__facts">
+    <dt>Email</dt>
+    <dd>{{ user.email }}</dd>
+
+    <dt>Role</dt>
+    <dd>{{ user.role }}</dd>
+
+    <dt>Status</dt>
+    <dd>
+      @if (user.active) {
+        Active
+      } @else {
+        <span class="user-detail__inactive">
+          <mat-icon>block</mat-icon>
+          Inactive, cannot sign in
+        </span>
+      }
+    </dd>
+  </dl>
+
+  @if (isSameUser()) {
+    <p class="user-detail__note">This is your own account.</p>
+  }
+</div>
+
+<div class="user-detail__actions" matDialogActions>
+  @if (!isSameUser()) {
+    @if (user.active) {
+      <button class="user-detail__danger" matButton type="button" [matDialogClose]="'deactivate'">Deactivate</button>
+    } @else {
+      <button matButton type="button" [matDialogClose]="'activate'">Activate</button>
+    }
+  }
+
+  <span class="user-detail__spacer"></span>
+
+  <button matButton type="button" matDialogClose>Close</button>
+
+  <button matButton="filled" type="button" [matDialogClose]="'edit'">Edit user</button>
+</div>

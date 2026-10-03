@@ -1,0 +1,37 @@
+:host {
+  display: block;
+}
+
+.users__header {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.users__title {
+  font: var(--mat-sys-title-large);
+  margin: 0;
+}
+
+.users__list {
+  display: grid;
+  gap: 10px;
+}
+
+.users__state {
+  align-items: center;
+  color: var(--mat-sys-on-surface-variant);
+  display: flex;
+  font: var(--mat-sys-body-medium);
+  gap: 12px;
+  justify-content: center;
+  margin: 0;
+  padding: 32px 16px;
+}
+
+.users__state--error {
+  color: var(--mat-sys-error);
+}
