@@ -89,10 +89,13 @@ builder.Services.AddAuthorization(options =>
         policy => policy.Requirements.Add(new CanDoctorViewAppointmentRequirement()));
     options.AddPolicy("ManageVisitRecord",
         policy => policy.Requirements.Add(new ManageVisitRecordRequirement()));
+    options.AddPolicy("ViewVisitRecord",
+        policy => policy.Requirements.Add(new ViewVisitRecordRequirement()));
 });
 builder.Services.AddScoped<IAuthorizationHandler, PersonOwnerOrAuthorizedHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, CanDoctorViewAppointmentHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, ManageVisitRecordHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, ViewVisitRecordHandler>();
 
 
 // ===============================

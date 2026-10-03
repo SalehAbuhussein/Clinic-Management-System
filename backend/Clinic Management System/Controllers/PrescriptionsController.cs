@@ -45,7 +45,7 @@ namespace Clinic_Management_System.Controllers
             var authResult = await authorizationService.AuthorizeAsync(
                 User,
                 visitId,
-                "ManageVisitRecord"
+                "ViewVisitRecord"
             );
 
             if (!authResult.Succeeded)

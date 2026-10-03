@@ -28,7 +28,7 @@ namespace Clinic_Management_System.Controllers
             _authorizationService = authorizationService;
         }
 
-        [Authorize(Roles = "Admin,Doctor")]
+        [Authorize(Roles = "Admin,Staff,Doctor")]
         [HttpGet(Name = "GetVisitDiagnosis")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -37,7 +37,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<DiagnosisDTO>> GetVisitDiagnosis([Range(1, int.MaxValue)] int visitId)
         {
-            var authResult = await _authorizationService.AuthorizeAsync(User, visitId, "ManageVisitRecord");
+            var authResult = await _authorizationService.AuthorizeAsync(User, visitId, "ViewVisitRecord");
 
             if (!authResult.Succeeded)
                 return Forbid();
