@@ -96,7 +96,7 @@ export class LoginComponent implements OnDestroy {
       finalize(() => this.loading.set(false))
     ).subscribe({
       next: () => {
-        this.router.navigate(['dashboard']);
+        this.router.navigate([this.authService.role() === 'Admin' ? '/dashboard/stats' : '/dashboard']);
       },
       error: error => {
         error = error.error;

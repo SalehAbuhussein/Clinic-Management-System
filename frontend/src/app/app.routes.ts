@@ -30,6 +30,12 @@ export const routes: Routes = [
         data: { roles: ['Admin', 'Staff', 'Doctor'] },
         loadChildren: () => import('./features/visits/visits.routes').then(r => r.visitsRoutes),
       },
+      {
+        path: 'stats',
+        canActivate: [roleGuard],
+        data: { roles: ['Admin'] },
+        loadChildren: () => import('./features/stats/stats.routes').then(r => r.statsRoutes),
+      },
     ],
   }
 ];

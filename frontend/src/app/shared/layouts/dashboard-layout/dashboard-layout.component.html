@@ -8,6 +8,19 @@
     }
 
     <mat-nav-list class="dashboard-side__nav">
+      @if (authService.isAdmin()) {
+        <a
+          class="dashboard-side__link"
+          mat-list-item
+          routerLink="/dashboard/stats"
+          routerLinkActive
+          #stats="routerLinkActive"
+          [activated]="stats.isActive">
+          <mat-icon class="dashboard-side__icon" matListItemIcon>insights</mat-icon>
+          <span class="dashboard-side__label" matListItemTitle>Stats</span>
+        </a>
+      }
+
       @if (authService.isFrontDesk()) {
         <a
           class="dashboard-side__link"
@@ -46,13 +59,6 @@
           {{ authService.role() === 'Doctor' ? 'My patients' : 'Visits' }}
         </span>
       </a>
-
-      @if (authService.isAdmin()) {
-        <a class="dashboard-side__link" mat-list-item>
-          <mat-icon class="dashboard-side__icon" matListItemIcon>settings</mat-icon>
-          <span class="dashboard-side__label" matListItemTitle>Admin</span>
-        </a>
-      }
     </mat-nav-list>
 
     <mat-nav-list class="dashboard-side__nav dashboard-side__footer">

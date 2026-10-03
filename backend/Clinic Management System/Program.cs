@@ -96,6 +96,7 @@ builder.Services.AddScoped<IAuthorizationHandler, PersonOwnerOrAuthorizedHandler
 builder.Services.AddScoped<IAuthorizationHandler, CanDoctorViewAppointmentHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, ManageVisitRecordHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, ViewVisitRecordHandler>();
+builder.Services.AddScoped<IStatsRepository, StatsRepository>();
 
 
 // ===============================

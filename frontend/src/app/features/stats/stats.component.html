@@ -1,0 +1,87 @@
+<header class="stats__header">
+  <h1 class="stats__title">Stats</h1>
+
+  <div class="stats__range">
+    <mat-button-toggle-group
+      aria-label="Range"
+      hideSingleSelectionIndicator
+      [value]="preset()"
+      (change)="selectPreset($event.value)">
+      <mat-button-toggle value="7">7 days</mat-button-toggle>
+      <mat-button-toggle value="14">14 days</mat-button-toggle>
+      <mat-button-toggle value="30">30 days</mat-button-toggle>
+      <mat-button-toggle value="custom">Custom</mat-button-toggle>
+    </mat-button-toggle-group>
+
+    @if (preset() === 'custom') {
+      <mat-form-field class="stats__dates" subscriptSizing="dynamic">
+        <mat-label>Range</mat-label>
+
+        <mat-date-range-input [rangePicker]="picker" [min]="minDate" [max]="maxDate">
+          <input matStartDate placeholder="Start" readonly [ngModel]="from()" (ngModelChange)="setFrom($event)" (click)="picker.open()">
+          <input matEndDate placeholder="End" readonly [ngModel]="to()" (ngModelChange)="setTo($event)" (click)="picker.open()">
+        </mat-date-range-input>
+
+        <mat-datepicker-toggle matIconSuffix [for]="picker" />
+        <mat-date-range-picker #picker />
+
+        <mat-hint>Up to {{ MAX_DAYS }} days</mat-hint>
+      </mat-form-field>
+    }
+  </div>
+</header>
+
+@if (statsResource.isLoading()) {
+  <p class="stats__state" role="status">
+    <mat-progress-spinner diameter="20" mode="indeterminate" />
+    Loading statistics…
+  </p>
+} @else if (statsResource.error(); as error) {
+  <p class="stats__state stats__state--error" role="alert">
+    <mat-icon>error</mat-icon>
+    {{ error.message }}
+  </p>
+} @else {
+  <div class="stats__tiles">
+    @for (tile of tiles(); track tile.label) {
+      <article class="tile" [class]="'tile--' + tile.role">
+        <span class="tile__badge">
+          <mat-icon>{{ tile.icon }}</mat-icon>
+        </span>
+
+        <p class="tile__value">{{ tile.value }}</p>
+        <p class="tile__label">{{ tile.label }}</p>
+      </article>
+    }
+  </div>
+
+  <section class="stats__panel">
+    <h2 class="stats__heading">Appointments per day</h2>
+    <p class="stats__caption">{{ rangeLabel() }}</p>
+
+    @if (hasAppointments()) {
+      <div class="chart" role="img" aria-label="Appointments per day over the last two weeks">
+        @for (day of chart(); track day.index) {
+          <div class="chart__column" [title]="day.label">
+            @if (day.isBusiest) {
+              <span class="chart__peak">{{ day.total }}</span>
+            }
+
+            <span class="chart__bar" [style.block-size.%]="day.height"></span>
+          </div>
+        }
+      </div>
+
+      <div class="chart__ticks" aria-hidden="true">
+        @for (day of chart(); track day.index) {
+          <span class="chart__tick">{{ day.index % tickEvery() === 0 ? day.tick : '' }}</span>
+        }
+      </div>
+    } @else {
+      <p class="stats__state">
+        <mat-icon>bar_chart</mat-icon>
+        No appointments between {{ rangeLabel() }}.
+      </p>
+    }
+  </section>
+}
