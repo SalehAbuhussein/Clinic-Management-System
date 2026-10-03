@@ -11,7 +11,7 @@ namespace Clinic_DataAccess
 {
     public class clsVisitDA
     {
-        public static async Task<DataTable> FindAllAsync(int pageNumber = 1, int pageSize = 10)
+        public static async Task<DataTable> FindAllAsync(int? doctorId = null, bool openOnly = false, int pageNumber = 1, int pageSize = 10)
         {
             DataTable dt = new DataTable();
 
@@ -35,16 +35,35 @@ namespace Clinic_DataAccess
                 INNER JOIN People PP ON PP.PersonID = PT.PersonID
                 INNER JOIN Doctors D ON D.DoctorID = A.DoctorID
                 INNER JOIN Users U ON U.UserID = D.UserID
-                INNER JOIN People DP ON DP.PersonID = U.PersonID
+                INNER JOIN People DP ON DP.PersonID = U.PersonID";
 
-                ORDER BY V.CheckinTime DESC
-                OFFSET (@PageNumber - 1) * @PageSize ROWS
-                FETCH NEXT @PageSize ROWS ONLY;";
-
-                using (SqlCommand command = new SqlCommand(query, connection))
+                using (SqlCommand command = new SqlCommand())
                 {
+                    command.Connection = connection;
+
+                    List<string> conditions = new List<string>();
+
+                    if (doctorId.HasValue)
+                    {
+                        conditions.Add("A.DoctorID = @DoctorID");
+                        command.Parameters.AddWithValue("@DoctorID", doctorId.Value);
+                    }
+
+                    if (openOnly)
+                        conditions.Add("V.CheckoutTime IS NULL");
+
+                    if (conditions.Count > 0)
+                        query += $"\nWHERE {string.Join(" AND ", conditions)}";
+
+                    query += @"
+                        ORDER BY V.CheckinTime DESC
+                        OFFSET (@PageNumber - 1) * @PageSize ROWS
+                        FETCH NEXT @PageSize ROWS ONLY;";
+
                     command.Parameters.AddWithValue("@PageNumber", pageNumber);
                     command.Parameters.AddWithValue("@PageSize", pageSize);
+
+                    command.CommandText = query;
 
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {

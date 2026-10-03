@@ -5,6 +5,7 @@ using Clinic_Management_System.DTOs.Models.Visits;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 
 namespace Clinic_Management_System.Controllers
 {
@@ -15,28 +16,42 @@ namespace Clinic_Management_System.Controllers
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly IVisitRepository _visitRepository;
         private readonly IDiagnosisRepository _diagnosisRepository;
+        private readonly IDoctorRepository _doctorRepository;
 
         public VisitsController(
             IAppointmentRepository appointmentRepository,
             IVisitRepository visitRepository,
-            IDiagnosisRepository diagnosisRepository)
+            IDiagnosisRepository diagnosisRepository,
+            IDoctorRepository doctorRepository)
         {
             _appointmentRepository = appointmentRepository;
             _visitRepository = visitRepository;
             _diagnosisRepository = diagnosisRepository;
+            _doctorRepository = doctorRepository;
         }
 
-        [Authorize(Roles = "Admin,Staff")]
+        [Authorize(Roles = "Admin,Staff,Doctor")]
         [HttpGet(Name = "GetVisits")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<PagedResult<VisitDTO>>> GetVisits([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
+        public async Task<ActionResult<PagedResult<VisitDTO>>> GetVisits(int? doctorId, bool openOnly = false, [Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
             perPage = Math.Clamp(perPage, 1, 10);
 
-            PagedResult<clsVisit.VisitItem> visitsPage = await _visitRepository.FindAllAsync(page, perPage);
+            // If Docotor tries to get visits get them the visits of there own only 
+            if (User.IsInRole("Doctor"))
+            {
+                clsDoctor? doctor = await _doctorRepository.FindByUserIdAsync(int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!));
+
+                if (doctor == null)
+                    return Problem(statusCode: StatusCodes.Status403Forbidden, detail: "This account has the Doctor role but no doctor record.");
+
+                doctorId = doctor.DoctorID;
+            }
+
+            PagedResult<clsVisit.VisitItem> visitsPage = await _visitRepository.FindAllAsync(doctorId, openOnly, page, perPage);
 
             List<VisitDTO> visitsList = visitsPage.Items
                 .Select(visit => new VisitDTO
