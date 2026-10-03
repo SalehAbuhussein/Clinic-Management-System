@@ -1,9 +1,13 @@
 import { ActivatedRoute, Router } from '@angular/router';
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, linkedSignal, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { formatDate } from '@angular/common';
 
 import { Observable } from 'rxjs';
 
@@ -22,7 +26,7 @@ import { ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dia
 import { Visit } from '@shared/services/visit/visit.types';
 
 @Component({
-  imports: [MatIcon, MatProgressSpinner, PaginationComponent, VisitRowComponent],
+  imports: [FormsModule, MatButton, MatDatepickerModule, MatIcon, MatIconButton, MatProgressSpinner, PaginationComponent, VisitRowComponent],
   selector: 'app-visits',
   styleUrl: './visits.component.scss',
   templateUrl: './visits.component.html',
@@ -34,9 +38,20 @@ export class VisitsComponent {
   snackbar = inject(MatSnackBar);
   visitService = inject(VisitService);
 
-  page = signal(this.pageFromUrl());
+  day = signal(this.dayFromUrl());
 
-  visitsResource = this.visitService.getVisitResource(this.page);
+  dayParam = computed(() => formatDate(this.day(), 'yyyy-MM-dd', 'en-US'));
+  dayLabel = computed(() => formatDate(this.day(), 'EEEE d MMMM', 'en-US'));
+  isToday = computed(() => this.dayParam() === formatDate(new Date(), 'yyyy-MM-dd', 'en-US'));
+
+  // Resets to the first page on a new day, but takes the URL's page on the
+  // first run so a reload or a shared link lands where it left off.
+  page = linkedSignal<string, number>({
+    source: this.dayParam,
+    computation: (_, previous) => previous ? 1 : this.pageFromUrl(),
+  });
+
+  visitsResource = this.visitService.getVisitResource(this.dayParam, this.page);
 
   visits = computed(() => this.visitsResource.value().items);
   total = computed(() => this.visitsResource.value().total);
@@ -45,12 +60,34 @@ export class VisitsComponent {
   constructor() {
     effect(() => {
       this.router.navigate([], {
-        queryParams: { page: this.page() },
+        queryParams: { day: this.dayParam(), page: this.page() },
         relativeTo: this.route,
         replaceUrl: true,
       });
     });
   }
+
+  /**
+   * Reads the day to show. A date with no time parses as UTC, so the midnight
+   * is spelled out to keep it local.
+   *
+   * @returns The day from the URL, or today.
+   */
+  dayFromUrl(): Date {
+    const value = this.route.snapshot.queryParamMap.get('day');
+    const day = value ? new Date(`${value}T00:00:00`) : null;
+
+    return day && !Number.isNaN(day.getTime()) ? day : new Date();
+  }
+
+  /**
+   * Move the shown day.
+   *
+   * @param days Offset in days; negative goes back.
+   */
+  shiftDayBy = (days: number) => this.day.update((current) => new Date(current.getFullYear(), current.getMonth(), current.getDate() + days));
+
+  goToToday = () => this.day.set(new Date());
 
   /**
    * @returns The page from the URL, or the first one.

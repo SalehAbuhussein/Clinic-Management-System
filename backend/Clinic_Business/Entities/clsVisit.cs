@@ -52,9 +52,9 @@ namespace Clinic_Business.Entities
 
         public record VisitItem(int Id, int AppointmentID, string? PatientName, string? DoctorName, DateTimeOffset AppointmentStartAt, DateTimeOffset CheckinTime, DateTimeOffset? CheckoutTime, string? Notes);
 
-        public static async Task<PagedResult<VisitItem>> FindAllAsync(int? doctorId = null, bool openOnly = false, int pageNumber = 1, int pageSize = 10)
+        public static async Task<PagedResult<VisitItem>> FindAllAsync(int? doctorId = null, DateOnly? day = null, bool openOnly = false, int pageNumber = 1, int pageSize = 10)
         {
-            DataTable table = await clsVisitDA.FindAllAsync(doctorId, openOnly, pageNumber, pageSize);
+            DataTable table = await clsVisitDA.FindAllAsync(doctorId, day, openOnly, pageNumber, pageSize);
 
             List<VisitItem> visits = table.AsEnumerable().Select(row => new VisitItem(
                 row.Field<int>("VisitID"),

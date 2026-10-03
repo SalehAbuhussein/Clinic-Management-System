@@ -11,15 +11,15 @@
   <dl class="visit-detail__facts">
     @if (visit.appointmentStartAt) {
       <dt>Appointment</dt>
-      <dd>{{ visit.appointmentStartAt | date: 'EEE d MMM, HH:mm' }}</dd>
+      <dd>{{ visit.appointmentStartAt | date: 'EEE d MMM, h:mm a' }}</dd>
     }
 
     <dt>Checked in</dt>
-    <dd>{{ visit.checkinTime | date: 'EEE d MMM, HH:mm' }}</dd>
+    <dd>{{ visit.checkinTime | date: 'EEE d MMM, h:mm a' }}</dd>
 
     @if (visit.checkoutTime) {
       <dt>Checked out</dt>
-      <dd>{{ visit.checkoutTime | date: 'EEE d MMM, HH:mm' }}</dd>
+      <dd>{{ visit.checkoutTime | date: 'EEE d MMM, h:mm a' }}</dd>
     }
 
     @if (visit.notes) {

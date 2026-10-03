@@ -1,5 +1,5 @@
 <button class="visit" type="button" [class.visit--closed]="!isOpen()" (click)="open.emit(visit())">
-  <span class="visit__time">{{ visit().checkinTime | date: 'HH:mm' }}</span>
+  <span class="visit__time">{{ visit().checkinTime | date: 'h:mm a' }}</span>
 
   <span class="visit__who">
     <span class="visit__patient">{{ visit().patientName }}</span>

@@ -10,8 +10,8 @@ namespace Clinic_Business.Repositories
 
         public Task<clsVisit?> FindByAppointmentIdAsync(int? id) => clsVisit.FindByAppointmentIDAsync(id);
 
-        public Task<PagedResult<clsVisit.VisitItem>> FindAllAsync(int? doctorId = null, bool openOnly = false, int pageNumber = 1, int pageSize = 10)
-            => clsVisit.FindAllAsync(doctorId, openOnly, pageNumber, pageSize);
+        public Task<PagedResult<clsVisit.VisitItem>> FindAllAsync(int? doctorId = null, DateOnly? day = null, bool openOnly = false, int pageNumber = 1, int pageSize = 10)
+            => clsVisit.FindAllAsync(doctorId, day, openOnly, pageNumber, pageSize);
 
         public Task<bool> ExistsByAppointmentIdAsync(int id) => clsVisit.IsExistByAppointmentIDAsync(id);
 

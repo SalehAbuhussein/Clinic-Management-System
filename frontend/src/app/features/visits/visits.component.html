@@ -1,5 +1,33 @@
 <header class="visits__header">
-  <h1 class="visits__title">Visits</h1>
+  <div class="visits__heading">
+    <h1 class="visits__title">
+      <button class="visits__pick" type="button" aria-label="Pick a day" (click)="picker.open()">
+        {{ dayLabel() }}
+        <mat-icon>arrow_drop_down</mat-icon>
+      </button>
+
+      <input class="visits__picker-anchor" [matDatepicker]="picker" [ngModel]="day()" (ngModelChange)="day.set($event)">
+      <mat-datepicker #picker />
+    </h1>
+
+    @if (isToday()) {
+      <p class="visits__subtitle">Today</p>
+    }
+  </div>
+
+  <nav class="visits__days" aria-label="Change day">
+    <button matIconButton type="button" aria-label="Previous day" (click)="shiftDayBy(-1)">
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+
+    @if (!isToday()) {
+      <button matButton type="button" (click)="goToToday()">Today</button>
+    }
+
+    <button matIconButton type="button" aria-label="Next day" (click)="shiftDayBy(1)">
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+  </nav>
 </header>
 
 @if (visitsResource.isLoading()) {
@@ -28,7 +56,7 @@
   } @else {
     <p class="visits__state">
       <mat-icon>assignment</mat-icon>
-      No visits yet. Check a patient in from Today to open the first one.
+      Nobody checked in on {{ dayLabel() }}.
     </p>
   }
 }
