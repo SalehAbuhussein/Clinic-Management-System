@@ -1,0 +1,17 @@
+.spinner {
+  display: inline-block;
+  margin-inline-end: 8px;
+  vertical-align: middle;
+}
+
+.dialog-content {
+  column-gap: 20px;
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.form-grid {
+  column-gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+}

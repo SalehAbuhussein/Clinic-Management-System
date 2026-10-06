@@ -1,0 +1,110 @@
+<header>
+  <h2 matDialogTitle>Profile</h2>
+</header>
+
+<div class="dialog-content" (submit)="$event.preventDefault()" matDialogContent>
+  <section class="form-section">
+    <h3 class="form-title">Person Information</h3>
+
+    <div class="form-grid">
+      <mat-form-field>
+        <mat-label>First name</mat-label>
+        <input matInput [formField]="profileForm.firstname">
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Middle name</mat-label>
+        <input matInput [formField]="profileForm.midname">
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Last name</mat-label>
+        <input matInput [formField]="profileForm.lastname">
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>National number</mat-label>
+        <input matInput [formField]="profileForm.nationalNo">
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Phone</mat-label>
+        <input matInput type="tel" [formField]="profileForm.phone">
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Gender</mat-label>
+
+        <mat-select [formField]="profileForm.gender">
+          <mat-option [value]="true">Male</mat-option>
+          <mat-option [value]="false">Female</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Date of birth</mat-label>
+
+        <input matInput [matDatepicker]="picker" [formField]="profileForm.dateOfBirth" (click)="picker.open()">
+
+        <mat-datepicker-toggle matIconSuffix [for]="picker" />
+        <mat-datepicker #picker />
+      </mat-form-field>
+    </div>
+  </section>
+
+  <section class="form-section">
+    <div class="section-header">
+      <h3 class="form-title">Account Security</h3>
+
+      <mat-slide-toggle
+        [checked]="showUserInfo()"
+        (change)="showUserInfo.set($event.checked)"
+      >
+        Change password
+      </mat-slide-toggle>
+    </div>
+
+    @if (showUserInfo()) {
+      <div class="form-grid">
+        <mat-form-field>
+          <mat-label>Current password</mat-label>
+          <input
+            matInput
+            type="password"
+            [formField]="profileForm.currentPassword"
+          >
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>New password</mat-label>
+          <input
+            matInput
+            type="password"
+            [formField]="profileForm.password"
+          >
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Confirm new password</mat-label>
+          <input
+            matInput
+            type="password"
+            [formField]="profileForm.confirmPassword"
+          >
+        </mat-form-field>
+      </div>
+    }
+  </section>
+</div>
+
+<footer class="actions" matDialogActions>
+  <button type="button" matButton [matDialogClose]="true" [disabled]="isSaving()">Cancel</button>
+
+  <button type="button" matButton="filled" [disabled]="isSaving()">
+    @if (isSaving()) {
+      <mat-progress-spinner class="spinner" diameter="18" mode="indeterminate" />
+    }
+
+    Save Changes
+  </button>
+</footer>

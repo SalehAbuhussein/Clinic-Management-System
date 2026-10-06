@@ -118,7 +118,7 @@ namespace Clinic_DataAccess
         /// </summary>
         public static async Task<DataRow?> FindAsync(int id)
         {
-            if (id == int.MinValue)
+            if (id < 1)
                 return null;
 
             DataTable dt = new DataTable();

@@ -62,13 +62,11 @@ namespace Clinic_Management_System.Controllers
         {
             clsDoctor? doctor = await _doctorRepository.FindByIdAsync(id);
             if (doctor == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Doctor with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Doctor with id {id} not found");
 
             clsUser? user = doctor.UserInfo;
             if (user == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Doctor with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Doctor with id {id} not found");
 
             DoctorDTO doctorDTO = new DoctorDTO
             {

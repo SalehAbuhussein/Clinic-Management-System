@@ -97,6 +97,7 @@ builder.Services.AddScoped<IAuthorizationHandler, CanDoctorViewAppointmentHandle
 builder.Services.AddScoped<IAuthorizationHandler, ManageVisitRecordHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, ViewVisitRecordHandler>();
 builder.Services.AddScoped<IStatsRepository, StatsRepository>();
+builder.Services.AddScoped<ILeaveRepository, LeaveRepository>();
 
 
 // ===============================
@@ -223,14 +224,15 @@ builder.Services.AddSwaggerGen(options =>
     {
         ["Auth"] = 1,
         ["Users"] = 2,
-        ["WorkingDays"] = 3,
-        ["Patients"] = 4,
-        ["Doctors"] = 5,
-        ["People"] = 6,
-        ["Appointments"] = 7,
-        ["Visits"] = 8,
-        ["Diagnoses"] = 9,
-        ["Prescriptions"] = 10,
+        ["Leaves"] = 3,
+        ["WorkingDays"] = 4,
+        ["Patients"] = 5,
+        ["Doctors"] = 6,
+        ["People"] = 7,
+        ["Appointments"] = 8,
+        ["Visits"] = 9,
+        ["Diagnoses"] = 10,
+        ["Prescriptions"] = 11,
     };
 
     options.OrderActionsBy(api =>

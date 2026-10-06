@@ -30,6 +30,17 @@
           <mat-icon class="dashboard-side__icon" matListItemIcon>manage_accounts</mat-icon>
           <span class="dashboard-side__label" matListItemTitle>Users</span>
         </a>
+
+        <a
+          class="dashboard-side__link"
+          routerLink="/dashboard/leaves"
+          mat-list-item
+          routerLinkActive
+          #leaves="routerLinkActive"
+          [activated]="leaves.isActive">
+          <mat-icon class="dashboard-side__icon" matListItemIcon>flight_takeoff</mat-icon>
+          <span class="dashboard-side__label" matListItemTitle>Leaves</span>
+        </a>
       }
 
       @if (authService.isFrontDesk()) {
@@ -55,7 +66,6 @@
           <mat-icon class="dashboard-side__icon" matListItemIcon>groups</mat-icon>
           <span class="dashboard-side__label" matListItemTitle>Patients</span>
         </a>
-
       }
 
       <a
@@ -73,6 +83,11 @@
     </mat-nav-list>
 
     <mat-nav-list class="dashboard-side__nav dashboard-side__footer">
+      <a href="" class="dashboard-side__link" mat-list-item (click)="openProfileDialog($event)">
+        <mat-icon class="dashboard-side__icon" matListItemIcon>account_circle</mat-icon>
+        <span class="dashboard-side__label" matListItemTitle>Profile</span>
+      </a>
+
       <a class="dashboard-side__link" mat-list-item (click)="logout()">
         <mat-icon class="dashboard-side__icon" matListItemIcon>logout</mat-icon>
         <span class="dashboard-side__label" matListItemTitle>Sign out</span>
