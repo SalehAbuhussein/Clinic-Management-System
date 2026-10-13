@@ -1,8 +1,34 @@
 .leaves-header {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
   margin-bottom: 16px;
 }
 
 .leaves-title {
   margin: 0;
   font: var(--mat-sys-title-large);
+}
+
+.leaves-state {
+  align-items: center;
+  color: var(--mat-sys-on-surface-variant);
+  display: flex;
+  font: var(--mat-sys-body-medium);
+  gap: 8px;
+  margin: 0;
+  padding: 32px 0;
+}
+
+.leaves-state--error {
+  color: var(--mat-sys-error);
+}
+
+.leaves-empty {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+  margin: 0;
+  padding: 32px 0;
+  text-align: center;
 }

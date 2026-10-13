@@ -1,0 +1,111 @@
+@let day = leaveForm.day();
+@let endTime = leaveForm.endTime();
+@let to = leaveForm.to();
+@let reason = leaveForm.reason();
+
+<h2 class="request-leave__title" matDialogTitle>Request leave</h2>
+
+<form class="request-leave__form" (submit)="requestLeave($event)" novalidate>
+  <div class="request-leave__content" matDialogContent>
+    <mat-button-toggle-group
+      class="request-leave__mode"
+      aria-label="How long"
+      hideSingleSelectionIndicator
+      [value]="leaveModel().mode"
+      (change)="setMode($event.value)">
+      <mat-button-toggle value="day">Single day</mat-button-toggle>
+      <mat-button-toggle value="range">Date range</mat-button-toggle>
+    </mat-button-toggle-group>
+
+    @if (isSingleDay()) {
+      <mat-form-field class="request-leave__field" subscriptSizing="dynamic">
+        <mat-label>Day</mat-label>
+
+        <input matInput [matDatepicker]="dayPicker" [formField]="leaveForm.day" (click)="dayPicker.open()">
+
+        <mat-datepicker-toggle matIconSuffix [for]="dayPicker" />
+        <mat-datepicker #dayPicker />
+
+        @if (day.errors()[0]?.kind === 'required') {
+          <mat-error>Pick the day</mat-error>
+        }
+      </mat-form-field>
+
+      <div class="request-leave__times">
+        <mat-form-field class="request-leave__time" subscriptSizing="dynamic">
+          <mat-label>From</mat-label>
+
+          <input matInput type="time" [formField]="leaveForm.startTime">
+        </mat-form-field>
+
+        <mat-form-field class="request-leave__time" subscriptSizing="dynamic">
+          <mat-label>To</mat-label>
+
+          <input matInput type="time" [formField]="leaveForm.endTime">
+
+          @if (endTime.errors()[0]?.kind === 'endBeforeStart') {
+            <mat-error>Must come after the start time</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      @if (hourCount()) {
+        <p class="request-leave__summary">{{ hourCount() }} {{ hourCount() === 1 ? 'hour' : 'hours' }} off</p>
+      }
+    } @else {
+      <mat-form-field class="request-leave__field" subscriptSizing="dynamic">
+        <mat-label>Days off</mat-label>
+
+        <mat-date-range-input [rangePicker]="picker">
+          <input matStartDate placeholder="First day" [formField]="leaveForm.from" (click)="picker.open()">
+          <input matEndDate placeholder="Last day" [formField]="leaveForm.to" (click)="picker.open()">
+        </mat-date-range-input>
+
+        <mat-datepicker-toggle matIconSuffix [for]="picker" />
+        <mat-date-range-picker #picker />
+
+        @if (to.errors()[0]?.kind === 'required') {
+          <mat-error>Pick the first and last day</mat-error>
+        } @else if (to.errors()[0]?.kind === 'endBeforeStart') {
+          <mat-error>The last day cannot come before the first</mat-error>
+        } @else {
+          <mat-hint>
+            @if (dayCount()) {
+              {{ dayCount() }} {{ dayCount() === 1 ? 'day' : 'days' }}, both included
+            } @else {
+              Pick the first and last day
+            }
+          </mat-hint>
+        }
+      </mat-form-field>
+    }
+
+    <mat-form-field class="request-leave__reason">
+      <mat-label>Reason</mat-label>
+
+      <textarea matInput rows="3" [formField]="leaveForm.reason"></textarea>
+
+      @if (reason.errors()[0]?.kind === 'required') {
+        <mat-error>A reason is required</mat-error>
+      } @else {
+        <mat-hint align="end">{{ reason.value().length }} / 255</mat-hint>
+      }
+    </mat-form-field>
+  </div>
+
+  @if (error(); as message) {
+    <p class="request-leave__error" role="alert">{{ message }}</p>
+  }
+
+  <div class="request-leave__actions" matDialogActions>
+    <button matButton type="button" matDialogClose [disabled]="isSaving()">Cancel</button>
+
+    <button matButton="filled" type="submit" [disabled]="leaveForm().invalid() || isSaving()">
+      @if (isSaving()) {
+        <mat-progress-spinner class="request-leave__spinner" diameter="18" mode="indeterminate" />
+      }
+
+      Send request
+    </button>
+  </div>
+</form>

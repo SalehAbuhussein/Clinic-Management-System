@@ -1,0 +1,50 @@
+.request-leave__content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-top: 8px;
+}
+
+.request-leave__mode {
+  align-self: flex-start;
+}
+
+.request-leave__field,
+.request-leave__reason {
+  width: 100%;
+}
+
+.request-leave__times {
+  display: flex;
+  gap: 16px;
+}
+
+.request-leave__time {
+  flex: 1;
+}
+
+.request-leave__summary {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  margin: -8px 0 0;
+}
+
+.request-leave__error {
+  align-items: center;
+  color: var(--mat-sys-error);
+  display: flex;
+  font: var(--mat-sys-body-small);
+  gap: 8px;
+  margin: 0;
+  padding: 0 24px;
+}
+
+.request-leave__actions {
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.request-leave__spinner {
+  display: inline-block;
+  margin-right: 8px;
+}

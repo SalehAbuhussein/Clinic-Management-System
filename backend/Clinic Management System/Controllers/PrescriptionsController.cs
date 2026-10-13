@@ -1,9 +1,11 @@
-﻿using Clinic_Business.Entities;
+﻿using Clinic_Business.Common;
+using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Prescriptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using static Clinic_Business.Entities.clsPrescriptionItem;
 
 namespace Clinic_Management_System.Controllers
 {
@@ -33,15 +35,13 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<List<PrescriptionDTO>>> GetVisitPrescriptionItems(
+        public async Task<ActionResult<PagedResult<PrescriptionDTO>>> GetVisitPrescriptionItems(
             [FromServices] IAuthorizationService authorizationService,
             [Range(1, int.MaxValue)] int visitId,
             [Range(1, int.MaxValue)] int page = 1,
             [Range(1, 10)] int perPage = 10
         )
         {
-            perPage = Math.Clamp(perPage, 1, 10);
-
             var authResult = await authorizationService.AuthorizeAsync(
                 User,
                 visitId,
@@ -51,29 +51,24 @@ namespace Clinic_Management_System.Controllers
             if (!authResult.Succeeded)
                 return Forbid();
 
-            List<clsPrescriptionItem> items =
+            PagedResult<PrescriptionItem> itemsPage =
                 await _prescriptionItemRepository.FindAllByVisitIdAsync(visitId, page, perPage);
 
-            List<PrescriptionDTO> prescriptions = new List<PrescriptionDTO>();
-
-            foreach (clsPrescriptionItem item in items)
+            List<PrescriptionDTO> prescriptions = itemsPage.Items.Select(item => new PrescriptionDTO
             {
-                prescriptions.Add(new PrescriptionDTO
-                {
-                    Id = item.PrescriptionItemID,
-                    VisitID = item.VisitID,
-                    MedicineID = item.MedicineID,
-                    Dosage = item.Dosage,
-                    Frequency = item.Frequency,
-                    Duration = item.Duration,
-                    Genericname = item.MedicineInfo?.Genericname ?? string.Empty,
-                    Brandname = item.MedicineInfo?.Brandname,
-                    Form = item.MedicineInfo?.Form ?? string.Empty,
-                    Strength = item.MedicineInfo?.Strength ?? string.Empty,
-                });
-            }
+                Id = item.Id,
+                VisitID = item.VisitID,
+                MedicineID = item.MedicineID,
+                Dosage = item.Dosage,
+                Frequency = item.Frequency,
+                Duration = item.Duration,
+                Genericname = item.Genericname,
+                Brandname = item.Brandname,
+                Form = item.Form,
+                Strength = item.Strength,
+            }).ToList();
 
-            return Ok(prescriptions);
+            return Ok(new PagedResult<PrescriptionDTO>(prescriptions, itemsPage.Page, itemsPage.PerPage, itemsPage.Total));
         }
 
         [Authorize]

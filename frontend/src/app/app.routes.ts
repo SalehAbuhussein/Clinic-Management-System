@@ -45,7 +45,7 @@ export const routes: Routes = [
       {
         path: 'leaves',
         canActivate: [roleGuard],
-        data: { roles: ['Admin'] },
+        data: { roles: ['Admin', 'Staff', 'Doctor'] },
         loadChildren: () => import('./features/leaves/leaves.routes').then(r => r.leavesRoutes),
       },
     ],

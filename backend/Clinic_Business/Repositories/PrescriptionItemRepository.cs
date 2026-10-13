@@ -1,11 +1,13 @@
+using Clinic_Business.Common;
 using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
+using static Clinic_Business.Entities.clsPrescriptionItem;
 
 namespace Clinic_Business.Repositories
 {
     public class PrescriptionItemRepository : IPrescriptionItemRepository
     {
-        public Task<List<clsPrescriptionItem>> FindAllByVisitIdAsync(int visitId, int pageNumber = 1, int pageSize = 10)
+        public Task<PagedResult<PrescriptionItem>> FindAllByVisitIdAsync(int visitId, int pageNumber = 1, int pageSize = 10)
             => clsPrescriptionItem.FindAllByVisitIDAsync(visitId, pageNumber, pageSize);
 
         public Task<bool> HasPrescriptionByVisitIdAsync(int? visitId)

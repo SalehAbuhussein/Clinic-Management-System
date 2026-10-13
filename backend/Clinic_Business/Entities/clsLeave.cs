@@ -16,13 +16,37 @@ namespace Clinic_Business.Entities
             Add,
             Update
         }
+        public enum enStatus
+        {
+            Pending,
+            Approved,
+            Rejected
+        }
 
         public int? LeaveID { get; set; }
         public int? UserID { get; set; }
         public DateTimeOffset StartAt { get; set;  }
         public DateTimeOffset EndAt { get; set; }
         public string Reason { get; set; } = string.Empty;
-        public bool IsApproved { get; set; }
+        public byte Status { get; set; }
+        public string StatusText
+        {
+            get
+            {
+                switch (Status)
+                {
+                    case 1:
+                        return "Approved";
+                    case 2:
+                        return "Rejected";
+                    default:
+                        return "Pending"; 
+                }
+            }
+        }
+        public bool IsPending { get { return Status == 0; } }
+        public bool IsApproved { get { return Status == 1; } }
+        public bool IsRejected { get { return Status == 2; } }
         public clsUser UserInfo { get; set; }
         private enMode _Mode;
 
@@ -38,7 +62,7 @@ namespace Clinic_Business.Entities
             DateTimeOffset startAt,
             DateTimeOffset endAt,
             string reason,
-            bool isApproved
+            byte status
         )
         {
             _Mode = enMode.Update;
@@ -48,28 +72,30 @@ namespace Clinic_Business.Entities
             StartAt = startAt;
             EndAt = endAt;
             Reason = reason;
-            IsApproved = isApproved;
+            Status = status;
             // Will be filled from the mapper
             UserInfo = new clsUser();
         }
 
-        public record LeaveItem(int Id, DateTimeOffset StartAt, DateTimeOffset EndAt, string Reason, bool IsApproved);
+        public record LeaveItem(int Id, string Fullname, DateTimeOffset StartAt, DateTimeOffset EndAt, string Reason, byte Status);
 
         public static async Task<PagedResult<LeaveItem>> FindAllLeavesAsync(
+            int? userId,
             DateTimeOffset? from, 
             DateTimeOffset? to,
             int pageNumber = 1,
             int pageSize = 10
         ) 
         {
-            DataTable table = await clsLeaveDA.FindAllAsync(from, to, pageNumber, pageSize);
+            DataTable table = await clsLeaveDA.FindAllAsync(userId, from, to, pageNumber, pageSize);
 
             List<LeaveItem> leaves = table.AsEnumerable().Select(row => new LeaveItem(
                 row.Field<int>("LeaveID"),
+                row.Field<string>("Fullname") ?? string.Empty,
                 row.Field<DateTimeOffset>("StartAt"),
                 row.Field<DateTimeOffset>("EndAt"),
                 row.Field<string>("Reason") ?? string.Empty,
-                row.Field<bool>("Status")
+                row.Field<byte>("Status")
             )).ToList();
 
             int total = table.Rows.Count == 0 ? 0 : table.Rows[0].Field<int>("TotalCount");
@@ -87,6 +113,16 @@ namespace Clinic_Business.Entities
             return row == null ? null : MapLeave(row);
         }
 
+        public static async Task<bool> HasDoctorLeaveAsync(int? doctorId, DateTimeOffset startAt, DateTimeOffset endAt)
+        {
+            return await clsLeaveDA.HasDoctorLeaveAsync(doctorId, startAt, endAt);
+        }
+
+        public static async Task<bool> HasUserLeaveAsync(int? userId, DateTimeOffset startAt, DateTimeOffset endAt)
+        {
+            return await clsLeaveDA.HasUserLeaveAsync(userId, startAt, endAt);
+        }
+
         private async Task<bool> _CreateAsync()
         {
             LeaveID = await clsLeaveDA.CreateAsync(UserID, StartAt, EndAt, Reason);
@@ -95,7 +131,7 @@ namespace Clinic_Business.Entities
 
         private async Task<bool> _UpdateAsync()
         {
-            return await clsLeaveDA.UpdateAsync(LeaveID, Reason);
+            return await clsLeaveDA.UpdateAsync(LeaveID, Reason, Status);
         }
 
         public async Task<bool> SaveAsync()
@@ -123,7 +159,7 @@ namespace Clinic_Business.Entities
                 row.Field<DateTimeOffset>("StartAt"),
                 row.Field<DateTimeOffset>("EndAt"),
                 row.Field<string>("Reason") ?? string.Empty,
-                row.Field<bool>("Status")
+                row.Field<byte>("Status")
             );
 
             leave.UserInfo = clsUser.MapUser(row);

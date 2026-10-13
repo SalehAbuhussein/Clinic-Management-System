@@ -1,9 +1,37 @@
-<h2 matDialogTitle>Leave Request Details</h2>
+<h2 class="leave-detail__title" matDialogTitle>{{ leave.fullname }}</h2>
 
-<div class="dialog-container" matDialogContent>
-  test
+<div class="leave-detail__content" matDialogContent>
+  <span class="leave-detail__status">
+    <mat-icon>{{ status.icon }}</mat-icon>
+    {{ status.label }}
+  </span>
+
+  <dl class="leave-detail__facts">
+    <dt>From</dt>
+    <dd>{{ leave.from | date: 'EEEE d MMMM y' }}</dd>
+
+    <dt>To</dt>
+    <dd>{{ leave.to | date: 'EEEE d MMMM y' }}</dd>
+
+    @if (leave.reason) {
+      <dt>Reason</dt>
+      <dd>{{ leave.reason }}</dd>
+    }
+  </dl>
 </div>
 
-<div matDialogActions>
-  <button class="cancel" type="button" matButton matDialogClose>Close</button>
+<div class="leave-detail__actions" matDialogActions>
+  @if (isPending && authService.isAdmin()) {
+    <button class="leave-detail__danger" matButton type="button" [matDialogClose]="'reject'">Reject</button>
+
+    <span class="leave-detail__spacer"></span>
+
+    <button matButton type="button" matDialogClose>Close</button>
+
+    <button matButton="filled" type="button" [matDialogClose]="'approve'">Approve</button>
+  } @else {
+    <span class="leave-detail__spacer"></span>
+
+    <button matButton type="button" matDialogClose>Close</button>
+  }
 </div>

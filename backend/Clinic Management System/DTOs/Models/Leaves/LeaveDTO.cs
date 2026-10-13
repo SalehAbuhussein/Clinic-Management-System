@@ -3,9 +3,10 @@
     public class LeaveDTO
     {
         public int? Id { get; set; }
+        public string Fullname { get; set; } = string.Empty;
         public DateTimeOffset From { get; set; }
         public DateTimeOffset To { get; set; }
         public string Reason { get; set; } = string.Empty;
-        public bool IsApproved { get; set; }
+        public byte Status { get; set; }
     }
 }

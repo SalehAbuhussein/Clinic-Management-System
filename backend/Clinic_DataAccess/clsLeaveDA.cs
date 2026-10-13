@@ -13,6 +13,7 @@ namespace Clinic_DataAccess
     public class clsLeaveDA
     {
         public static async Task<DataTable> FindAllAsync(
+            int? userId,
             DateTimeOffset? from,
             DateTimeOffset? to,
             int pageNumber = 1,
@@ -26,7 +27,8 @@ namespace Clinic_DataAccess
                 await connection.OpenAsync();
                 string query = @"SELECT
                     COUNT(*) OVER() AS TotalCount,
-                    *
+                    *,
+                    CONCAT_WS(' ', P.Firstname, P.Midname, P.Thirdname, P.Lastname) AS Fullname
                 FROM Leaves L
                 INNER JOIN Users U ON U.UserID = L.UserID
                 INNER JOIN People P ON U.PersonID = P.PersonID";
@@ -36,6 +38,11 @@ namespace Clinic_DataAccess
                     command.Connection = connection;
 
                     List<string> conditions = new List<string>();
+                    if (userId.HasValue)
+                    {
+                        conditions.Add("U.UserID = @UserID");
+                        command.Parameters.AddWithValue("@UserID", userId);
+                    }
 
                     if (from.HasValue)
                     {
@@ -91,6 +98,7 @@ namespace Clinic_DataAccess
                     *
                 FROM Leaves L
                 INNER JOIN Users U ON U.UserID = L.UserID
+                INNER JOIN People P ON U.PersonID = P.PersonID
                 WHERE L.LeaveID = @LeaveID";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
@@ -128,8 +136,7 @@ namespace Clinic_DataAccess
                     ([UserID]
                     ,[StartAt]
                     ,[EndAt]
-                    ,[Reason]
-                    ,[Status])
+                    ,[Reason])
                 VALUES
                     (@UserID
                     ,@StartAt
@@ -155,7 +162,7 @@ namespace Clinic_DataAccess
             return id;
         }
 
-        public static async Task<bool> UpdateAsync(int? leaveId, string reason)
+        public static async Task<bool> UpdateAsync(int? leaveId, string reason, byte status)
         {
             if (!leaveId.HasValue)
                 return false;
@@ -167,12 +174,15 @@ namespace Clinic_DataAccess
                 await connection.OpenAsync();
 
                 string query = @"UPDATE [dbo].[Leaves]
-	                SET [Reason] = @Reason
+	                SET [Reason] = @Reason,
+                    Status = @Status
                 WHERE LeaveID = @LeaveID";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@LeaveID", leaveId);
+                    command.Parameters.AddWithValue("@Reason", reason);
+                    command.Parameters.AddWithValue("@Status", status);
 
                     rowsAffected = await command.ExecuteNonQueryAsync();
                 }
@@ -230,6 +240,68 @@ namespace Clinic_DataAccess
             }
 
             return isFound;
+        }
+
+        public static async Task<bool> HasDoctorLeaveAsync(int? doctorId, DateTimeOffset startAt, DateTimeOffset endAt)
+        {
+            if (!doctorId.HasValue)
+                return false;
+
+            bool hasLeave = false;
+
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                await connection.OpenAsync();
+
+                string query = @"SELECT TOP 1 true=1 FROM Leaves L
+                    INNER JOIN Doctors D ON L.UserID = D.UserID
+                    WHERE StartAt < @EndAt AND EndAt > @StartAt AND D.DoctorID = @DoctorID AND L.Status != 2";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@DoctorID", doctorId);
+                    command.Parameters.AddWithValue("@StartAt", startAt);
+                    command.Parameters.AddWithValue("@EndAt", endAt);
+
+                    object? result = await command.ExecuteScalarAsync();
+
+                    hasLeave = result != null;
+                }
+            }
+
+            return hasLeave;
+        }
+
+        public static async Task<bool> HasUserLeaveAsync(int? userId, DateTimeOffset startAt, DateTimeOffset endAt)
+        {
+            if (!userId.HasValue)
+                return false;
+
+            bool hasLeave = false;
+
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                await connection.OpenAsync();
+
+                string query = @"SELECT TOP 1 true=1 FROM Leaves L
+                    WHERE L.UserID = @UserID 
+                        AND L.StartAt < @EndAt 
+                        AND L.EndAt > @StartAt 
+                        AND L.Status != 2";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@UserID", userId);
+                    command.Parameters.AddWithValue("@StartAt", startAt);
+                    command.Parameters.AddWithValue("@EndAt", endAt);
+
+                    object? result = await command.ExecuteScalarAsync();
+
+                    hasLeave = result != null;
+                }
+            }
+
+            return hasLeave;
         }
     }
 }

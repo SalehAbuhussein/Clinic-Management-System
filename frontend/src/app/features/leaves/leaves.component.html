@@ -1,7 +1,46 @@
 <div class="leaves-container">
   <header class="leaves-header">
     <h1 class="leaves-title">Leaves</h1>
+
+    @if (!authService.isAdmin()) {
+      <button class="leaves-header__request" matButton="filled" type="button" (click)="openRequestLeaveDialog()">
+        <mat-icon>add</mat-icon>
+        Request leave
+      </button>
+    }
   </header>
 
-  <app-leaves-list (open)="openLeaveDetailsDialog()" />
+  @if (leavesResource.isLoading()) {
+    <p class="leaves-state" role="status">
+      <mat-progress-spinner diameter="20" mode="indeterminate" />
+      Loading leaves…
+    </p>
+  } @else if (leavesResource.error(); as error) {
+    <p class="leaves-state leaves-state--error" role="alert">
+      <mat-icon>error</mat-icon>
+      {{ error.message }}
+    </p>
+  } @else {
+    @let list = leaves();
+
+    @if (list.length) {
+      <app-leaves-list
+        [items]="list"
+        (open)="openLeaveDetailsDialog($event)"
+        (approve)="approveLeave($event)"
+        (reject)="rejectLeave($event)" />
+
+      @if (total() > perPage()) {
+        <app-pagination [(page)]="page" [total]="total()" [pageSize]="perPage()" />
+      }
+    } @else {
+      <p class="leaves-empty">
+        @if (authService.isAdmin()) {
+          No leave requests to review.
+        } @else {
+          You have not requested any leave yet.
+        }
+      </p>
+    }
+  }
 </div>

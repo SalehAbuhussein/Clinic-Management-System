@@ -3,6 +3,5 @@
     public class UpdateLeaveDTO
     {
         public string Reason { get; set; } = string.Empty;
-        public bool IsApproved { get; set; }
     }
 }

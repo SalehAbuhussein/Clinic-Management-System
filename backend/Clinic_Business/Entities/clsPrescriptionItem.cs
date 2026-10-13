@@ -1,3 +1,4 @@
+using Clinic_Business.Common;
 using Clinic_DataAccess;
 using System;
 using System.Collections.Generic;
@@ -24,7 +25,6 @@ namespace Clinic_Business.Entities
 
         private clsPrescriptionItem(int id, int visitID, int medicineID, string dosage, string frequency, string duration, clsMedicine medicineInfo)
         {
-
             PrescriptionItemID = id;
             VisitID = visitID;
             MedicineID = medicineID;
@@ -50,11 +50,42 @@ namespace Clinic_Business.Entities
                 clsMedicine.MapMedicine(row));
         }
 
-        public static async Task<List<clsPrescriptionItem>> FindAllByVisitIDAsync(int visitID, int pageNumber, int pageSize)
+        /// <summary>
+        /// One line of a prescription, flattened with the medicine it names.
+        /// A list has no use for the rest of a clsMedicine.
+        /// </summary>
+        public record PrescriptionItem(
+            int Id,
+            int VisitID,
+            int MedicineID,
+            string Dosage,
+            string Frequency,
+            string Duration,
+            string Genericname,
+            string? Brandname,
+            string Form,
+            string Strength);
+
+        public static async Task<PagedResult<PrescriptionItem>> FindAllByVisitIDAsync(int visitID, int pageNumber, int pageSize)
         {
             DataTable dt = await clsPrescriptionItemDA.FindAllByVisitIDAsync(visitID, pageNumber, pageSize);
 
-            return dt.AsEnumerable().Select(MapPrescriptionItem).ToList();
+            List<PrescriptionItem> items = dt.AsEnumerable().Select(row => new PrescriptionItem(
+                row.Field<int>("PrescriptionItemID"),
+                row.Field<int>("VisitID"),
+                row.Field<int>("MedicineID"),
+                row.Field<string>("Dosage") ?? string.Empty,
+                row.Field<string>("Frequency") ?? string.Empty,
+                row.Field<string>("Duration") ?? string.Empty,
+                row.Field<string>("Genericname") ?? string.Empty,
+                row.Field<string>("Brandname"),
+                row.Field<string>("Form") ?? string.Empty,
+                row.Field<string>("Strength") ?? string.Empty
+            )).ToList();
+
+            int total = dt.Rows.Count == 0 ? 0 : dt.Rows[0].Field<int>("TotalCount");
+
+            return new PagedResult<PrescriptionItem>(items, pageNumber, pageSize, total);
         }
 
         public static Task<bool> HasPrescriptionByVisitIDAsync(int? id)

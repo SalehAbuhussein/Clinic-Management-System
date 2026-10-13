@@ -5,11 +5,12 @@ using Clinic_Management_System.DTOs.Models.Leaves;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 using static Clinic_Business.Entities.clsLeave;
 
 namespace Clinic_Management_System.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/Leaves")]
     [ApiController]
     public class LeavesController : ControllerBase
     {
@@ -22,7 +23,7 @@ namespace Clinic_Management_System.Controllers
             _userRepository = userRepository;
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         [HttpGet(Name = "GetLeaves")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -33,31 +34,41 @@ namespace Clinic_Management_System.Controllers
             [Range(1, int.MaxValue)] int page = 1,
             [Range(1, 10)] int perPage = 10)
         {
-            perPage = Math.Clamp(perPage, 1, 10);
+            int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            string role = User.FindFirstValue(ClaimTypes.Role)!;
+            int? scopedUserId = role == "Admin" ? null : userId;
 
-            PagedResult<LeaveItem> leavesPage = await _leaveRepository.FindAllLeavesAsync(from, to, page, perPage);
-
-            List<LeaveDTO> leavesDTO = leavesPage.Items.Select(leave => new LeaveDTO
+            PagedResult<LeaveItem> leavesPage = await _leaveRepository.FindAllLeavesAsync(scopedUserId, from, to, page, perPage);
+            List<LeaveDTO> itemsDTO = leavesPage.Items.Select(item => new LeaveDTO
             {
-                Id = leave.Id,
-                From = leave.StartAt,
-                To = leave.EndAt,
-                Reason = leave.Reason,
-                IsApproved = leave.IsApproved
+                Id = item.Id,
+                Fullname = item.Fullname,
+                From = item.StartAt,
+                To = item.EndAt,
+                Reason = item.Reason,
+                Status = item.Status,
             }).ToList();
 
-            return Ok(new PagedResult<LeaveDTO>(leavesDTO, leavesPage.Page, leavesPage.PerPage, leavesPage.Total));
+            return Ok(new PagedResult<LeaveDTO>(itemsDTO, page, perPage, leavesPage.Total));
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         [HttpGet("{id}", Name = "GetLeaveByID")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<LeaveDTO?>> GetLeaveByID([Range(1, int.MaxValue)] int id)
+        public async Task<ActionResult<LeaveDTO?>> GetLeaveByID(
+            [Range(1, int.MaxValue)] int id,
+            [FromServices] IAuthorizationService authorizationService)
         {
             clsLeave? leave = await _leaveRepository.FindAsync(id);
+            if (leave != null)
+            {
+                AuthorizationResult authorization = await authorizationService.AuthorizeAsync(User, leave, "ViewLeave");
+                if (!authorization.Succeeded)
+                    return Forbid();
+            }
 
             if (leave == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Leave with id {id} not found!");
@@ -68,23 +79,38 @@ namespace Clinic_Management_System.Controllers
                 From = leave.StartAt,
                 To = leave.EndAt,
                 Reason = leave.Reason,
-                IsApproved = leave.IsApproved,
+                Status = leave.Status,
+                Fullname = leave.UserInfo.PersonInfo.Fullname
             });
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         [HttpPost(Name = "AddLeave")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public async Task<ActionResult<LeaveDTO>> AddLeave(CreateLeaveDTO request)
         {
-            if (await _userRepository.FindByIdAsync(request.UserId) == null)
-                return Problem(statusCode: StatusCodes.Status400BadRequest, detail: $"Invalid User");
+            int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            clsUser? user = await _userRepository.FindByIdAsync(userId);
+            if (user == null)
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: "Your account no longer exists");
+
+            if (user.Role == "Admin")
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "Only doctor and staff can request a leave!");
+
+            if (request.To <= request.From)
+                return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "To must be greater than from.");
+
+            if (await _leaveRepository.HasUserLeaveAsync(userId, request.From, request.To))
+                return Problem(statusCode: StatusCodes.Status409Conflict, detail: "User has already existing leave");
 
             clsLeave leave = new clsLeave();
-            leave.UserID = request.UserId;
+            leave.UserID = userId;
             leave.StartAt = request.From;
             leave.EndAt = request.To;
             leave.Reason = request.Reason;
@@ -97,34 +123,83 @@ namespace Clinic_Management_System.Controllers
                     From = leave.StartAt,
                     To = leave.EndAt,
                     Reason= leave.Reason,
-                    IsApproved = leave.IsApproved
+                    Status = leave.Status,
+                    Fullname = user.PersonInfo.Fullname
                 });
             }
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The Leave could not be created!");
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         [HttpPut("{id}", Name = "UpdateLeave")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public async Task<ActionResult> UpdateLeave([Range(1, int.MaxValue)] int id, UpdateLeaveDTO request)
+        public async Task<ActionResult> UpdateLeave(
+            [Range(1, int.MaxValue)] int id,
+            UpdateLeaveDTO request,
+            [FromServices] IAuthorizationService authorizationService)
         {
             clsLeave? leave = await _leaveRepository.FindAsync(id);
+            if (leave != null)
+            {
+                AuthorizationResult authorization = await authorizationService.AuthorizeAsync(User, leave, "UpdateLeave");
+                if (!authorization.Succeeded)
+                    return Forbid();
+            }
 
             if (leave == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Leave with id {id} not found!");
 
             leave.Reason = request.Reason;
-            leave.IsApproved = request.IsApproved;
 
             if (await leave.SaveAsync())
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The Leave could not be updated!");
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPatch("approve/{id}", Name = "ApproveLeave")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult> ApproveLeave([Range(1, int.MaxValue)] int id)
+        {
+            clsLeave? leave = await _leaveRepository.FindAsync(id);
+            if (leave == null)
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Leave with id {id} not found!");
+
+            leave.Status = (int)clsLeave.enStatus.Approved;
+
+            if (await leave.SaveAsync())
+                return NoContent();
+
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The Leave could not be saved.");
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPatch("reject/{id}", Name = "RejectLeave")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult> RejectLeave([Range(1, int.MaxValue)] int id)
+        {
+            clsLeave? leave = await _leaveRepository.FindAsync(id);
+            if (leave == null)
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Leave with id {id} not found!");
+
+            leave.Status = (int)clsLeave.enStatus.Rejected;
+
+            if (await leave.SaveAsync())
+                return NoContent();
+
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The Leave could not be saved.");
         }
     }
 }

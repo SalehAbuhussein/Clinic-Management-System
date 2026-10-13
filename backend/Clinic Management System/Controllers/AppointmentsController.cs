@@ -16,15 +16,18 @@ namespace Clinic_Management_System.Controllers
         private readonly IPatientRepository _patientRepository;
         private readonly IDoctorRepository _doctorRepository;
         private readonly IAppointmentRepository _appointmentRepository;
+        private readonly ILeaveRepository _leaveRepository;
 
         public AppointmentsController(
             IPatientRepository patientRepository,
             IDoctorRepository doctorRepository,
-            IAppointmentRepository appointmentRepository)
+            IAppointmentRepository appointmentRepository,
+            ILeaveRepository leaveRepository)
         {
             _patientRepository = patientRepository;
             _doctorRepository = doctorRepository;
             _appointmentRepository = appointmentRepository;
+            _leaveRepository = leaveRepository;
         }
 
         [Authorize(Roles = "Admin,Staff")]
@@ -119,18 +122,17 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public async Task<ActionResult<AppointmentDTO>> AddAppointment(CreateAppointmentDTO appointmentDTO)
         {
-            if (!await _doctorRepository.ExistsAsync(appointmentDTO.DoctorID) ||
-                !await _patientRepository.ExistsAsync(appointmentDTO.PatientID))
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: "The doctor or patient referenced by this appointment does not exist.");
+            if (!await _doctorRepository.ExistsAsync(appointmentDTO.DoctorID) || !await _patientRepository.ExistsAsync(appointmentDTO.PatientID))
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: "The doctor or patient referenced by this appointment does not exist.");
 
             if (await _appointmentRepository.HasPatientConflictAsync(appointmentDTO.PatientID, appointmentDTO.StartAt, appointmentDTO.EndAt))
-                return Problem(statusCode: StatusCodes.Status409Conflict,
-                    detail: "The patient already has an appointment in that time slot.");
+                return Problem(statusCode: StatusCodes.Status409Conflict, detail: "The patient already has an appointment in that time slot.");
 
             if (await _appointmentRepository.HasDoctorConflictAsync(appointmentDTO.DoctorID, appointmentDTO.StartAt, appointmentDTO.EndAt))
-                return Problem(statusCode: StatusCodes.Status409Conflict,
-                    detail: "The doctor already has an appointment in that time slot.");
+                return Problem(statusCode: StatusCodes.Status409Conflict, detail: "The doctor already has an appointment in that time slot.");
+
+            if (await _leaveRepository.HasDoctorLeaveAsync(appointmentDTO.DoctorID, appointmentDTO.StartAt, appointmentDTO.EndAt))
+                return Problem(statusCode: StatusCodes.Status409Conflict, detail: "The doctor is on leave in that time slot");
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -160,8 +162,7 @@ namespace Clinic_Management_System.Controllers
                 return CreatedAtRoute("GetAppointmentByID", new { id = newAppointment.AppointmentID }, newAppointmentDTO);
             }
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The appointment could not be saved. Check the doctor, patient and time range.");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The appointment could not be saved. Check the doctor, patient and time range.");
         }
 
         [Authorize(Roles = "Admin,Staff")]
@@ -178,24 +179,20 @@ namespace Clinic_Management_System.Controllers
             clsAppointment? appointment = await _appointmentRepository.FindByIdAsync(id);
 
             if (appointment == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Appointment with id {id} not found");
-
-            if (!await _doctorRepository.ExistsAsync(appointment.DoctorID))
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"The doctor on appointment {id} no longer exists.");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Appointment with id {id} not found");
 
             if (!appointment.IsValid())
-                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                    detail: "The appointment is not in a valid state to be updated.");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The appointment is not in a valid state to be updated.");
 
             DateTimeOffset newStart = updatedAppointmentDTO.StartAt;
             DateTimeOffset newEnd = updatedAppointmentDTO.EndAt;
 
             if (newEnd <= newStart)
-                return Problem(statusCode: StatusCodes.Status400BadRequest,
-                    detail: "EndAt must be after StartAt.");
+                return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "EndAt must be after StartAt.");
 
+            if (!await _doctorRepository.ExistsAsync(appointment.DoctorID))
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"The doctor on appointment {id} no longer exists.");
+            
             bool timeWindowChanged = newStart != appointment.StartAt || newEnd != appointment.EndAt;
 
             if (timeWindowChanged)
@@ -204,13 +201,14 @@ namespace Clinic_Management_System.Controllers
                     return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
                         detail: "An appointment cannot be rescheduled into the past.");
 
+                if (await _leaveRepository.HasDoctorLeaveAsync(appointment.DoctorID, newStart, newEnd))
+                    return Problem(statusCode: StatusCodes.Status409Conflict, detail: "The doctor is on leave in that time slot");
+
                 if (await _appointmentRepository.HasPatientConflictAsync(appointment.PatientID, newStart, newEnd, id))
-                    return Problem(statusCode: StatusCodes.Status409Conflict,
-                        detail: "The patient already has an appointment in that time slot.");
+                    return Problem(statusCode: StatusCodes.Status409Conflict, detail: "The patient already has an appointment in that time slot.");
 
                 if (await _appointmentRepository.HasDoctorConflictAsync(appointment.DoctorID, newStart, newEnd, id))
-                    return Problem(statusCode: StatusCodes.Status409Conflict,
-                        detail: "The doctor already has an appointment in that time slot.");
+                    return Problem(statusCode: StatusCodes.Status409Conflict, detail: "The doctor already has an appointment in that time slot.");
             }
 
             appointment.StartAt = newStart;
@@ -220,8 +218,7 @@ namespace Clinic_Management_System.Controllers
             if (await appointment.SaveAsync())
                 return NoContent();
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The appointment could not be saved. Check the doctor, patient and time range.");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The appointment could not be saved. Check the doctor, patient and time range.");
         }
 
         [Authorize]
@@ -239,8 +236,7 @@ namespace Clinic_Management_System.Controllers
         )
         {
             if (await _doctorRepository.FindByIdAsync(doctorId) == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Doctor with id {doctorId} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Doctor with id {doctorId} not found");
 
             var authResult = await authorizationService.AuthorizeAsync(
                 User,

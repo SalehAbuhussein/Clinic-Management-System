@@ -1,5 +1,9 @@
 <div class="leaves-list-container">
-  @for (item of [1, 2, 3, 4]; track $index) {
-    <app-leave-card (open)="open.emit()" />
+  @for (item of items(); track item.id) {
+    <app-leave-card
+      [item]="item"
+      (open)="open.emit($event)"
+      (approve)="approve.emit($event)"
+      (reject)="reject.emit($event)" />
   }
 </div>

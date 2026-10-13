@@ -21,7 +21,9 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"SELECT P.[PrescriptionItemID]
+                string query = @"SELECT
+                    COUNT(*) OVER() AS TotalCount, 
+                    P.[PrescriptionItemID]
                     ,P.[VisitID]
                     ,P.[MedicineID]
                     ,P.[Dosage]

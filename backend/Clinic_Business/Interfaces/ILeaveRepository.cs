@@ -12,10 +12,13 @@ namespace Clinic_Business.Interfaces
     public interface ILeaveRepository
     {
         Task<PagedResult<LeaveItem>> FindAllLeavesAsync(
+            int? userId,
             DateTimeOffset? from,
             DateTimeOffset? to,
             int pageNumber = 1,
             int pageSize = 10);
         Task<clsLeave?> FindAsync(int id);
+        Task<bool> HasDoctorLeaveAsync(int? doctorId, DateTimeOffset startAt, DateTimeOffset endAt);
+        Task<bool> HasUserLeaveAsync(int? userId, DateTimeOffset startAt, DateTimeOffset endAt);
     }
 }

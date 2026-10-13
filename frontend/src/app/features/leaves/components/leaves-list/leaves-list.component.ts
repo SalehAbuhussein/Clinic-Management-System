@@ -1,6 +1,8 @@
-import { Component, output } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 
 import { LeaveCardComponent } from '../leave-card/leave-card.component';
+
+import { Leave } from '@shared/services/leave/leave.types';
 
 @Component({
   imports: [LeaveCardComponent],
@@ -9,5 +11,9 @@ import { LeaveCardComponent } from '../leave-card/leave-card.component';
   templateUrl: './leaves-list.component.html',
 })
 export class LeavesListComponent {
-  open = output<void>();
+  items = input.required<Leave[]>();
+
+  open = output<Leave>();
+  approve = output<Leave>();
+  reject = output<Leave>();
 }

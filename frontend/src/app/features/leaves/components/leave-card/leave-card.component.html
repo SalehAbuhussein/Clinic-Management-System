@@ -1,11 +1,25 @@
-<button
-  class="leave-container"
-  (click)="open.emit()"
->
-  <span class="avatar" aria-hidden="true">SM</span>
+@let leave = item();
 
-  <span class="time">
-    <span class="from">From: <span class="from-subtxt">4:00 PM</span></span>
-    <span class="to">To: <span class="to-subtxt">8:00 PM</span></span>
-  </span>
-</button>
+<article class="leave-card">
+  <button class="leave-card__open" type="button" (click)="open.emit(leave)">
+    <span class="leave-card__avatar" aria-hidden="true">{{ initials() }}</span>
+
+    <span class="leave-card__body">
+      <span class="leave-card__name">{{ leave.fullname }}</span>
+      <span class="leave-card__when">{{ when() }}</span>
+    </span>
+
+    <span class="leave-card__status" [style.background-color]="status().container" [style.color]="status().onContainer">
+      <mat-icon class="leave-card__status-icon">{{ status().icon }}</mat-icon>
+      {{ status().label }}
+    </span>
+  </button>
+
+  @if (canDecide()) {
+    <div class="leave-card__actions">
+      <button class="leave-card__danger" matButton type="button" (click)="reject.emit(leave)">Reject</button>
+
+      <button matButton="filled" type="button" (click)="approve.emit(leave)">Approve</button>
+    </div>
+  }
+</article>
