@@ -37,5 +37,9 @@
     <span class="appointment-detail__spacer"></span>
 
     <button matButton type="button" matDialogClose>Close</button>
+
+    @if (appointment.visitId) {
+      <button matButton="filled" type="button" [matDialogClose]="'openVisit'">Open visit</button>
+    }
   }
 </div>

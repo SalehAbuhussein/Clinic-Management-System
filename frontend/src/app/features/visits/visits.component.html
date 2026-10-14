@@ -12,6 +12,8 @@
 
     @if (isToday()) {
       <p class="visits__subtitle">Today</p>
+    } @else if (isYesterday()) {
+      <p class="visits__subtitle">Yesterday</p>
     }
   </div>
 
@@ -19,6 +21,10 @@
     <button matIconButton type="button" aria-label="Previous day" (click)="shiftDayBy(-1)">
       <mat-icon>chevron_left</mat-icon>
     </button>
+
+    @if (!isYesterday()) {
+      <button matButton type="button" (click)="goToYesterday()">Yesterday</button>
+    }
 
     @if (!isToday()) {
       <button matButton type="button" (click)="goToToday()">Today</button>

@@ -21,6 +21,14 @@ export class VisitService {
   getVisitResource = (day: () => Date, page: () => number) => this.apiService.getPagedResource<Visit>('/Visits', () => ({ ...dayRange(day()), page: page() }));
 
   /**
+   * One visit. The appointment rows carry a `visitId`, so this is how a screen
+   * that started from an appointment reaches the visit behind it.
+   *
+   * @param id The visit.
+   */
+  getVisit = (id: number) => this.apiService.get<Visit>(`/Visits/${id}`);
+
+  /**
    * Open a visit for an appointment. The API also flips the appointment to
    * Attended, so checking in is the whole arrival step and not half of it.
    *

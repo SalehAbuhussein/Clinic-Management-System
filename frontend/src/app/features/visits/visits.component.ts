@@ -15,9 +15,9 @@ import { VisitService } from '@shared/services/visit/visit.service';
 
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { DiagnosisDialogComponent } from './components/diagnosis-dialog/diagnosis-dialog.component';
+import { PaginationComponent } from '@shared/components/pagination/pagination.component';
 import { PrescriptionDialogComponent } from './components/prescription-dialog/prescription-dialog.component';
 import { VisitDetailAction, VisitDetailDialogComponent } from './components/visit-detail-dialog/visit-detail-dialog.component';
-import { PaginationComponent } from '@shared/components/pagination/pagination.component';
 import { VisitEditDialogComponent } from './components/visit-edit-dialog/visit-edit-dialog.component';
 import { VisitRowComponent } from './components/visit-row/visit-row.component';
 
@@ -43,6 +43,7 @@ export class VisitsComponent {
   dayParam = computed(() => formatDate(this.day(), 'yyyy-MM-dd', 'en-US'));
   dayLabel = computed(() => formatDate(this.day(), 'EEEE d MMMM', 'en-US'));
   isToday = computed(() => this.dayParam() === formatDate(new Date(), 'yyyy-MM-dd', 'en-US'));
+  isYesterday = computed(() => this.dayParam() === formatDate(this.yesterday(), 'yyyy-MM-dd', 'en-US'));
 
   // Resets to the first page on a new day, but takes the URL's page on the
   // first run so a reload or a shared link lands where it left off.
@@ -64,6 +65,34 @@ export class VisitsComponent {
         relativeTo: this.route,
         replaceUrl: true,
       });
+    });
+
+    this.openVisitFromUrl();
+  }
+
+  /**
+   * Opens the visit a link named, so another screen can hand one over rather
+   * than repeating everything this one does with it.
+   *
+   * The day comes from the visit itself, because a link only carries the id
+   * and the list behind the dialog should be showing the right day.
+   *
+   * The effect above rewrites the query string from `day` and `page` alone,
+   * so the `visitId` drops off once it has been read.
+   */
+  openVisitFromUrl(): void {
+    const id = Number(this.route.snapshot.queryParamMap.get('visitId'));
+
+    if (!Number.isInteger(id) || id < 1) {
+      return;
+    }
+
+    this.visitService.getVisit(id).subscribe({
+      next: (visit) => {
+        this.day.set(new Date(visit.checkinTime));
+        this.openVisit(visit);
+      },
+      error: (error: ApiError) => this.snackbar.open(error.message, 'Dismiss', { duration: 8000 }),
     });
   }
 
@@ -87,7 +116,30 @@ export class VisitsComponent {
    */
   shiftDayBy = (days: number) => this.day.update((current) => new Date(current.getFullYear(), current.getMonth(), current.getDate() + days));
 
+  /**
+   * Move to today
+   */
   goToToday = () => this.day.set(new Date());
+
+  /**
+   * Move to yesterday
+   */
+  goToYesterday = () => this.day.set(this.yesterday());
+
+  /**
+   * Yesterday as a date, not one day back from whatever is shown: the button
+   * means the same thing wherever the user has wandered to.
+   *
+   * Built from date parts rather than by subtracting 24 hours, so it survives
+   * a daylight-saving change.
+   *
+   * @returns Yesterday.
+   */
+  yesterday(): Date {
+    const today = new Date();
+
+    return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+  }
 
   /**
    * @returns The page from the URL, or the first one.

@@ -57,6 +57,7 @@ export class TodayAppointmentsComponent {
   dayParam = computed(() => formatDate(this.day(), 'yyyy-MM-dd', 'en-US'));
   dayLabel = computed(() => formatDate(this.day(), 'EEEE d MMMM', 'en-US'));
   isToday = computed(() => this.dayParam() === formatDate(new Date(), 'yyyy-MM-dd', 'en-US'));
+  isYesterday = computed(() => this.dayParam() === formatDate(this.yesterday(), 'yyyy-MM-dd', 'en-US'));
 
   page = linkedSignal<string, number>({
     source: this.dayParam,
@@ -112,6 +113,23 @@ export class TodayAppointmentsComponent {
    */
   goToToday = () => this.day.set(new Date());
 
+  goToYesterday = () => this.day.set(this.yesterday());
+
+  /**
+   * Yesterday as a date, not one day back from whatever is shown: the button
+   * means the same thing wherever the user has wandered to.
+   *
+   * Built from date parts rather than by subtracting 24 hours, so it survives
+   * a daylight-saving change.
+   *
+   * @returns Yesterday.
+   */
+  yesterday(): Date {
+    const today = new Date();
+
+    return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+  }
+
   /**
    * Open the booking dialog and show the new appointment.
    *
@@ -156,9 +174,23 @@ export class TodayAppointmentsComponent {
           case 'cancel':
             this.cancelAppointment(appointment.id);
             break;
+          case 'openVisit':
+            this.openVisit(appointment);
+            break;
         }
       });
   }
+
+  /**
+   * Follow a checked-in appointment to its visit. The visits screen owns every
+   * action a visit has, so this hands over rather than repeating them here.
+   *
+   * @param appointment The row that was picked; its visitId is set.
+   */
+  openVisit = (appointment: AppointmentCard) => this.router.navigate(
+    ['/dashboard/visits'],
+    { queryParams: { visitId: appointment.visitId } },
+  );
 
   /**
    * Move an appointment. The booking dialog opens with the people fixed and

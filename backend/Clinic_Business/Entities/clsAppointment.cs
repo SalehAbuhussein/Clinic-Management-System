@@ -18,6 +18,8 @@ namespace Clinic_Business.Entities
         public clsDoctor? DoctorInfo { get; set; }
         public int PatientID { get; set; }
         public clsPatient? PatientInfo { get; set; }
+        public int? VisitID { get; set; }
+        public clsVisit? VisitInfo { get; set; }
         public DateTimeOffset StartAt { get; set; }
         public DateTimeOffset EndAt { get; set; }
         public byte Status { get; set; }
@@ -43,7 +45,8 @@ namespace Clinic_Business.Entities
             string? notes, 
             DateTime createdAt, 
             DateTime updatedAt,
-            int createdBy
+            int createdBy,
+            int? visitId
         )
         {
             _Mode = enMode.Update;
@@ -55,6 +58,7 @@ namespace Clinic_Business.Entities
             EndAt = endAt;
             Status = status;
             Notes = notes;
+            VisitID = visitId;
             CreatedAt = createdAt;
             UpdatedAt = updatedAt;
             CreatedBy = createdBy;
@@ -115,7 +119,8 @@ namespace Clinic_Business.Entities
                 row.Field<string>("Notes"),
                 row.Field<DateTime>("CreatedAt"),
                 row.Field<DateTime>("UpdatedAt"),
-                row.Field<int>("CreatedBy")
+                row.Field<int>("CreatedBy"),
+                row.Field<int?>("VisitID")
             );
 
             appointment.PatientInfo = _MapPatientInfo(row);

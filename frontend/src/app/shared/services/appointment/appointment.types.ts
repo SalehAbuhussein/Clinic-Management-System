@@ -15,6 +15,7 @@ export type AppointmentCard = {
   doctorName: string;
   patientId: number;
   patientName: string;
+  visitId: number | null;
   startAt: string;
   endAt: string;
   status: number;

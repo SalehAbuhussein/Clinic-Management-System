@@ -44,14 +44,15 @@ namespace Clinic_DataAccess
                     DP.Firstname AS DoctorFirstname,
                     DP.Midname   AS DoctorMidname,
                     DP.Thirdname AS DoctorThirdname,
-                    DP.Lastname  AS DoctorLastname
-
+                    DP.Lastname  AS DoctorLastname,
+                    V.VisitID
                     FROM Appointments A
                     INNER JOIN Doctors D ON D.DoctorID = A.DoctorID
                     INNER JOIN Users U ON U.UserID = D.UserID
                     INNER JOIN People DP ON DP.PersonID = U.PersonID
                     INNER JOIN Patients P ON P.PatientID = A.PatientID
-                    INNER JOIN People PP ON PP.PersonID = P.PersonID";
+                    INNER JOIN People PP ON PP.PersonID = P.PersonID
+                    LEFT JOIN Visits V ON V.AppointmentID = A.AppointmentID";
 
                 List<string> conditions = new List<string>();
 
@@ -141,15 +142,16 @@ namespace Clinic_DataAccess
                     DP.Firstname AS DoctorFirstname,
                     DP.Midname   AS DoctorMidname,
                     DP.Thirdname AS DoctorThirdname,
-                    DP.Lastname  AS DoctorLastname
-
-                FROM Appointments A
-                INNER JOIN Doctors D ON D.DoctorID = A.DoctorID
-                INNER JOIN Users U ON U.UserID = D.UserID
-                INNER JOIN People DP ON DP.PersonID = U.PersonID
-                INNER JOIN Patients P ON P.PatientID = A.PatientID
-                INNER JOIN People PP ON PP.PersonID = P.PersonID
-                WHERE A.AppointmentID = @AppointmentID";
+                    DP.Lastname  AS DoctorLastname,
+                    V.VisitID
+                    FROM Appointments A
+                    INNER JOIN Doctors D ON D.DoctorID = A.DoctorID
+                    INNER JOIN Users U ON U.UserID = D.UserID
+                    INNER JOIN People DP ON DP.PersonID = U.PersonID
+                    INNER JOIN Patients P ON P.PatientID = A.PatientID
+                    INNER JOIN People PP ON PP.PersonID = P.PersonID
+                    LEFT JOIN Visits V ON V.AppointmentID = A.AppointmentID
+                    WHERE A.AppointmentID = @AppointmentID";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {

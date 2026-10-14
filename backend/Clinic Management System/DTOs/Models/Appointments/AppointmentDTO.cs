@@ -9,6 +9,7 @@ namespace Clinic_Management_System.DTOs.Models.Appointments
         public string DoctorName { get; set; } = string.Empty;
         public int PatientId { get; set;  }
         public string PatientName { get; set; } = string.Empty;
+        public int? VisitId { get; set; }
         public DateTimeOffset StartAt { get; set; }
         public DateTimeOffset EndAt { get; set; }
         public byte Status { get; set; }

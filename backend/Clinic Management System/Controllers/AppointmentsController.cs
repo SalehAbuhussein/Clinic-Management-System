@@ -63,7 +63,8 @@ namespace Clinic_Management_System.Controllers
                     StartAt = appointment.StartAt,
                     EndAt = appointment.EndAt,
                     Status = appointment.Status,
-                    Notes = appointment.Notes
+                    Notes = appointment.Notes,
+                    VisitId = appointment.VisitID
                 }).ToList();
 
             return Ok(new PagedResult<AppointmentDTO>(appointmentsList, appointmentsPage.Page, appointmentsPage.PerPage, appointmentsPage.Total));
@@ -106,6 +107,7 @@ namespace Clinic_Management_System.Controllers
                 EndAt = appointment.EndAt,
                 Notes = appointment.Notes,
                 Status = appointment.Status,
+                VisitId = appointment.VisitID,
             };
 
             return Ok(appointmentDTO);
@@ -260,7 +262,8 @@ namespace Clinic_Management_System.Controllers
                     StartAt = appointment.StartAt,
                     EndAt = appointment.EndAt,
                     Status = appointment.Status,
-                    Notes = appointment.Notes
+                    Notes = appointment.Notes,
+                    VisitId = appointment.VisitID
                 }).ToList();
 
             return Ok(new PagedResult<AppointmentDTO>(appointmentsList, appointmentsPage.Page, appointmentsPage.PerPage, appointmentsPage.Total));
