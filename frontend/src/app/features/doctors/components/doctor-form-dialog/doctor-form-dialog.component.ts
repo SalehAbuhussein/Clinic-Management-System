@@ -53,6 +53,9 @@ export class DoctorFormDialogComponent {
   isSaving = signal(false);
   error = signal('');
 
+  readonly MIN_YEAR = 1900;
+  readonly MAX_YEAR = new Date().getFullYear();
+
   doctorModel = signal<DoctorFormData>({
     firstname: this.existingDoctor?.firstname ?? '',
     midname: this.existingDoctor?.midname ?? '',
@@ -99,7 +102,7 @@ export class DoctorFormDialogComponent {
 
     required(schema.graduationYear);
     min(schema.graduationYear, 1900);
-    max(schema.graduationYear, new Date().getFullYear());
+    max(schema.graduationYear, this.MAX_YEAR);
 
     disabled(schema.nationalNo, { when: () => this.isEditing });
     readonly(schema.email, { when: () => this.isEditing });
