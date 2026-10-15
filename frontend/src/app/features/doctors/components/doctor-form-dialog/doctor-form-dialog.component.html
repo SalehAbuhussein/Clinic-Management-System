@@ -1,0 +1,172 @@
+@let firstname = doctorForm.firstname();
+@let midname = doctorForm.midname();
+@let lastname = doctorForm.lastname();
+@let nationalNo = doctorForm.nationalNo();
+@let phone = doctorForm.phone();
+@let dateOfBirth = doctorForm.dateOfBirth();
+@let specialization = doctorForm.specialization();
+@let medicalSchool = doctorForm.medicalSchool();
+@let graduationYear = doctorForm.graduationYear();
+@let emailField = doctorForm.email();
+@let password = doctorForm.password();
+
+<h2 class="doctor-form__title" matDialogTitle>{{ isEditing ? 'Edit doctor' : 'New doctor' }}</h2>
+
+<form class="doctor-form" (submit)="saveDoctor($event)" novalidate>
+  <div class="doctor-form__content" matDialogContent>
+    <div class="doctor-form__row">
+      <mat-form-field>
+        <mat-label>First name</mat-label>
+        <input matInput [formField]="doctorForm.firstname">
+
+        @if (firstname.errors().length) {
+          <mat-error>Required</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Middle name</mat-label>
+        <input matInput [formField]="doctorForm.midname">
+
+        @if (midname.errors().length) {
+          <mat-error>Required</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="doctor-form__row">
+      <mat-form-field>
+        <mat-label>Third name</mat-label>
+        <input matInput [formField]="doctorForm.thirdname">
+        <mat-hint>Optional</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Last name</mat-label>
+        <input matInput [formField]="doctorForm.lastname">
+
+        @if (lastname.errors().length) {
+          <mat-error>Required</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="doctor-form__row">
+      <mat-form-field>
+        <mat-label>National number</mat-label>
+        <input matInput [formField]="doctorForm.nationalNo">
+
+        @if (nationalNo.errors().length) {
+          <mat-error>Required</mat-error>
+        } @else if (isEditing) {
+          <mat-hint>Cannot be changed</mat-hint>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Phone</mat-label>
+        <input matInput type="tel" [formField]="doctorForm.phone">
+
+        @if (phone.errors().length) {
+          <mat-error>Required</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="doctor-form__row">
+      <mat-form-field>
+        <mat-label>Gender</mat-label>
+
+        <mat-select [formField]="doctorForm.gender">
+          <mat-option [value]="true">Male</mat-option>
+          <mat-option [value]="false">Female</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Date of birth</mat-label>
+
+        <input matInput [matDatepicker]="picker" [formField]="doctorForm.dateOfBirth" (click)="picker.open()">
+
+        <mat-datepicker-toggle matIconSuffix [for]="picker" />
+        <mat-datepicker #picker />
+
+        @if (dateOfBirth.errors().length) {
+          <mat-error>Required</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="doctor-form__row">
+      <mat-form-field>
+        <mat-label>Specialization</mat-label>
+        <input matInput [formField]="doctorForm.specialization">
+
+        @if (specialization.errors().length) {
+          <mat-error>Required</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Graduation year</mat-label>
+        <input matInput type="number" [formField]="doctorForm.graduationYear">
+
+        @if (graduationYear.errors().length) {
+          <mat-error>Between {{ MIN_YEAR }} and {{ MAX_YEAR }}</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <mat-form-field class="doctor-form__wide">
+      <mat-label>Medical school</mat-label>
+      <input matInput [formField]="doctorForm.medicalSchool">
+
+      @if (medicalSchool.errors().length) {
+        <mat-error>Required</mat-error>
+      }
+    </mat-form-field>
+
+    @if (!isEditing) {
+      <div class="doctor-form__row">
+        <mat-form-field>
+          <mat-label>Email</mat-label>
+          <input matInput type="email" autocomplete="off" [formField]="doctorForm.email">
+
+          @if (emailField.errors().length) {
+            <mat-error>A valid email is required</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Password</mat-label>
+          <input matInput type="password" autocomplete="new-password" [formField]="doctorForm.password">
+
+          @if (password.errors().length) {
+            <mat-error>At least 6 characters</mat-error>
+          } @else {
+            <mat-hint>At least 6 characters</mat-hint>
+          }
+        </mat-form-field>
+      </div>
+    }
+  </div>
+
+  @if (error(); as message) {
+    <p class="doctor-form__error" role="alert">
+      <mat-icon>error</mat-icon>
+      {{ message }}
+    </p>
+  }
+
+  <div class="doctor-form__actions" matDialogActions>
+    <button matButton type="button" matDialogClose [disabled]="isSaving()">Cancel</button>
+
+    <button matButton="filled" type="submit" [disabled]="doctorForm().invalid() || isSaving()">
+      @if (isSaving()) {
+        <mat-progress-spinner class="doctor-form__spinner" diameter="18" mode="indeterminate" />
+      }
+
+      {{ isEditing ? 'Save changes' : 'Add doctor' }}
+    </button>
+  </div>
+</form>

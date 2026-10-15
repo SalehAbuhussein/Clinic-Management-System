@@ -16,7 +16,7 @@ import { LoginBackdropComponent } from './components/login-backdrop/login-backdr
 import { ThemeToggleComponent } from '@shared/components/theme-toggle/theme-toggle.component';
 
 import { LoginBannerTone, LoginError } from './types/login.types';
-import { LoginRequestBody } from '@core/auth/types/auth.types';
+import { ApiError, LoginRequestBody } from '@core/auth/types/auth.types';
 
 @Component({
   imports: [
@@ -98,12 +98,10 @@ export class LoginComponent implements OnDestroy {
       next: () => {
         this.router.navigate([this.authService.role() === 'Admin' ? '/dashboard/stats' : '/dashboard']);
       },
-      error: error => {
-        error = error.error;
-
+      error: (error: ApiError) => {
         this.error.set({
-          tone: this.TONE_BY_STATUS[error.status],
-          message: error.detail
+          tone: this.TONE_BY_STATUS[error.status] ?? 'error',
+          message: error.message
         });
       }
     });

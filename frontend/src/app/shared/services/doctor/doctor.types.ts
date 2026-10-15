@@ -10,12 +10,49 @@ export type DoctorFilters = {
 export type Doctor = {
   id: number;
   fullname: string | null;
+  firstname: string;
+  midname: string;
+  thirdname: string | null;
+  lastname: string;
+  nationalNo: string;
   phone: string | null;
+  gender: boolean;
+  dateOfBirth: string | null;
   specialization: string;
   medicalSchool: string;
   graduationYear: number;
   personID: number;
   active: boolean;
+};
+export type CreateDoctorBody = {
+  firstname: string;
+  midname: string;
+  thirdname?: string;
+  lastname: string;
+  nationalNo: string;
+  phone: string;
+  gender: boolean;
+  dateOfBirth: string;
+  profileImage?: string;
+  specialization: string;
+  medicalSchool: string;
+  graduationYear: number;
+  email: string;
+  password: string;
+};
+
+export type UpdateDoctorBody = {
+  firstname: string;
+  midname: string;
+  thirdname?: string;
+  lastname: string;
+  phone: string;
+  gender: boolean;
+  dateOfBirth: string;
+  profileImage?: string;
+  specialization: string;
+  medicalSchool: string;
+  graduationYear: number;
 };
 
 export type GetDoctorsResponse = PagedResult<Doctor>;

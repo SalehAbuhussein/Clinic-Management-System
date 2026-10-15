@@ -25,7 +25,8 @@ namespace Clinic_DataAccess
                     U.PersonID, U.Active,
 
                     CONCAT_WS(' ', P.Firstname, P.Midname, P.Thirdname, P.Lastname) AS Fullname,
-                    P.Phone
+                    P.Firstname, P.Midname, P.Thirdname, P.Lastname,
+                    P.NationalNo, P.Phone, P.Gender, P.DateOfBirth
 
                 FROM Doctors D
                 INNER JOIN Users U ON D.UserID = U.UserID

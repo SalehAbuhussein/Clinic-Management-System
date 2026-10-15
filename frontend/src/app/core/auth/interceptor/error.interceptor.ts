@@ -21,8 +21,6 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         traceId: problem?.traceId ?? null,
       };
 
-      console.log(apiError);
-
       return throwError(() => apiError);
     })
   );

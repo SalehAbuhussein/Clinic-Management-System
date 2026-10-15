@@ -61,7 +61,22 @@ namespace Clinic_Business.Entities
             UserInfo = new clsUser();
         }
 
-        public record DoctorItem(int Id, string Fullname, string Phone, string Specialization, string MedicalSchool, ushort GraduationYear, int PersonID, bool Active);
+        public record DoctorItem(
+            int Id,
+            string Fullname,
+            string Firstname,
+            string Midname,
+            string? Thirdname,
+            string Lastname,
+            string NationalNo,
+            string Phone,
+            bool Gender,
+            DateOnly DateOfBirth,
+            string Specialization,
+            string MedicalSchool,
+            ushort GraduationYear,
+            int PersonID,
+            bool Active);
 
         public static async Task<PagedResult<DoctorItem>> FindAllDoctorsAsync(string? fullname = null, string? specialization = null, int pageNumber = 1, int pageSize = 10)
         {
@@ -70,7 +85,14 @@ namespace Clinic_Business.Entities
             List<DoctorItem> doctors = table.AsEnumerable().Select(row => new DoctorItem(
                 row.Field<int>("DoctorID"),
                 row.Field<string>("Fullname") ?? string.Empty,
+                row.Field<string>("Firstname") ?? string.Empty,
+                row.Field<string>("Midname") ?? string.Empty,
+                row.Field<string>("Thirdname"),
+                row.Field<string>("Lastname") ?? string.Empty,
+                row.Field<string>("NationalNo") ?? string.Empty,
                 row.Field<string>("Phone") ?? string.Empty,
+                row.Field<bool>("Gender"),
+                DateOnly.FromDateTime(row.Field<DateTime>("DateOfBirth")),
                 row.Field<string>("Specialization") ?? string.Empty,
                 row.Field<string>("MedicalSchool") ?? string.Empty,
                 Convert.ToUInt16(row.Field<short>("GraduationYear")),

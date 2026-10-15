@@ -1,0 +1,55 @@
+.doctor-form__content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.doctor-form__row {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.doctor-form__wide {
+  width: 100%;
+}
+
+.doctor-form__state {
+  align-items: center;
+  color: var(--mat-sys-on-surface-variant);
+  display: flex;
+  font: var(--mat-sys-body-medium);
+  gap: 12px;
+  justify-content: center;
+  margin: 0;
+  padding: 32px 0;
+}
+
+.doctor-form__actions {
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.doctor-form__error {
+  align-items: flex-start;
+  background-color: var(--mat-sys-error-container);
+  border-radius: var(--mat-sys-corner-medium);
+  color: var(--mat-sys-on-error-container);
+  display: flex;
+  font: var(--mat-sys-body-medium);
+  gap: 12px;
+  margin: 0 24px 12px;
+  padding: 12px 14px;
+}
+
+.doctor-form__spinner {
+  display: inline-block;
+  margin-inline-end: 8px;
+  vertical-align: middle;
+}
+
+@media (width < 600px) {
+  .doctor-form__row {
+    grid-template-columns: 1fr;
+  }
+}

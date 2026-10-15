@@ -40,7 +40,14 @@ namespace Clinic_Management_System.Controllers
                 {
                     Id = doctor.Id,
                     Fullname = doctor.Fullname,
+                    Firstname = doctor.Firstname,
+                    Midname = doctor.Midname,
+                    Thirdname = doctor.Thirdname,
+                    Lastname = doctor.Lastname,
+                    NationalNo = doctor.NationalNo,
                     Phone = doctor.Phone,
+                    Gender = doctor.Gender,
+                    DateOfBirth = doctor.DateOfBirth,
                     Specialization = doctor.Specialization,
                     MedicalSchool = doctor.MedicalSchool,
                     GraduationYear = doctor.GraduationYear,
@@ -68,9 +75,20 @@ namespace Clinic_Management_System.Controllers
             if (user == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Doctor with id {id} not found");
 
+            clsPerson person = user.PersonInfo;
+
             DoctorDTO doctorDTO = new DoctorDTO
             {
                 Id = doctor.DoctorID,
+                Fullname = person.Fullname,
+                Firstname = person.Firstname,
+                Midname = person.Midname,
+                Thirdname = person.Thirdname,
+                Lastname = person.Lastname,
+                NationalNo = person.NationalNo,
+                Phone = person.Phone,
+                Gender = person.Gender,
+                DateOfBirth = person.DateOfBirth,
                 MedicalSchool = doctor.MedicalSchool,
                 Specialization = doctor.Specialization,
                 GraduationYear = doctor.GraduationYear,

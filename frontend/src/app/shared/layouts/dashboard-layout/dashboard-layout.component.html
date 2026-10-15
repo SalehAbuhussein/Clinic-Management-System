@@ -30,6 +30,17 @@
           <mat-icon class="dashboard-side__icon" matListItemIcon>manage_accounts</mat-icon>
           <span class="dashboard-side__label" matListItemTitle>Users</span>
         </a>
+
+        <a
+          class="dashboard-side__link"
+          mat-list-item
+          routerLink="/dashboard/doctors"
+          routerLinkActive
+          #doctors="routerLinkActive"
+          [activated]="doctors.isActive">
+          <mat-icon class="dashboard-side__icon" matListItemIcon>local_hospital</mat-icon>
+          <span class="dashboard-side__label" matListItemTitle>Doctors</span>
+        </a>
       }
 
       <a
