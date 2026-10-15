@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -249,7 +250,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
-            if (_userRepository.FindByEmailAsync(request.Email) != null)
+            if (await _userRepository.FindByEmailAsync(request.Email) != null)
                 return Problem(statusCode: StatusCodes.Status409Conflict,
                     detail: "A user with this email already exists.");
 
@@ -278,6 +279,57 @@ namespace Clinic_Management_System.Controllers
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
                 detail: "The user could not be created. Check the name, phone, national number and date of birth.");
+        }
+
+        [Authorize]
+        [HttpPatch("{id}/change-password", Name = "ChangePassword")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+        public async Task<ActionResult> ChangePassword(
+            [Range(1, int.MaxValue)] int id, 
+            UpdatePasswordRequest request,
+            [FromServices] IAuthorizationService authorizationService
+        )
+        {
+            clsUser? user = await _userRepository.FindByIdAsync(id);
+            if (user == null)
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"User with id {id} not found!");
+
+            var authResult = await authorizationService.AuthorizeAsync(
+                User,
+                user,
+                "ChangePassword"
+            );
+
+            if (!authResult.Succeeded)
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"User with id {id} not found!");
+
+            // An admin resets an account whose password nobody knows, so there is
+            // none to ask for. Everyone else is changing their own and proves it.
+            // A missing one simply fails: BCrypt throws on null rather than
+            // returning false.
+            if (!User.IsInRole("Admin") && !BCrypt.Net.BCrypt.Verify(request.CurrentPassword ?? "", user.PasswordHash))
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The current password is wrong.");
+
+            return await SetPassword(user, request.NewPassword);
+        }
+
+        private async Task<ActionResult> SetPassword(clsUser user, string newPassword)
+        {
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+
+            // End Existing session
+            user.RefreshTokenHash = null;
+            user.RefreshTokenExpiresAt = null;
+            user.RefreshTokenRevokedAt = DateTime.UtcNow;
+
+            if (await user.Update())
+                return NoContent();
+
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The password could not be saved.");
         }
 
         private static string GenerateRefreshToken()
