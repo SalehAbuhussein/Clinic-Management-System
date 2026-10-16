@@ -123,21 +123,13 @@ namespace Clinic_Business.Entities
                 row.Field<int?>("VisitID")
             );
 
-            appointment.PatientInfo = _MapPatientInfo(row);
-            appointment.DoctorInfo = _MapDoctorInfo(row);
+            appointment.PatientInfo = MapPatientInfo(row);
+            appointment.DoctorInfo = MapDoctorInfo(row);
 
             return appointment;
         }
 
-        /// <summary>
-        /// Builds the patient carried on the appointment row. Only what a list
-        /// row displays is read; the emergency contacts and audit columns stay
-        /// at their defaults.
-        ///
-        /// Deliberately not `clsPatient._MapPatient`: that reads the column
-        /// names of its own query, which are not the ones in this joined row.
-        /// </summary>
-        private static clsPatient _MapPatientInfo(DataRow row)
+        internal static clsPatient MapPatientInfo(DataRow row)
         {
             return new clsPatient
             {
@@ -150,11 +142,7 @@ namespace Clinic_Business.Entities
             };
         }
 
-        /// <summary>
-        /// Builds the doctor carried on the appointment row. The name lives two
-        /// hops away, because a doctor reaches a person through their user.
-        /// </summary>
-        private static clsDoctor _MapDoctorInfo(DataRow row)
+        internal static clsDoctor MapDoctorInfo(DataRow row)
         {
             return new clsDoctor
             {

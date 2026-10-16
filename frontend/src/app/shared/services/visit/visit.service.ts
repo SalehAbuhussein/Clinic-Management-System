@@ -21,6 +21,20 @@ export class VisitService {
   getVisitResource = (day: () => Date, page: () => number) => this.apiService.getPagedResource<Visit>('/Visits', () => ({ ...dayRange(day()), page: page() }));
 
   /**
+   * One patient's visits, newest first. A doctor gets only their own visits
+   * with that patient; the API scopes it from the token.
+   *
+   * @param patientId Returns the patient, or null to send nothing at all. A
+   * caller that shows the history on demand returns null until it is asked for.
+   * @param page Returns the page to show.
+   * @returns The resource holding the page.
+   */
+  getPatientVisitResource = (patientId: () => number | null, page: () => number) => this.apiService.getPagedResource<Visit>(
+    () => patientId() === null ? null : '/Visits',
+    () => ({ patientId: patientId(), page: page() }),
+  );
+
+  /**
    * One visit. The appointment rows carry a `visitId`, so this is how a screen
    * that started from an appointment reaches the visit behind it.
    *

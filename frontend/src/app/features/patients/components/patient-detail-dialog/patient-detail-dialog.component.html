@@ -38,6 +38,54 @@
       </dd>
     </dl>
   }
+
+  <section class="patient-detail__visits">
+    @if (!showVisits()) {
+      <button matButton type="button" (click)="showVisits.set(true)">
+        <mat-icon>history</mat-icon>
+        Show visit history
+      </button>
+    } @else {
+      <h3 class="patient-detail__visits-title">Visits</h3>
+
+      @if (visitsResource.isLoading()) {
+        <p class="patient-detail__state" role="status">
+          <mat-progress-spinner diameter="18" mode="indeterminate" />
+          Loading visits…
+        </p>
+      } @else if (visitsResource.error(); as visitsError) {
+        <p class="patient-detail__state patient-detail__state--error" role="alert">
+          <mat-icon>error</mat-icon>
+          {{ visitsError.message }}
+        </p>
+      } @else if (visits(); as history) {
+        @if (history.length) {
+          <ul class="patient-detail__visit-list">
+            @for (visit of history; track visit.id) {
+              <li>
+                <button class="patient-detail__visit" type="button" (click)="openVisit(visit.id)">
+                  <span class="patient-detail__visit-when">{{ visit.checkinTime | date: 'd MMM y, HH:mm' }}</span>
+                  <span class="patient-detail__visit-doctor">{{ visit.doctorName }}</span>
+
+                  @if (visit.checkoutTime) {
+                    <span class="patient-detail__visit-state">Checked out</span>
+                  } @else {
+                    <span class="patient-detail__visit-state patient-detail__visit-state--open">Open</span>
+                  }
+                </button>
+              </li>
+            }
+          </ul>
+
+          @if (visitsTotal() > visitsPerPage()) {
+            <app-pagination [(page)]="visitsPage" [total]="visitsTotal()" [pageSize]="visitsPerPage()" />
+          }
+        } @else {
+          <p class="patient-detail__state">No visits yet.</p>
+        }
+      }
+    }
+  </section>
 </div>
 
 <div class="patient-detail__actions" matDialogActions>

@@ -24,6 +24,12 @@ namespace Clinic_Business.Entities
         public DateTimeOffset? CheckoutTime { get; set; }
         public string? Notes { get; set; }
         public bool IsLocked { get; set; }
+        public int? PatientID { get; set; }
+        public clsPatient? PatientInfo { get; set; }
+        public int? DoctorID { get; set; }
+        public clsDoctor? DoctorInfo { get; set; }
+        public DateTimeOffset? AppointmentStartAt { get; set; }
+
         private enMode _Mode = enMode.Add;
 
         public clsVisit()
@@ -52,9 +58,9 @@ namespace Clinic_Business.Entities
 
         public record VisitItem(int Id, int AppointmentID, string? PatientName, string? DoctorName, DateTimeOffset AppointmentStartAt, DateTimeOffset CheckinTime, DateTimeOffset? CheckoutTime, string? Notes);
 
-        public static async Task<PagedResult<VisitItem>> FindAllAsync(int? doctorId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, int pageNumber = 1, int pageSize = 10)
+        public static async Task<PagedResult<VisitItem>> FindAllAsync(int? doctorId = null, int? patientId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, int pageNumber = 1, int pageSize = 10)
         {
-            DataTable table = await clsVisitDA.FindAllAsync(doctorId, from, to, pageNumber, pageSize);
+            DataTable table = await clsVisitDA.FindAllAsync(doctorId, patientId, from, to, pageNumber, pageSize);
 
             List<VisitItem> visits = table.AsEnumerable().Select(row => new VisitItem(
                 row.Field<int>("VisitID"),
@@ -76,14 +82,14 @@ namespace Clinic_Business.Entities
         {
             DataRow? row = await clsVisitDA.FindAsync(id);
 
-            return row == null ? null : MapVisit(row);
+            return row == null ? null : _MapVisitWithPeople(row);
         }
 
         public static async Task<clsVisit?> FindByAppointmentIDAsync(int? id)
         {
             DataRow? row = await clsVisitDA.FindByAppointmentIDAsync(id);
 
-            return row == null ? null : MapVisit(row);
+            return row == null ? null : _MapVisitWithPeople(row);
         }
 
         internal static clsVisit MapVisit(DataRow row)
@@ -96,6 +102,19 @@ namespace Clinic_Business.Entities
                 row.Field<string>("Notes"),
                 row.Field<bool>("IsLocked")
             );
+        }
+
+        internal static clsVisit _MapVisitWithPeople(DataRow row)
+        {
+            clsVisit visit = MapVisit(row);
+
+            visit.PatientID = row.Field<int>("PatientID");
+            visit.PatientInfo = clsAppointment.MapPatientInfo(row);
+            visit.DoctorID = row.Field<int>("DoctorID");
+            visit.DoctorInfo = clsAppointment.MapDoctorInfo(row);
+            visit.AppointmentStartAt = row.Field<DateTimeOffset?>("StartAt");
+
+            return visit;
         }
 
         public static Task<bool> IsExistByAppointmentIDAsync(int id)

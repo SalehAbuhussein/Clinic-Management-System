@@ -36,7 +36,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<PagedResult<VisitDTO>>> GetVisits(int? doctorId, DateTimeOffset? from, DateTimeOffset? to, [Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
+        public async Task<ActionResult<PagedResult<VisitDTO>>> GetVisits(int? doctorId, int? patientId, DateTimeOffset? from, DateTimeOffset? to, [Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
             perPage = Math.Clamp(perPage, 1, 10);
 
@@ -55,7 +55,7 @@ namespace Clinic_Management_System.Controllers
                 doctorId = doctor.DoctorID;
             }
 
-            PagedResult<clsVisit.VisitItem> visitsPage = await _visitRepository.FindAllAsync(doctorId, from, to, page, perPage);
+            PagedResult<clsVisit.VisitItem> visitsPage = await _visitRepository.FindAllAsync(doctorId, patientId, from, to, page, perPage);
 
             List<VisitDTO> visitsList = visitsPage.Items
                 .Select(visit => new VisitDTO
@@ -91,6 +91,9 @@ namespace Clinic_Management_System.Controllers
             {
                 Id = visit.VisitID,
                 AppointmentID = visit.AppointmentID,
+                PatientName = visit.PatientInfo?.Fullname,
+                DoctorName = visit.DoctorInfo?.UserInfo.PersonInfo.Fullname,
+                AppointmentStartAt = visit.AppointmentStartAt,
                 CheckinTime = visit.CheckinTime,
                 CheckoutTime = visit.CheckoutTime,
                 Notes = visit.Notes,

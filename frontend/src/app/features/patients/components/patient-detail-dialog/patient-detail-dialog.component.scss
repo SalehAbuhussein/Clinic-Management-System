@@ -30,6 +30,69 @@
   color: var(--mat-sys-error);
 }
 
+.patient-detail__visits {
+  border-block-start: 1px solid var(--mat-sys-outline-variant);
+  margin-block-start: 20px;
+  padding-block-start: 12px;
+}
+
+.patient-detail__visits-title {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-title-small);
+  margin: 0 0 8px;
+}
+
+.patient-detail__visit-list {
+  display: grid;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.patient-detail__visit {
+  align-items: baseline;
+  background-color: var(--mat-sys-surface-container-low);
+  border: 0;
+  border-radius: var(--mat-sys-corner-small);
+  color: var(--mat-sys-on-surface);
+  cursor: pointer;
+  display: grid;
+  font: inherit;
+  gap: 12px;
+  grid-template-columns: auto 1fr auto;
+  inline-size: 100%;
+  padding: 8px 12px;
+  text-align: start;
+
+  &:hover {
+    background-color: var(--mat-sys-surface-container);
+  }
+}
+
+.patient-detail__visit-when {
+  font: var(--mat-sys-body-medium);
+  white-space: nowrap;
+}
+
+.patient-detail__visit-doctor {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.patient-detail__visit-state {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-small);
+  white-space: nowrap;
+}
+
+.patient-detail__visit-state--open {
+  color: var(--mat-sys-primary);
+}
+
 .patient-detail__actions {
   flex-wrap: wrap;
   gap: 8px;

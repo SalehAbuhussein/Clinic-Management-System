@@ -11,7 +11,7 @@ namespace Clinic_DataAccess
 {
     public class clsVisitDA
     {
-        public static async Task<DataTable> FindAllAsync(int? doctorId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, int pageNumber = 1, int pageSize = 10)
+        public static async Task<DataTable> FindAllAsync(int? doctorId = null, int? patientId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, int pageNumber = 1, int pageSize = 10)
         {
             DataTable dt = new DataTable();
 
@@ -28,7 +28,6 @@ namespace Clinic_DataAccess
 
                     CONCAT_WS(' ', PP.Firstname, PP.Midname, PP.Thirdname, PP.Lastname) AS PatientName,
                     CONCAT_WS(' ', DP.Firstname, DP.Midname, DP.Thirdname, DP.Lastname) AS DoctorName
-
                 FROM Visits V
                 INNER JOIN Appointments A ON A.AppointmentID = V.AppointmentID
                 INNER JOIN Patients PT ON PT.PatientID = A.PatientID
@@ -47,6 +46,12 @@ namespace Clinic_DataAccess
                     {
                         conditions.Add("A.DoctorID = @DoctorID");
                         command.Parameters.AddWithValue("@DoctorID", doctorId.Value);
+                    }
+
+                    if (patientId.HasValue)
+                    {
+                        conditions.Add("A.PatientID = @PatientID");
+                        command.Parameters.AddWithValue("@PatientID", patientId.Value);
                     }
 
                     if (from.HasValue)
@@ -87,7 +92,6 @@ namespace Clinic_DataAccess
             return dt;
         }
 
-        /// <summary>Returns the row; ref parameters cannot cross an await (CS1988).</summary>
         public static async Task<DataRow?> FindAsync(int? id)
         {
             if (!id.HasValue)
@@ -99,14 +103,29 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"SELECT [VisitID]
-                    ,[AppointmentID]
-                    ,[CheckinTime]
-                    ,[CheckoutTime]
-                    ,[Notes]
-                    ,[isLocked]
-                FROM [dbo].[Visits]
-                WHERE VisitID = @VisitID";
+                string query = @"SELECT
+                    V.VisitID, V.AppointmentID, V.CheckinTime, V.CheckoutTime, V.Notes, V.IsLocked,
+                    A.StartAt, A.PatientID, A.DoctorID,
+
+                    PT.PersonID,
+                    PP.Firstname AS PatientFirstname,
+                    PP.Midname   AS PatientMidname,
+                    PP.Thirdname AS PatientThirdname,
+                    PP.Lastname  AS PatientLastname,
+
+                    D.UserID,
+                    DP.Firstname AS DoctorFirstname,
+                    DP.Midname   AS DoctorMidname,
+                    DP.Thirdname AS DoctorThirdname,
+                    DP.Lastname  AS DoctorLastname
+                FROM Visits V
+                INNER JOIN Appointments A ON A.AppointmentID = V.AppointmentID
+                INNER JOIN Patients PT ON PT.PatientID = A.PatientID
+                INNER JOIN People PP ON PP.PersonID = PT.PersonID
+                INNER JOIN Doctors D ON D.DoctorID = A.DoctorID
+                INNER JOIN Users U ON U.UserID = D.UserID
+                INNER JOIN People DP ON DP.PersonID = U.PersonID
+                WHERE V.VisitID = @VisitID";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
@@ -134,14 +153,30 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"SELECT [VisitID]
-                    ,[AppointmentID]
-                    ,[CheckinTime]
-                    ,[CheckoutTime]
-                    ,[Notes]
-                    ,[IsLocked]
-                FROM [dbo].[Visits]
-                WHERE AppointmentID = @AppointmentID";
+                string query = @"SELECT
+                    V.VisitID, V.AppointmentID, V.CheckinTime, V.CheckoutTime, V.Notes, V.IsLocked,
+
+                    A.StartAt, A.PatientID, A.DoctorID,
+
+                    PT.PersonID,
+                    PP.Firstname AS PatientFirstname,
+                    PP.Midname   AS PatientMidname,
+                    PP.Thirdname AS PatientThirdname,
+                    PP.Lastname  AS PatientLastname,
+
+                    D.UserID,
+                    DP.Firstname AS DoctorFirstname,
+                    DP.Midname   AS DoctorMidname,
+                    DP.Thirdname AS DoctorThirdname,
+                    DP.Lastname  AS DoctorLastname
+                FROM Visits V
+                INNER JOIN Appointments A ON A.AppointmentID = V.AppointmentID
+                INNER JOIN Patients PT ON PT.PatientID = A.PatientID
+                INNER JOIN People PP ON PP.PersonID = PT.PersonID
+                INNER JOIN Doctors D ON D.DoctorID = A.DoctorID
+                INNER JOIN Users U ON U.UserID = D.UserID
+                INNER JOIN People DP ON DP.PersonID = U.PersonID
+                WHERE V.AppointmentID = @AppointmentID";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {

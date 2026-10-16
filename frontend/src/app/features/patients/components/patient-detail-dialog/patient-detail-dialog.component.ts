@@ -1,12 +1,16 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { Router } from '@angular/router';
 
 import { AuthService } from '@core/auth/service/auth.service';
 import { PatientService } from '@shared/services/patient/patient.service';
+import { VisitService } from '@shared/services/visit/visit.service';
+
+import { PaginationComponent } from '@shared/components/pagination/pagination.component';
 
 import { ApiError } from '@core/auth/types/auth.types';
 import { Patient } from '@shared/services/patient/patient.types';
@@ -18,14 +22,17 @@ import { Patient } from '@shared/services/patient/patient.types';
 export type PatientDetailAction = 'edit' | 'delete';
 
 @Component({
-  imports: [DatePipe, MatButton, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle, MatIcon, MatProgressSpinner],
+  imports: [DatePipe, MatButton, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle, MatIcon, MatProgressSpinner, PaginationComponent],
   selector: 'app-patient-detail-dialog',
   styleUrl: './patient-detail-dialog.component.scss',
   templateUrl: './patient-detail-dialog.component.html',
 })
 export class PatientDetailDialogComponent implements OnInit {
   authService = inject(AuthService);
+  dialogRef = inject(MatDialogRef<PatientDetailDialogComponent>);
   patientService = inject(PatientService);
+  router = inject(Router);
+  visitService = inject(VisitService);
 
   /** The row that was picked. It carries the list's columns and nothing more. */
   row = inject<Patient>(MAT_DIALOG_DATA);
@@ -35,6 +42,19 @@ export class PatientDetailDialogComponent implements OnInit {
 
   isLoading = signal(true);
   error = signal('');
+
+  /** The history is fetched only once someone asks for it. */
+  showVisits = signal(false);
+  visitsPage = signal(1);
+
+  visitsResource = this.visitService.getPatientVisitResource(
+    () => this.showVisits() ? this.row.id : null,
+    this.visitsPage,
+  );
+
+  visits = computed(() => this.visitsResource.value().items);
+  visitsTotal = computed(() => this.visitsResource.value().total);
+  visitsPerPage = computed(() => this.visitsResource.value().perPage || 10);
 
   ngOnInit(): void {
     this.initComponent();
@@ -62,5 +82,17 @@ export class PatientDetailDialogComponent implements OnInit {
         this.error.set(error.message);
       },
     });
+  }
+
+  /**
+   * Opens one of the patient's visits on the visits screen, which owns every
+   * action a visit has. The dialog closes first, because the page behind it
+   * is about to change.
+   *
+   * @param visitId The visit that was picked.
+   */
+  openVisit(visitId: number): void {
+    this.dialogRef.close();
+    this.router.navigate(['/dashboard/visits'], { queryParams: { visitId } });
   }
 }
