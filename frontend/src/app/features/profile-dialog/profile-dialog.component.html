@@ -1,3 +1,7 @@
+@let currentPassword = profileForm.currentPassword();
+@let password = profileForm.password();
+@let confirmPassword = profileForm.confirmPassword();
+
 <header>
   <h2 matDialogTitle>Profile</h2>
 </header>
@@ -71,8 +75,13 @@
           <input
             matInput
             type="password"
+            autocomplete="current-password"
             [formField]="profileForm.currentPassword"
           >
+
+          @if (currentPassword.errors().length) {
+            <mat-error>Required</mat-error>
+          }
         </mat-form-field>
 
         <mat-form-field>
@@ -80,8 +89,15 @@
           <input
             matInput
             type="password"
+            autocomplete="new-password"
             [formField]="profileForm.password"
           >
+
+          @if (password.errors().length) {
+            <mat-error>At least 6 characters</mat-error>
+          } @else {
+            <mat-hint>At least 6 characters</mat-hint>
+          }
         </mat-form-field>
 
         <mat-form-field>
@@ -89,22 +105,37 @@
           <input
             matInput
             type="password"
+            autocomplete="new-password"
             [formField]="profileForm.confirmPassword"
           >
+
+          @if (confirmPassword.errors()[0]?.kind === 'mismatch') {
+            <mat-error>The two passwords do not match</mat-error>
+          } @else if (confirmPassword.errors().length) {
+            <mat-error>Required</mat-error>
+          }
         </mat-form-field>
       </div>
+
+      <p class="note">Changing your password signs you out on every other device.</p>
     }
   </section>
+
+  @if (error(); as message) {
+    <p class="error" role="alert">{{ message }}</p>
+  }
 </div>
 
 <footer class="actions" matDialogActions>
-  <button type="button" matButton [matDialogClose]="true" [disabled]="isSaving()">Cancel</button>
+  <button type="button" matButton [matDialogClose]="true" [disabled]="isSaving()">Close</button>
 
-  <button type="button" matButton="filled" [disabled]="isSaving()">
-    @if (isSaving()) {
-      <mat-progress-spinner class="spinner" diameter="18" mode="indeterminate" />
-    }
+  @if (showUserInfo()) {
+    <button type="button" matButton="filled" [disabled]="profileForm().invalid() || isSaving()" (click)="changePassword()">
+      @if (isSaving()) {
+        <mat-progress-spinner class="spinner" diameter="18" mode="indeterminate" />
+      }
 
-    Save Changes
-  </button>
+      Change password
+    </button>
+  }
 </footer>

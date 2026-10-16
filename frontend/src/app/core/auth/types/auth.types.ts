@@ -8,6 +8,11 @@ export type LoginRequestBody = {
   password: string;
 };
 
+export type ChangePasswordRequest = {
+  currentPassword?: string;
+  newPassword: string;
+};
+
 export type Role = 'Admin' | 'Doctor' | 'Staff';
 
 export type ApiError = {

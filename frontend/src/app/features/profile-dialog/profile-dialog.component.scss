@@ -15,3 +15,23 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
 }
+
+.note {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  margin: 0;
+}
+
+.error {
+  background-color: var(--mat-sys-error-container);
+  border-radius: var(--mat-sys-corner-medium);
+  color: var(--mat-sys-on-error-container);
+  font: var(--mat-sys-body-medium);
+  margin: 12px 0 0;
+  padding: 12px 14px;
+}
+
+.actions {
+  gap: 8px;
+  justify-content: flex-end;
+}

@@ -5,7 +5,7 @@ import { tap } from 'rxjs';
 import { ApiService } from '@core/services/api/api.service';
 import { LocalStorageService } from '@core/services/local-storage/local-storage.service';
 
-import { LoginRequestBody, Role, TokenResponse } from '@core/auth/types/auth.types';
+import { ChangePasswordRequest, LoginRequestBody, Role, TokenResponse } from '@core/auth/types/auth.types';
 
 @Service()
 export class AuthService {
@@ -103,6 +103,21 @@ export class AuthService {
       })
     );
   }
+
+  /**
+   * Replace an account's password.
+   *
+   * Changing your own means proving you know the current one. An admin
+   * resetting a doctor's or a staff member's does not send it, because the
+   * whole point is that nobody knows it.
+   *
+   * Every refresh token on that account dies with the old password, so a reset
+   * signs the owner out everywhere.
+   *
+   * @param userId The account.
+   * @param body The current password when it is your own, and the new one.
+   */
+  changePassword = (userId: number, body: ChangePasswordRequest) => this.apiService.patch(`/Auth/${userId}/change-password`, body);
 
   /**
    * Clear Auth related local storage fields
