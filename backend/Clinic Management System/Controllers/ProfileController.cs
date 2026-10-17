@@ -8,9 +8,6 @@ using System.Security.Claims;
 
 namespace Clinic_Management_System.Controllers
 {
-    // Everything here acts on the caller's own record, so no id appears in any
-    // route: the token names who is asking, and there is nothing to authorize
-    // beyond being signed in.
     [Route("api/Profile")]
     [ApiController]
     [Authorize]
@@ -70,8 +67,6 @@ namespace Clinic_Management_System.Controllers
 
             clsPerson person = user.PersonInfo;
 
-            // The national number identifies the person and is not in
-            // UpdatePersonDTO, so it is written back as it was found.
             person.Firstname = request.Firstname;
             person.Midname = request.Midname;
             person.Thirdname = request.Thirdname;
@@ -82,14 +77,12 @@ namespace Clinic_Management_System.Controllers
             person.ProfileImage = request.ProfileImage;
 
             if (!person.IsValid())
-                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                    detail: "Check the name, phone and date of birth.");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "Check the name, phone and date of birth.");
 
             if (await _personRepository.UpdateAsync(person))
                 return NoContent();
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The profile could not be saved.");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The profile could not be saved.");
         }
 
         private int CallerId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
