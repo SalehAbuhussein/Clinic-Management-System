@@ -1,6 +1,6 @@
 import { computed, inject, Service, signal } from '@angular/core';
 
-import { tap } from 'rxjs';
+import { finalize, Observable, shareReplay, tap } from 'rxjs';
 
 import { ApiService } from '@core/services/api/api.service';
 import { LocalStorageService } from '@core/services/local-storage/local-storage.service';
@@ -14,6 +14,8 @@ export class AuthService {
 
   role = signal<Role | null>(null);
   userId = signal<number | null>(null);
+
+  inFlightRefresh$: Observable<TokenResponse | null> | null = null;
 
   constructor() {
     this.readToken();
@@ -102,6 +104,26 @@ export class AuthService {
         this.readToken();
       })
     );
+  }
+
+  /**
+   * Rotates the tokens, but only once no matter how many callers ask.
+   *
+   * A page that fires five requests at an expired token gets five 401s at the
+   * same moment. Without sharing, five refreshes race, four of them send a
+   * token the first has already rotated away, and the user is signed out.
+   *
+   * @returns The in-flight refresh, shared until it settles.
+   */
+  refreshOnce = (): Observable<TokenResponse | null> => {
+    if (!this.inFlightRefresh$) {
+      this.inFlightRefresh$ = this.refresh().pipe(
+        finalize(() => this.inFlightRefresh$ = null),
+        shareReplay({ bufferSize: 1, refCount: false }),
+      );
+    }
+
+    return this.inFlightRefresh$;
   }
 
   /**
