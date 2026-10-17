@@ -7,8 +7,8 @@ import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/rou
 
 import { AuthService } from '@core/auth/service/auth.service';
 
-import { BookAppointmentDialogComponent } from '@features/book-appointment-dialog/book-appointment-dialog.component';
-import { ProfileDialogComponent } from '@features/profile-dialog/profile-dialog.component';
+import { BookAppointmentDialogComponent } from '@features/book-appointment/components/book-appointment-dialog/book-appointment-dialog.component';
+import { ProfileDialogComponent } from '@features/profile/components/profile-dialog/profile-dialog.component';
 
 @Component({
   imports: [RouterLink, RouterLinkActive, RouterOutlet, MatFabButton, MatIcon, MatNavList, MatListItem, MatListItemIcon, MatListItemTitle],

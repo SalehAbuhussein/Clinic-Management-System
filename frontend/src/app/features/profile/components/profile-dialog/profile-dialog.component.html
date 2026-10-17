@@ -7,7 +7,14 @@
 </header>
 
 <div class="dialog-content" (submit)="$event.preventDefault()" matDialogContent>
-  <section class="form-section">
+  @if (isLoading()) {
+    <p class="note" role="status">
+      <mat-progress-spinner class="spinner" diameter="18" mode="indeterminate" />
+      Loading your details…
+    </p>
+  }
+
+  <section class="form-section" [hidden]="isLoading()">
     <h3 class="form-title">Person Information</h3>
 
     <div class="form-grid">
@@ -29,6 +36,7 @@
       <mat-form-field>
         <mat-label>National number</mat-label>
         <input matInput [formField]="profileForm.nationalNo">
+        <mat-hint>Cannot be changed</mat-hint>
       </mat-form-field>
 
       <mat-form-field>
@@ -56,7 +64,7 @@
     </div>
   </section>
 
-  <section class="form-section">
+  <section class="form-section" [hidden]="isLoading()">
     <div class="section-header">
       <h3 class="form-title">Account Security</h3>
 
@@ -136,6 +144,14 @@
       }
 
       Change password
+    </button>
+  } @else {
+    <button type="button" matButton="filled" [disabled]="isLoading() || profileForm().invalid() || isSaving()" (click)="saveProfile()">
+      @if (isSaving()) {
+        <mat-progress-spinner class="spinner" diameter="18" mode="indeterminate" />
+      }
+
+      Save changes
     </button>
   }
 </footer>

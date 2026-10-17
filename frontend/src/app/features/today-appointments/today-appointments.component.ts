@@ -18,14 +18,14 @@ import { AppointmentsListComponent } from './components/appointments-list/appoin
 import { AppointmentsListEmptyStateComponent } from './components/appointments-list-empty-state/appointments-list-empty-state.component';
 import { AppointmentsListErrorStateComponent } from './components/appointments-list-error-state/appointments-list-error-state.component';
 import { AppointmentDetailAction, AppointmentDetailDialogComponent } from './components/appointment-detail-dialog/appointment-detail-dialog.component';
-import { BookAppointmentDialogComponent } from '@features/book-appointment-dialog/book-appointment-dialog.component';
+import { BookAppointmentDialogComponent } from '@features/book-appointment/components/book-appointment-dialog/book-appointment-dialog.component';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.types';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
 
 import { ApiError } from '@core/auth/types/auth.types';
 import { AppointmentCard } from '@shared/services/appointment/appointment.types';
-import { BookedAppointment } from '@features/book-appointment-dialog/types/book-appointment.types';
+import { BookedAppointment } from '@features/book-appointment/types/book-appointment.types';
 
 @Component({
   imports: [

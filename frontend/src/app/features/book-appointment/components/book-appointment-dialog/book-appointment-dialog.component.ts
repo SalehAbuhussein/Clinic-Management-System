@@ -12,10 +12,10 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { AppointmentService } from '@shared/services/appointment/appointment.service';
 
-import { DateInputComponent } from './components/date-input/date-input.component';
-import { DoctorDayStripComponent } from './components/doctor-day-strip/doctor-day-strip.component';
-import { DoctorSelectorInputComponent } from './components/doctor-selector-input/doctor-selector-input.component';
-import { PatientSelectorInputComponent } from './components/patient-selector-input/patient-selector-input.component';
+import { DateInputComponent } from '../date-input/date-input.component';
+import { DoctorDayStripComponent } from '../doctor-day-strip/doctor-day-strip.component';
+import { DoctorSelectorInputComponent } from '../doctor-selector-input/doctor-selector-input.component';
+import { PatientSelectorInputComponent } from '../patient-selector-input/patient-selector-input.component';
 
 import { ApiError } from '@core/auth/types/auth.types';
 import { AppointmentCard, CreateAppointmentRequest, RescheduleAppointmentRequest } from '@shared/services/appointment/appointment.types';

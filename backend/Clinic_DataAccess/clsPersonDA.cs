@@ -93,6 +93,64 @@ namespace Clinic_DataAccess
             return dt.Rows.Count > 0 ? dt.Rows[0] : null;
         }
 
+        /// <summary>
+        /// Writes the whole row back. The national number is included so the
+        /// caller decides what may change, rather than the query deciding for it.
+        /// </summary>
+        public static async Task<bool> UpdateAsync(
+            int? id,
+            string firstname,
+            string midname,
+            string? thirdname,
+            string lastname,
+            string nationalNo,
+            string phone,
+            bool gender,
+            DateOnly dateOfBirth,
+            string? profileImage
+        )
+        {
+            if (!id.HasValue)
+                return false;
+
+            int rowsAffected = 0;
+
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                await connection.OpenAsync();
+
+                string query = @"UPDATE [dbo].[People]
+                    SET [Firstname] = @Firstname
+                       ,[Midname] = @Midname
+                       ,[Thirdname] = @Thirdname
+                       ,[Lastname] = @Lastname
+                       ,[NationalNo] = @NationalNo
+                       ,[Phone] = @Phone
+                       ,[Gender] = @Gender
+                       ,[DateOfBirth] = @DateOfBirth
+                       ,[ProfileImage] = @ProfileImage
+                WHERE PersonID = @PersonID";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@PersonID", id);
+                    command.Parameters.AddWithValue("@Firstname", firstname);
+                    command.Parameters.AddWithValue("@Midname", midname);
+                    command.Parameters.AddWithValue("@Thirdname", (object?)thirdname ?? DBNull.Value);
+                    command.Parameters.AddWithValue("@Lastname", lastname);
+                    command.Parameters.AddWithValue("@NationalNo", nationalNo);
+                    command.Parameters.AddWithValue("@Phone", phone);
+                    command.Parameters.AddWithValue("@Gender", gender);
+                    command.Parameters.AddWithValue("@DateOfBirth", dateOfBirth.ToDateTime(TimeOnly.MinValue));
+                    command.Parameters.AddWithValue("@ProfileImage", (object?)profileImage ?? DBNull.Value);
+
+                    rowsAffected = await command.ExecuteNonQueryAsync();
+                }
+            }
+
+            return rowsAffected > 0;
+        }
+
         public static async Task<bool> DeleteAsync(int? id)
         {
             if (!id.HasValue)

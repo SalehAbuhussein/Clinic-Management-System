@@ -72,6 +72,25 @@ namespace Clinic_Business.Entities
             return row is null ? null : MapPerson(row);
         }
 
+        /// <summary>
+        /// Saves this person's current values. Validation is the caller's,
+        /// through IsValid, as everywhere else in this layer.
+        /// </summary>
+        public Task<bool> UpdateAsync()
+        {
+            return clsPersonDA.UpdateAsync(
+                PersonID,
+                Firstname,
+                Midname,
+                Thirdname,
+                Lastname,
+                NationalNo,
+                Phone,
+                Gender,
+                DateOfBirth,
+                ProfileImage);
+        }
+
         public static Task<bool> DeleteAsync(int? id)
         {
             return clsPersonDA.DeleteAsync(id);
