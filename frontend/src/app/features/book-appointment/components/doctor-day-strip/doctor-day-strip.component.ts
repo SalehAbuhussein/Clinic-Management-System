@@ -1,4 +1,5 @@
 import { Component, computed, effect, ElementRef, inject, input, model, untracked, viewChild } from '@angular/core';
+import { formatDate } from '@angular/common';
 
 import { AppointmentService } from '@shared/services/appointment/appointment.service';
 import { WorkingDaysService } from '@shared/services/working-days/working-days.service';
@@ -104,8 +105,27 @@ export class DoctorDayStripComponent {
     return labels;
   });
 
-  /** True until a doctor is chosen. Dims the track and hides the block. */
-  isDisabled = computed(() => !this.doctorId());
+  /**
+   * Whether the clinic shuts on the day being booked.
+   *
+   * Read from `isWorkingDay` rather than from the times, because a closed day
+   * has null times and the fallbacks above would draw it as a normal one.
+   */
+  isClosed = computed(() => {
+    const date = this.date();
+
+    return date ? !this.workingDaysService.isWorkingDay(date) : false;
+  });
+
+  /** The weekday, for the closed message. */
+  dayLabel = computed(() => {
+    const date = this.date();
+
+    return date ? formatDate(date, 'EEEE', 'en-US') : '';
+  });
+
+  /** True until a doctor is chosen, or on a day the clinic shuts. */
+  isDisabled = computed(() => !this.doctorId() || this.isClosed());
 
   /**
    * The doctor's booked slots in minutes, without the one being rescheduled:

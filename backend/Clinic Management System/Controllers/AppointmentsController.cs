@@ -17,17 +17,20 @@ namespace Clinic_Management_System.Controllers
         private readonly IDoctorRepository _doctorRepository;
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly ILeaveRepository _leaveRepository;
+        private readonly IWorkingDayRepository _workingDayRepository;
 
         public AppointmentsController(
             IPatientRepository patientRepository,
             IDoctorRepository doctorRepository,
             IAppointmentRepository appointmentRepository,
-            ILeaveRepository leaveRepository)
+            ILeaveRepository leaveRepository,
+            IWorkingDayRepository workingDayRepository)
         {
             _patientRepository = patientRepository;
             _doctorRepository = doctorRepository;
             _appointmentRepository = appointmentRepository;
             _leaveRepository = leaveRepository;
+            _workingDayRepository = workingDayRepository;
         }
 
         [Authorize(Roles = "Admin,Staff")]
@@ -127,6 +130,9 @@ namespace Clinic_Management_System.Controllers
             if (!await _doctorRepository.ExistsAsync(appointmentDTO.DoctorID) || !await _patientRepository.ExistsAsync(appointmentDTO.PatientID))
                 return Problem(statusCode: StatusCodes.Status404NotFound, detail: "The doctor or patient referenced by this appointment does not exist.");
 
+            if (!await _workingDayRepository.IsOpenAtAsync(appointmentDTO.StartAt, appointmentDTO.EndAt))
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The clinic is closed at that time.");
+
             if (await _appointmentRepository.HasPatientConflictAsync(appointmentDTO.PatientID, appointmentDTO.StartAt, appointmentDTO.EndAt))
                 return Problem(statusCode: StatusCodes.Status409Conflict, detail: "The patient already has an appointment in that time slot.");
 
@@ -202,6 +208,9 @@ namespace Clinic_Management_System.Controllers
                 if (newStart < DateTime.UtcNow)
                     return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
                         detail: "An appointment cannot be rescheduled into the past.");
+
+                if (!await _workingDayRepository.IsOpenAtAsync(newStart, newEnd))
+                    return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The clinic is closed at that time.");
 
                 if (await _leaveRepository.HasDoctorLeaveAsync(appointment.DoctorID, newStart, newEnd))
                     return Problem(statusCode: StatusCodes.Status409Conflict, detail: "The doctor is on leave in that time slot");

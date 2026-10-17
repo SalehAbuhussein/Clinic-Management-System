@@ -1,7 +1,7 @@
 <mat-form-field class="date-input__field">
   <mat-label>Date</mat-label>
 
-  <input matInput [matDatepicker]="picker" [(ngModel)]="date" readonly>
+  <input matInput [matDatepicker]="picker" [matDatepickerFilter]="isOpenOn" [(ngModel)]="date" readonly>
 
   <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
 

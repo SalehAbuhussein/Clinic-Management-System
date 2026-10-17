@@ -13,7 +13,7 @@ export class WorkingDaysService {
   workingDaysResource = this.apiService.getPagedResource<WorkingDay>('/WorkingDays');
 
   workingDays = computed(() => this.workingDaysResource.value().items);
-  isLoading = computed(() => this.workingDaysResource.isLoading);
+  isLoading = computed(() => this.workingDaysResource.isLoading());
   hasFailed = computed(() => !!this.workingDaysResource.error());
 
   /**

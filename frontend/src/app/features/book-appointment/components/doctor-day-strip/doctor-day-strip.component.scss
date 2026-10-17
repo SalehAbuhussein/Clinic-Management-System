@@ -25,6 +25,11 @@
   font-variant-numeric: tabular-nums;
 }
 
+.strip__closed {
+  color: var(--mat-sys-error);
+  font: var(--mat-sys-label-medium);
+}
+
 .strip__track {
   background-color: var(--mat-sys-surface-container-lowest);
   border: 1px solid var(--mat-sys-outline-variant);

@@ -7,5 +7,6 @@ namespace Clinic_Business.Repositories
     public class WorkingDayRepository : IWorkingDayRepository
     {
         public Task<PagedResult<clsWorkingDay.WorkingDayItem>> FindAllAsync(int pageNumber = 1, int pageSize = 10) => clsWorkingDay.FindAllAsync(pageNumber, pageSize);
+        public Task<bool> IsOpenAtAsync(DateTimeOffset startAt, DateTimeOffset endAt) => clsWorkingDay.IsOpenAtAsync(startAt, endAt);
     }
 }

@@ -2,7 +2,9 @@
   <div class="strip__head">
     <span class="strip__label">Doctor's day</span>
 
-    @if (!isDisabled()) {
+    @if (isClosed()) {
+      <span class="strip__closed">Closed on {{ dayLabel() }}s</span>
+    } @else if (!isDisabled()) {
       <span class="strip__range">{{ rangeLabel() }}</span>
     }
   </div>
