@@ -301,7 +301,7 @@ namespace Clinic_Management_System.Controllers
             var authResult = await authorizationService.AuthorizeAsync(
                 User,
                 user,
-                "ChangePassword"
+                "ManageAccount"
             );
 
             if (!authResult.Succeeded)

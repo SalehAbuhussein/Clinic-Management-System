@@ -97,8 +97,8 @@ builder.Services.AddAuthorization(options =>
         policy => policy.Requirements.Add(new ViewLeaveRequirement()));
     options.AddPolicy("UpdateLeave",
         policy => policy.Requirements.Add(new UpdateLeaveRequirement()));
-    options.AddPolicy("ChangePassword",
-        policy => policy.Requirements.Add(new ChangePasswordRequirement()));
+    options.AddPolicy("ManageAccount",
+        policy => policy.Requirements.Add(new ManageAccountRequirement()));
 });
 builder.Services.AddScoped<IAuthorizationHandler, PersonOwnerOrAuthorizedHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, CanDoctorViewAppointmentHandler>();
@@ -106,7 +106,7 @@ builder.Services.AddScoped<IAuthorizationHandler, ManageVisitRecordHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, ViewVisitRecordHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, ViewLeaveHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, UpdateLeaveHandler>();
-builder.Services.AddScoped<IAuthorizationHandler, ChangePasswordHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, ManageAccountHandler>();
 builder.Services.AddScoped<IStatsRepository, StatsRepository>();
 builder.Services.AddScoped<ILeaveRepository, LeaveRepository>();
 

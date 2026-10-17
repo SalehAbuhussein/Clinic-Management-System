@@ -4,6 +4,7 @@ using Clinic_Management_System.DTOs.Models.People;
 using Clinic_Management_System.DTOs.Models.Profile;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 
 namespace Clinic_Management_System.Controllers
@@ -53,17 +54,26 @@ namespace Clinic_Management_System.Controllers
             });
         }
 
-        [HttpPut(Name = "UpdateProfile")]
+        [HttpPut("{id}", Name = "UpdateProfile")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public async Task<ActionResult> UpdateProfile(UpdatePersonDTO request)
+        public async Task<ActionResult> UpdateProfile(
+            [Range(1, int.MaxValue)] int id,
+            UpdatePersonDTO request,
+            [FromServices] IAuthorizationService authorizationService
+        )
         {
-            clsUser? user = await _userRepository.FindByIdAsync(CallerId());
+            clsUser? user = await _userRepository.FindByIdAsync(id);
 
             if (user == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound, detail: "Your account no longer exists");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"User with id {id} not found!");
+
+            AuthorizationResult authorization = await authorizationService.AuthorizeAsync(User, user, "ManageAccount");
+            if (!authorization.Succeeded)
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"User with id {id} not found!");
 
             clsPerson person = user.PersonInfo;
 
