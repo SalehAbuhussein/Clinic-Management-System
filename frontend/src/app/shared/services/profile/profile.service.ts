@@ -9,16 +9,22 @@ export class ProfileService {
   apiService = inject(ApiService);
 
   /**
-   * The signed-in user's own record. No id is sent: the API reads it from the
-   * token, which is the only thing that knows which person a login belongs to.
+   * An account's record. The API allows your own, and an admin may also read a
+   * doctor's or a staff member's, but never another admin's.
+   *
+   * @param userId The account.
    */
-  getProfile = () => this.apiService.get<Profile>('/Profile');
+  getProfile = (userId: number) => this.apiService.get<Profile>(`/Profile/${userId}`);
 
   /**
-   * Correct your own details. The national number, the email and the role are
-   * fixed elsewhere and cannot be changed here.
+   * Correct an account's details. The API allows your own, and an admin may
+   * also correct a doctor's or a staff member's, but never another admin's.
    *
+   * The national number, the email and the role are fixed elsewhere and
+   * cannot be changed here.
+   *
+   * @param userId The account, which `getProfile` returns for your own.
    * @param body The replacement details.
    */
-  updateProfile = (body: UpdateProfileRequest) => this.apiService.put('/Profile', body);
+  updateProfile = (userId: number, body: UpdateProfileRequest) => this.apiService.put(`/Profile/${userId}`, body);
 }

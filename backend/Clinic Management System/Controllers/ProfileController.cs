@@ -5,7 +5,6 @@ using Clinic_Management_System.DTOs.Models.Profile;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
-using System.Security.Claims;
 
 namespace Clinic_Management_System.Controllers
 {
@@ -23,16 +22,24 @@ namespace Clinic_Management_System.Controllers
             _userRepository = userRepository;
         }
 
-        [HttpGet(Name = "GetProfile")]
+        [HttpGet("{id}", Name = "GetProfile")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ProfileDTO>> GetProfile()
+        public async Task<ActionResult<ProfileDTO>> GetProfile(
+            [Range(1, int.MaxValue)] int id,
+            [FromServices] IAuthorizationService authorizationService
+        )
         {
-            clsUser? user = await _userRepository.FindByIdAsync(CallerId());
+            clsUser? user = await _userRepository.FindByIdAsync(id);
 
             if (user == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound, detail: "Your account no longer exists");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"User with id {id} not found!");
+
+            AuthorizationResult authorization = await authorizationService.AuthorizeAsync(User, user, "ManageAccount");
+            if (!authorization.Succeeded)
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"User with id {id} not found!");
 
             clsPerson person = user.PersonInfo;
 
@@ -94,7 +101,5 @@ namespace Clinic_Management_System.Controllers
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The profile could not be saved.");
         }
-
-        private int CallerId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     }
 }

@@ -108,11 +108,17 @@ export class ProfileDialogComponent {
   }
 
   /**
-   * Reads the signed-in user's own record. No id is sent; the API takes it from
-   * the token, which is the only thing that knows which person a login is.
+   * Reads the signed-in user's own record.
    */
   loadProfile(): void {
-    this.profileService.getProfile().subscribe({
+    const userId = this.currentUserId();
+
+    if (!userId) {
+      this.isLoading.set(false);
+      return;
+    }
+
+    this.profileService.getProfile(userId).subscribe({
       next: (profile) => {
         this.profileModel.update((model) => ({
           ...model,
@@ -144,10 +150,16 @@ export class ProfileDialogComponent {
       return;
     }
 
+    const userId = this.currentUserId();
+
+    if (!userId) {
+      return;
+    }
+
     const value = this.profileForm().value();
 
     this.run(
-      this.profileService.updateProfile({
+      this.profileService.updateProfile(userId, {
         firstname: value.firstname.trim(),
         midname: value.midname.trim(),
         thirdname: value.thirdname.trim() || undefined,
@@ -168,10 +180,9 @@ export class ProfileDialogComponent {
       return;
     }
 
-    const userId = this.authService.userId();
+    const userId = this.currentUserId();
 
     if (userId === null) {
-      this.error.set('Sign in again to change your password.');
       return;
     }
 
@@ -181,6 +192,22 @@ export class ProfileDialogComponent {
       this.authService.changePassword(userId, { currentPassword, newPassword: password }),
       'Password changed',
     );
+  }
+
+  /**
+   * Both saves name the account in the route, so both need the id the token
+   * carries.
+   *
+   * @returns The signed-in user's id, or null once the token has gone.
+   */
+  currentUserId(): number | null {
+    const userId = this.authService.userId();
+
+    if (!userId) {
+      this.error.set('Sign in again to continue.');
+    }
+
+    return userId;
   }
 
   /**
