@@ -52,6 +52,17 @@
           <mat-icon class="dashboard-side__icon" matListItemIcon>medication</mat-icon>
           <span class="dashboard-side__label" matListItemTitle>Medicines</span>
         </a>
+
+        <a
+          class="dashboard-side__link"
+          mat-list-item
+          routerLink="/dashboard/people"
+          routerLinkActive
+          #people="routerLinkActive"
+          [activated]="people.isActive">
+          <mat-icon class="dashboard-side__icon" matListItemIcon>groups</mat-icon>
+          <span class="dashboard-side__label" matListItemTitle>People</span>
+        </a>
       }
 
       <a

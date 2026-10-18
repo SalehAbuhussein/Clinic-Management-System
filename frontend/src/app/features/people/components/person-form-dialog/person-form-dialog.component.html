@@ -1,0 +1,108 @@
+@let firstname = personForm.firstname();
+@let midname = personForm.midname();
+@let lastname = personForm.lastname();
+@let phone = personForm.phone();
+@let dateOfBirth = personForm.dateOfBirth();
+
+<h2 matDialogTitle>Edit person</h2>
+
+<form (submit)="savePerson($event)" novalidate>
+  <div class="person-form__content" matDialogContent>
+    <div class="person-form__row">
+      <mat-form-field>
+        <mat-label>First name</mat-label>
+        <input matInput [formField]="personForm.firstname">
+
+        @if (firstname.errors().length) {
+          <mat-error>Required</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Middle name</mat-label>
+        <input matInput [formField]="personForm.midname">
+
+        @if (midname.errors().length) {
+          <mat-error>Required</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="person-form__row">
+      <mat-form-field>
+        <mat-label>Third name</mat-label>
+        <input matInput [formField]="personForm.thirdname">
+        <mat-hint>Optional</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Last name</mat-label>
+        <input matInput [formField]="personForm.lastname">
+
+        @if (lastname.errors().length) {
+          <mat-error>Required</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="person-form__row">
+      <mat-form-field>
+        <mat-label>National number</mat-label>
+        <input matInput [formField]="personForm.nationalNo">
+        <mat-hint>Cannot be changed</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Phone</mat-label>
+        <input matInput type="tel" [formField]="personForm.phone">
+
+        @if (phone.errors().length) {
+          <mat-error>Required</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="person-form__row">
+      <mat-form-field>
+        <mat-label>Gender</mat-label>
+
+        <mat-select [formField]="personForm.gender">
+          <mat-option [value]="true">Male</mat-option>
+          <mat-option [value]="false">Female</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Date of birth</mat-label>
+
+        <input matInput [matDatepicker]="picker" [formField]="personForm.dateOfBirth" (click)="picker.open()">
+
+        <mat-datepicker-toggle matIconSuffix [for]="picker" />
+        <mat-datepicker #picker />
+
+        @if (dateOfBirth.errors().length) {
+          <mat-error>Required</mat-error>
+        }
+      </mat-form-field>
+    </div>
+  </div>
+
+  @if (error(); as message) {
+    <p class="person-form__error" role="alert">
+      <mat-icon>error</mat-icon>
+      {{ message }}
+    </p>
+  }
+
+  <div class="person-form__actions" matDialogActions>
+    <button matButton type="button" matDialogClose [disabled]="isSaving()">Cancel</button>
+
+    <button matButton="filled" type="submit" [disabled]="personForm().invalid() || isSaving()">
+      @if (isSaving()) {
+        <mat-progress-spinner class="person-form__spinner" diameter="18" mode="indeterminate" />
+      }
+
+      Save changes
+    </button>
+  </div>
+</form>

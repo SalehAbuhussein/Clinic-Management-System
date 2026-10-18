@@ -1,0 +1,40 @@
+.person-form__content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.person-form__row {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.person-form__actions {
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.person-form__error {
+  align-items: flex-start;
+  background-color: var(--mat-sys-error-container);
+  border-radius: var(--mat-sys-corner-medium);
+  color: var(--mat-sys-on-error-container);
+  display: flex;
+  font: var(--mat-sys-body-medium);
+  gap: 12px;
+  margin: 0 24px 12px;
+  padding: 12px 14px;
+}
+
+.person-form__spinner {
+  display: inline-block;
+  margin-inline-end: 8px;
+  vertical-align: middle;
+}
+
+@media (width < 600px) {
+  .person-form__row {
+    grid-template-columns: 1fr;
+  }
+}

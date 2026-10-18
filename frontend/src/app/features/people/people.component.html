@@ -1,0 +1,49 @@
+<header class="people__header">
+  <h1 class="people__title">People</h1>
+</header>
+
+@if (peopleResource.isLoading()) {
+  <p class="people__state" role="status">
+    <mat-progress-spinner diameter="20" mode="indeterminate" />
+    Loading people…
+  </p>
+} @else if (peopleResource.error(); as error) {
+  <p class="people__state people__state--error" role="alert">
+    <mat-icon>error</mat-icon>
+    {{ error.message }}
+  </p>
+} @else {
+  @let list = people();
+
+  @if (list.length) {
+    <div class="people__list">
+      @for (person of list; track person.id) {
+        <article class="person">
+          <span class="person__who">
+            <span class="person__name">
+              {{ person.firstname }} {{ person.midname }} {{ person.thirdname }} {{ person.lastname }}
+            </span>
+
+            <span class="person__detail">{{ person.phone }}</span>
+          </span>
+
+          <span class="person__national">{{ person.nationalNo }}</span>
+
+          <span class="person__actions">
+            <button matButton type="button" (click)="openForm(person)">Edit</button>
+            <button class="person__danger" matButton type="button" (click)="deletePerson(person)">Delete</button>
+          </span>
+        </article>
+      }
+    </div>
+
+    @if (total() > perPage()) {
+      <app-pagination [(page)]="page" [total]="total()" [pageSize]="perPage()" />
+    }
+  } @else {
+    <p class="people__state">
+      <mat-icon>groups</mat-icon>
+      No people yet.
+    </p>
+  }
+}

@@ -1,3 +1,4 @@
+using Clinic_Business.Common;
 using Clinic_DataAccess;
 using System.Data;
 
@@ -58,11 +59,15 @@ namespace Clinic_Business.Entities
             ProfileImage = profileImage;
         }
 
-        public static async Task<List<clsPerson>> FindAllAsync(int pageNumber = 1, int pageSize = 10)
+        public static async Task<PagedResult<clsPerson>> FindAllAsync(int pageNumber = 1, int pageSize = 10)
         {
             DataTable dt = await clsPersonDA.FindAllAsync(pageNumber, pageSize);
 
-            return dt.AsEnumerable().Select(MapPerson).ToList();
+            List<clsPerson> people = dt.AsEnumerable().Select(MapPerson).ToList();
+
+            int total = dt.Rows.Count == 0 ? 0 : dt.Rows[0].Field<int>("TotalCount");
+
+            return new PagedResult<clsPerson>(people, pageNumber, pageSize, total);
         }
 
         public static async Task<clsPerson?> FindAsync(int? id)
@@ -72,10 +77,6 @@ namespace Clinic_Business.Entities
             return row is null ? null : MapPerson(row);
         }
 
-        /// <summary>
-        /// Saves this person's current values. Validation is the caller's,
-        /// through IsValid, as everywhere else in this layer.
-        /// </summary>
         public Task<bool> UpdateAsync()
         {
             return clsPersonDA.UpdateAsync(
@@ -89,6 +90,11 @@ namespace Clinic_Business.Entities
                 Gender,
                 DateOfBirth,
                 ProfileImage);
+        }
+
+        public static Task<bool> IsUsedAsync(int id)
+        {
+            return clsPersonDA.IsUsedAsync(id);
         }
 
         public static Task<bool> DeleteAsync(int? id)

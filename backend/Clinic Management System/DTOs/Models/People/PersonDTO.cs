@@ -9,6 +9,7 @@ namespace Clinic_Management_System.DTOs.Models.People
         public string Midname { get; set; } = string.Empty;
         public string? Thirdname { get; set; }
         public string Lastname { get; set; } = string.Empty;
+        public string NationalNo { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;
         public bool Gender { get; set; }
         public DateOnly DateOfBirth { get; set; }

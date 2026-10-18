@@ -20,7 +20,8 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"SELECT [PersonID]
+                string query = @"SELECT COUNT(*) OVER() AS TotalCount
+                    ,[PersonID]
                     ,[Firstname]
                     ,[Midname]
                     ,[Thirdname]
@@ -93,10 +94,6 @@ namespace Clinic_DataAccess
             return dt.Rows.Count > 0 ? dt.Rows[0] : null;
         }
 
-        /// <summary>
-        /// Writes the whole row back. The national number is included so the
-        /// caller decides what may change, rather than the query deciding for it.
-        /// </summary>
         public static async Task<bool> UpdateAsync(
             int? id,
             string firstname,
@@ -149,6 +146,32 @@ namespace Clinic_DataAccess
             }
 
             return rowsAffected > 0;
+        }
+
+        public static async Task<bool> IsUsedAsync(int personId)
+        {
+            bool isUsed = false;
+
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                await connection.OpenAsync();
+
+                string query = @"SELECT TOP 1 1
+                    WHERE EXISTS (SELECT 1 FROM Users    WHERE PersonID = @PersonID)
+                       OR EXISTS (SELECT 1 FROM Patients WHERE PersonID = @PersonID);";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@PersonID", personId);
+
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
+                    {
+                        isUsed = reader.HasRows;
+                    }
+                }
+            }
+
+            return isUsed;
         }
 
         public static async Task<bool> DeleteAsync(int? id)
