@@ -14,15 +14,20 @@ namespace Clinic_Management_System.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
+        private readonly IAuditRepository _auditRepository;
         private readonly ILogger<UsersController> _logger;
 
         public UsersController(
             IUserRepository userRepository,
+            IAuditRepository auditRepository,
             ILogger<UsersController> logger)
         {
             _userRepository = userRepository;
+            _auditRepository = auditRepository;
             _logger = logger;
         }
+
+        int? CurrentUserId() => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int id) ? id : null;
 
         [Authorize(Roles = "Admin")]
         [HttpGet(Name = "GetUsers")]
@@ -107,10 +112,17 @@ namespace Clinic_Management_System.Controllers
 
             if (await user.Update())
             {
+                int? adminId = CurrentUserId();
+
                 _logger.LogInformation(
                     "Admin {ActorId} updated user {UserId}: role {PreviousRole} -> {Role}, active {PreviousActive} -> {Active}",
-                    User.FindFirstValue(ClaimTypes.NameIdentifier), id,
-                    previousRole, user.Role, previousActive, user.Active);
+                    adminId, id, previousRole, user.Role, previousActive, user.Active);
+
+                if (user.Role != previousRole)
+                    await _auditRepository.CreateAsync(adminId, AuditAction.UserRoleChanged, "User", id, $"{previousRole} -> {user.Role}");
+
+                if (user.Active != previousActive)
+                    await _auditRepository.CreateAsync(adminId, user.Active ? AuditAction.UserActivated : AuditAction.UserDeactivated, "User", id);
 
                 return NoContent();
             }
@@ -131,23 +143,21 @@ namespace Clinic_Management_System.Controllers
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
             if (userId == id)
-                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                    detail: "You cannot deactivate your own account.");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "You cannot deactivate your own account.");
 
             clsUser? user = await _userRepository.FindByIdAsync(id);
             if (user == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"User with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"User with id {id} not found");
 
             if (await user.Deactivate())
             {
                 _logger.LogInformation("Admin {ActorId} deactivated user {UserId}", userId, id);
+                await _auditRepository.CreateAsync(userId, AuditAction.UserDeactivated, "User", id);
 
                 return NoContent();
             }
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The user could not be deactivated.");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The user could not be deactivated.");
         }
 
         [Authorize(Roles = "Admin")]
@@ -162,19 +172,19 @@ namespace Clinic_Management_System.Controllers
         {
             clsUser? user = await _userRepository.FindByIdAsync(id);
             if (user == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"User with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"User with id {id} not found");
 
             if (await user.Activate())
             {
-                _logger.LogInformation("Admin {ActorId} activated user {UserId}",
-                    User.FindFirstValue(ClaimTypes.NameIdentifier), id);
+                int? adminId = CurrentUserId();
+
+                _logger.LogInformation("Admin {ActorId} activated user {UserId}", adminId, id);
+                await _auditRepository.CreateAsync(adminId, AuditAction.UserActivated, "User", id);
 
                 return NoContent();
             }
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The user could not be activated.");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The user could not be activated.");
         }
     }
 }

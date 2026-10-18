@@ -63,6 +63,17 @@
           <mat-icon class="dashboard-side__icon" matListItemIcon>groups</mat-icon>
           <span class="dashboard-side__label" matListItemTitle>People</span>
         </a>
+
+        <a
+          class="dashboard-side__link"
+          mat-list-item
+          routerLink="/dashboard/audit"
+          routerLinkActive
+          #audit="routerLinkActive"
+          [activated]="audit.isActive">
+          <mat-icon class="dashboard-side__icon" matListItemIcon>history</mat-icon>
+          <span class="dashboard-side__label" matListItemTitle>Audit</span>
+        </a>
       }
 
       <a

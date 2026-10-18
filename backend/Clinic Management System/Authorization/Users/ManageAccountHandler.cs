@@ -1,4 +1,5 @@
 using Clinic_Business.Entities;
+using Clinic_Business.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
@@ -14,14 +15,17 @@ namespace Clinic_Management_System.Authorization.Users
     /// </summary>
     public class ManageAccountHandler : AuthorizationHandler<ManageAccountRequirement, clsUser>
     {
+        private readonly IAuditRepository _auditRepository;
         private readonly ILogger<ManageAccountHandler> _logger;
 
-        public ManageAccountHandler(ILogger<ManageAccountHandler> logger)
+        public ManageAccountHandler(IAuditRepository auditRepository,
+            ILogger<ManageAccountHandler> logger)
         {
+            _auditRepository = auditRepository;
             _logger = logger;
         }
 
-        protected override Task HandleRequirementAsync(
+        protected override async Task HandleRequirementAsync(
             AuthorizationHandlerContext context,
             ManageAccountRequirement requirement,
             clsUser target
@@ -30,12 +34,18 @@ namespace Clinic_Management_System.Authorization.Users
             if (IsOwnAccount(context.User, target) || MayActOnAccountOf(context.User, target))
                 context.Succeed(requirement);
 
+            string? userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
             if (!context.HasSucceeded)
+            {
                 _logger.LogWarning(
                     "Authorization denied: user {UserId} may not act on the account of user {TargetId}",
-                    context.User.FindFirstValue(ClaimTypes.NameIdentifier), target.UserID);
+                    userId, target.UserID);
 
-            return Task.CompletedTask;
+                await _auditRepository.CreateAsync(
+                    int.TryParse(userId, out int actorId) ? actorId : null,
+                    AuditAction.AccessDenied, "User", target.UserID, $"act on the account of user {target.UserID}");
+            }
         }
 
         private static bool IsOwnAccount(ClaimsPrincipal caller, clsUser target)

@@ -1,0 +1,61 @@
+<header class="audit__header">
+  <h1 class="audit__title">Audit</h1>
+
+  <mat-button-toggle-group
+    aria-label="Range"
+    hideSingleSelectionIndicator
+    [value]="preset()"
+    (change)="selectPreset($event.value)">
+    <mat-button-toggle value="1">Today</mat-button-toggle>
+    <mat-button-toggle value="7">7 days</mat-button-toggle>
+    <mat-button-toggle value="30">30 days</mat-button-toggle>
+    <mat-button-toggle value="all">All</mat-button-toggle>
+  </mat-button-toggle-group>
+</header>
+
+@if (auditResource.isLoading()) {
+  <p class="audit__state" role="status">
+    <mat-progress-spinner diameter="20" mode="indeterminate" />
+    Loading the trail…
+  </p>
+} @else if (auditResource.error(); as error) {
+  <p class="audit__state audit__state--error" role="alert">
+    <mat-icon>error</mat-icon>
+    {{ error.message }}
+  </p>
+} @else {
+  @let list = entries();
+
+  @if (list.length) {
+    <div class="audit__list">
+      @for (entry of list; track entry.id) {
+        <article class="entry">
+          <span class="entry__badge">
+            <mat-icon>{{ entry.icon }}</mat-icon>
+          </span>
+
+          <span class="entry__what">
+            <span class="entry__line">
+              <strong>{{ entry.actor }}</strong> {{ entry.label }}
+            </span>
+
+            @if (entry.detail) {
+              <span class="entry__detail">{{ entry.detail }}</span>
+            }
+          </span>
+
+          <span class="entry__when">{{ entry.occurredAt | date:'d MMM, HH:mm' }}</span>
+        </article>
+      }
+    </div>
+
+    @if (total() > perPage()) {
+      <app-pagination [(page)]="page" [total]="total()" [pageSize]="perPage()" />
+    }
+  } @else {
+    <p class="audit__state">
+      <mat-icon>history</mat-icon>
+      Nothing recorded in this range.
+    </p>
+  }
+}

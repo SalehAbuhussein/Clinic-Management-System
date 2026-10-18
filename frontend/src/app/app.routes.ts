@@ -66,6 +66,12 @@ export const routes: Routes = [
         data: { roles: ['Admin', 'Staff', 'Doctor'] },
         loadChildren: () => import('./features/leaves/leaves.routes').then(r => r.leavesRoutes),
       },
+      {
+        path: 'audit',
+        canActivate: [roleGuard],
+        data: { roles: ['Admin'] },
+        loadChildren: () => import('./features/audit/audit.routes').then(r => r.auditRoutes),
+      },
     ],
   }
 ];

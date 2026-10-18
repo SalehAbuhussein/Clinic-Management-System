@@ -109,7 +109,7 @@ builder.Services.AddScoped<IAuthorizationHandler, UpdateLeaveHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, ManageAccountHandler>();
 builder.Services.AddScoped<IStatsRepository, StatsRepository>();
 builder.Services.AddScoped<ILeaveRepository, LeaveRepository>();
-
+builder.Services.AddScoped<IAuditRepository, AuditRepository>();
 
 // ===============================
 // 2.1) Services

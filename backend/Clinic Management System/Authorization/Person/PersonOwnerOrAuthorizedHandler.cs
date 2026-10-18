@@ -8,13 +8,16 @@ namespace Clinic_Management_System.Authorization.People
     public class PersonOwnerOrAuthorizedHandler : AuthorizationHandler<PersonOwnerOrAuthorizedRequirement, int>
     {
         private readonly IUserRepository _userRepository;
+        private readonly IAuditRepository _auditRepository;
         private readonly ILogger<PersonOwnerOrAuthorizedHandler> _logger;
 
         public PersonOwnerOrAuthorizedHandler(
             IUserRepository userRepository,
+            IAuditRepository auditRepository,
             ILogger<PersonOwnerOrAuthorizedHandler> logger)
         {
             _userRepository = userRepository;
+            _auditRepository = auditRepository;
             _logger = logger;
         }
 
@@ -42,9 +45,15 @@ namespace Clinic_Management_System.Authorization.People
             // These handlers deny by never calling Succeed, so there is no failure
             // branch to log from — the absence of success at the end is the denial.
             if (!context.HasSucceeded)
+            {
                 _logger.LogWarning(
                     "Authorization denied: user {UserId} may not access person {PersonId}",
                     userId, personId);
+
+                await _auditRepository.CreateAsync(
+                    int.TryParse(userId, out int actorId) ? actorId : null,
+                    AuditAction.AccessDenied, "Person", personId, $"access person {personId}");
+            }
         }
     }
 }

@@ -21,16 +21,20 @@ namespace Clinic_Management_System.Controllers
     {
         private readonly JwtOptions _jwt;
         private readonly IUserRepository _userRepository;
+        private readonly IAuditRepository _auditRepository;
         private readonly ILogger<AuthController> _logger;
 
         public AuthController(
-            IOptions<JwtOptions> jwtOptions, 
             IUserRepository userRepository,
-            ILogger<AuthController> logger)
+            IAuditRepository auditRepository,
+            IOptions<JwtOptions> jwtOptions, 
+            ILogger<AuthController> logger
+        )
         {
             _userRepository = userRepository;
             _jwt = jwtOptions.Value;
             _logger = logger;
+            _auditRepository = auditRepository;
         }
 
         [HttpPost("login")]
@@ -48,9 +52,9 @@ namespace Clinic_Management_System.Controllers
             if (user == null)
             {
                 _logger.LogWarning("Failed login for unknown email {Email}", request.Email);
+                await _auditRepository.CreateAsync(null, AuditAction.LoginFailed, detail: request.Email);
 
-                return Problem(statusCode: StatusCodes.Status401Unauthorized,
-                    detail: "Invalid credentials");
+                return Problem(statusCode: StatusCodes.Status401Unauthorized, detail: "Invalid credentials");
             }
 
             // Step 2: Verify the provided password against the stored hash
@@ -59,9 +63,9 @@ namespace Clinic_Management_System.Controllers
             if (!isValidPassword)
             {
                 _logger.LogWarning("Failed login for {Email}", request.Email);
+                await _auditRepository.CreateAsync(null, AuditAction.LoginFailed, "User", user.UserID, request.Email);
 
-                return Problem(statusCode: StatusCodes.Status401Unauthorized,
-                    detail: "Invalid credentials");
+                return Problem(statusCode: StatusCodes.Status401Unauthorized, detail: "Invalid credentials");
             }
 
             if (!user.Active)
@@ -114,6 +118,7 @@ namespace Clinic_Management_System.Controllers
                 // The client will send this token with future requests.
 
                 _logger.LogInformation("Login succeeded for user {UserId}", user.UserID);
+                await _auditRepository.CreateAsync(user.UserID, AuditAction.LoginSucceeded);
 
                 return Ok(new TokenResponse
                 {
@@ -122,8 +127,7 @@ namespace Clinic_Management_System.Controllers
                 });
             }
 
-            return Problem(statusCode: StatusCodes.Status500InternalServerError,
-                detail: "The session could not be created. Please try again.");
+            return Problem(statusCode: StatusCodes.Status500InternalServerError, detail: "The session could not be created. Please try again.");
         }
 
         [HttpPost("refresh")]
@@ -143,30 +147,28 @@ namespace Clinic_Management_System.Controllers
 
             if (user.RefreshTokenRevokedAt != null)
             {
-                _logger.LogWarning(
-                    "Refresh attempted with a revoked token for user {UserId}, revoked at {RevokedAt}",
-                    user.UserID, user.RefreshTokenRevokedAt);
+                _logger.LogWarning("Refresh attempted with a revoked token for user {UserId}, revoked at {RevokedAt}", user.UserID, user.RefreshTokenRevokedAt);
+                await _auditRepository.CreateAsync(null, AuditAction.RefreshRejected, "User", user.UserID, $"revoked at {user.RefreshTokenRevokedAt:u}");
 
-                return Problem(statusCode: StatusCodes.Status401Unauthorized,
-                    detail: "Refresh token is revoked.");
+                return Problem(statusCode: StatusCodes.Status401Unauthorized, detail: "Refresh token is revoked.");
             }
 
             if (user.RefreshTokenExpiresAt == null || user.RefreshTokenExpiresAt <= DateTime.UtcNow)
-                return Problem(statusCode: StatusCodes.Status401Unauthorized,
-                    detail: "Refresh token expired.");
+            {
+                await _auditRepository.CreateAsync(null, AuditAction.RefreshRejected, "User", user.UserID, $"expired at {user.RefreshTokenExpiresAt:u}");
+                return Problem(statusCode: StatusCodes.Status401Unauthorized, detail: "Refresh token expired.");
+            }
 
             if (string.IsNullOrEmpty(user.RefreshTokenHash))
-                return Problem(statusCode: StatusCodes.Status401Unauthorized,
-                    detail: "Invalid refresh request.");
+                return Problem(statusCode: StatusCodes.Status401Unauthorized, detail: "Invalid refresh request.");
 
             bool refreshValid = BCrypt.Net.BCrypt.Verify(request.RefreshToken, user.RefreshTokenHash);
             if (!refreshValid)
             {
-                _logger.LogWarning(
-                    "Refresh token did not match the stored hash for user {UserId}", user.UserID);
+                _logger.LogWarning("Refresh token did not match the stored hash for user {UserId}", user.UserID);
+                await _auditRepository.CreateAsync(null, AuditAction.RefreshRejected, "User", user.UserID, "refresh token did not match the stored hash");
 
-                return Problem(statusCode: StatusCodes.Status401Unauthorized,
-                    detail: "Invalid refresh token");
+                return Problem(statusCode: StatusCodes.Status401Unauthorized, detail: "Invalid refresh token");
             }
 
             if (!user.Active)
@@ -251,8 +253,7 @@ namespace Clinic_Management_System.Controllers
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
             if (await _userRepository.FindByEmailAsync(request.Email) != null)
-                return Problem(statusCode: StatusCodes.Status409Conflict,
-                    detail: "A user with this email already exists.");
+                return Problem(statusCode: StatusCodes.Status409Conflict, detail: "A user with this email already exists.");
 
             clsUser user = new clsUser();
             clsPerson person = new clsPerson();
@@ -275,7 +276,14 @@ namespace Clinic_Management_System.Controllers
             //user.RefreshTokenHash = BCrypt.Net.BCrypt.HashPassword(GenerateRefreshToken());
 
             if (await user.Create())
+            {
+                int? adminId = CurrentUserId();
+
+                _logger.LogInformation("User {UserId} created by admin {AdminId}", user.UserID, adminId);
+                await _auditRepository.CreateAsync(adminId, AuditAction.UserCreated, "User", user.UserID, request.Email);
+
                 return CreatedAtRoute("GetUser", new { id = user.UserID }, null);
+            }
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
                 detail: "The user could not be created. Check the name, phone, national number and date of birth.");
@@ -314,8 +322,21 @@ namespace Clinic_Management_System.Controllers
             if (!User.IsInRole("Admin") && !BCrypt.Net.BCrypt.Verify(request.CurrentPassword ?? "", user.PasswordHash))
                 return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The current password is wrong.");
 
-            return await SetPassword(user, request.NewPassword);
+            ActionResult result = await SetPassword(user, request.NewPassword);
+
+            if (result is not NoContentResult)
+                return result;
+
+            int? actorId = CurrentUserId();
+            string action = actorId == user.UserID ? AuditAction.PasswordChanged : AuditAction.PasswordReset;
+
+            _logger.LogInformation("{Action} for user {UserId} by {ActorId}", action, user.UserID, actorId);
+            await _auditRepository.CreateAsync(actorId, action, "User", user.UserID);
+
+            return result;
         }
+
+        int? CurrentUserId() => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int id) ? id : null;
 
         private async Task<ActionResult> SetPassword(clsUser user, string newPassword)
         {
