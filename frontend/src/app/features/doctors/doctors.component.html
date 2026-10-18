@@ -1,7 +1,7 @@
 <header class="doctors__header">
   <h1 class="doctors__title">Doctors</h1>
 
-  <button matButton="filled" type="button" (click)="openNewDoctorDialog()">
+  <button matButton="filled" type="button" (click)="openForm(null)">
     <mat-icon>person_add</mat-icon>
     New doctor
   </button>
@@ -39,7 +39,7 @@
           }
 
           <span class="doctor__actions">
-            <button matButton type="button" (click)="openEditDoctorDialog(doctor)">Edit</button>
+            <button matButton type="button" (click)="openForm(doctor)">Edit</button>
             <button class="doctor__danger" matButton type="button" (click)="deleteDoctor(doctor)">Delete</button>
           </span>
         </article>

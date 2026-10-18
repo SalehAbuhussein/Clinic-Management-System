@@ -8,6 +8,7 @@ namespace Clinic_Business.Interfaces
     {
         Task<PagedResult<PrescriptionItem>> FindAllByVisitIdAsync(int visitId);
         Task<bool> HasPrescriptionByVisitIdAsync(int? visitId);
+        Task<bool> HasPrescriptionByMedicineIdAsync(int medicineId);
         Task<bool> CreateManyAsync(List<(int visitID, int medicineID, string dosage, string frequency, string duration)> items);
         Task<int> UpdateManyAsync(List<(int visitID, int medicineID, string dosage, string frequency, string duration)> items);
     }

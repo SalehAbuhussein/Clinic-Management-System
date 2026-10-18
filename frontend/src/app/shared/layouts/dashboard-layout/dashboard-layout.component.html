@@ -41,6 +41,17 @@
           <mat-icon class="dashboard-side__icon" matListItemIcon>local_hospital</mat-icon>
           <span class="dashboard-side__label" matListItemTitle>Doctors</span>
         </a>
+
+        <a
+          class="dashboard-side__link"
+          mat-list-item
+          routerLink="/dashboard/medicines"
+          routerLinkActive
+          #medicines="routerLinkActive"
+          [activated]="medicines.isActive">
+          <mat-icon class="dashboard-side__icon" matListItemIcon>medication</mat-icon>
+          <span class="dashboard-side__label" matListItemTitle>Medicines</span>
+        </a>
       }
 
       <a

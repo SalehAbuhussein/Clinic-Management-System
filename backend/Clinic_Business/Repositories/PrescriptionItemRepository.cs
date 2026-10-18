@@ -13,6 +13,9 @@ namespace Clinic_Business.Repositories
         public Task<bool> HasPrescriptionByVisitIdAsync(int? visitId)
             => clsPrescriptionItem.HasPrescriptionByVisitIDAsync(visitId);
 
+        public Task<bool> HasPrescriptionByMedicineIdAsync(int medicineId)
+            => clsPrescriptionItem.HasPrescriptionByMedicineIDAsync(medicineId);
+
         public Task<bool> CreateManyAsync(List<(int visitID, int medicineID, string dosage, string frequency, string duration)> items)
             => clsPrescriptionItem.CreatePrescriptionItemsAsync(items);
 

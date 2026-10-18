@@ -1,0 +1,67 @@
+<header class="medicines__header">
+  <h1 class="medicines__title">Medicines</h1>
+
+  <button matButton="filled" type="button" (click)="openForm(null)">
+    <mat-icon>add</mat-icon>
+    New medicine
+  </button>
+</header>
+
+<mat-form-field class="medicines__search" subscriptSizing="dynamic">
+  <mat-label>Search</mat-label>
+  <mat-icon matPrefix>search</mat-icon>
+  <input matInput [ngModel]="search()" (ngModelChange)="search.set($event)">
+</mat-form-field>
+
+@if (medicinesResource.isLoading()) {
+  <p class="medicines__state" role="status">
+    <mat-progress-spinner diameter="20" mode="indeterminate" />
+    Loading medicines…
+  </p>
+} @else if (medicinesResource.error(); as error) {
+  <p class="medicines__state medicines__state--error" role="alert">
+    <mat-icon>error</mat-icon>
+    {{ error.message }}
+  </p>
+} @else {
+  @let list = medicines();
+
+  @if (list.length) {
+    <div class="medicines__list">
+      @for (medicine of list; track medicine.id) {
+        <article class="medicine">
+          <span class="medicine__what">
+            <span class="medicine__name">{{ medicine.genericname }}</span>
+
+            <span class="medicine__detail">
+              @if (medicine.brandname) {
+                {{ medicine.brandname }} ·
+              }
+              {{ medicine.form }} · {{ medicine.strength }}
+            </span>
+          </span>
+
+          <span class="medicine__rxcui">RxCUI {{ medicine.rxCUI }}</span>
+
+          <span class="medicine__actions">
+            <button matButton type="button" (click)="openForm(medicine)">Edit</button>
+            <button class="medicine__danger" matButton type="button" (click)="deleteMedicine(medicine)">Delete</button>
+          </span>
+        </article>
+      }
+    </div>
+
+    @if (total() > perPage()) {
+      <app-pagination [(page)]="page" [total]="total()" [pageSize]="perPage()" />
+    }
+  } @else {
+    <p class="medicines__state">
+      <mat-icon>medication</mat-icon>
+      @if (search().trim()) {
+        No medicine matches that.
+      } @else {
+        No medicines yet.
+      }
+    </p>
+  }
+}

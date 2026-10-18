@@ -34,18 +34,6 @@ export class DoctorsComponent {
   perPage = computed(() => this.doctorsResource.value().perPage || 10);
 
   /**
-   * Add a doctor, which also creates their person record and their login.
-   */
-  openNewDoctorDialog = () => this.openForm(null);
-
-  /**
-   * Correct a doctor's details.
-   *
-   * @param doctor The row that was picked.
-   */
-  openEditDoctorDialog = (doctor: Doctor) => this.openForm(doctor);
-
-  /**
    * Remove a doctor. Their appointments and visits still point at the row, so
    * the API refuses more often than it accepts; its wording says why.
    *
@@ -81,7 +69,7 @@ export class DoctorsComponent {
    *
    * @param doctor The row being edited, or null to add one.
    */
-  private openForm(doctor: Doctor | null): void {
+  openForm(doctor: Doctor | null): void {
     this.dialog.open(DoctorFormDialogComponent, { width: '640px', maxWidth: '100vw', data: doctor })
       .afterClosed()
       .subscribe((saved: boolean | undefined) => {

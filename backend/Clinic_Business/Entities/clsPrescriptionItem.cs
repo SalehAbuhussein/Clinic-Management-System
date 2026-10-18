@@ -91,6 +91,11 @@ namespace Clinic_Business.Entities
             return new PagedResult<PrescriptionItem>(items, 1, items.Count, items.Count);
         }
 
+        public static Task<bool> HasPrescriptionByMedicineIDAsync(int medicineId)
+        {
+            return clsPrescriptionItemDA.HasPrescriptionByMedicineIDAsync(medicineId);
+        }
+
         public static Task<bool> HasPrescriptionByVisitIDAsync(int? id)
         {
             return clsPrescriptionItemDA.HasPrescriptionByVisitIDAsync(id);

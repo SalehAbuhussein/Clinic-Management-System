@@ -1,0 +1,79 @@
+@let rxCUI = medicineForm.rxCUI();
+@let genericname = medicineForm.genericname();
+@let form = medicineForm.form();
+@let strength = medicineForm.strength();
+
+<h2 class="medicine-form__title" matDialogTitle>{{ isEditing ? 'Edit medicine' : 'New medicine' }}</h2>
+
+<form (submit)="saveMedicine($event)" novalidate>
+  <div class="medicine-form__content" matDialogContent>
+    <mat-form-field class="medicine-form__wide">
+      <mat-label>RxCUI</mat-label>
+      <input matInput type="number" [formField]="medicineForm.rxCUI">
+
+      @if (rxCUI.errors().length) {
+        <mat-error>A positive RxCUI is required</mat-error>
+      } @else if (isEditing) {
+        <mat-hint>Cannot be changed</mat-hint>
+      }
+    </mat-form-field>
+
+    <mat-form-field class="medicine-form__wide">
+      <mat-label>Generic name</mat-label>
+      <input matInput [formField]="medicineForm.genericname">
+
+      @if (genericname.errors().length) {
+        <mat-error>Required</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field class="medicine-form__wide">
+      <mat-label>Brand name</mat-label>
+      <input matInput [formField]="medicineForm.brandname">
+      <mat-hint>Optional</mat-hint>
+    </mat-form-field>
+
+    <div class="medicine-form__row">
+      <mat-form-field>
+        <mat-label>Form</mat-label>
+        <input matInput [formField]="medicineForm.form">
+
+        @if (form.errors().length) {
+          <mat-error>Required</mat-error>
+        } @else {
+          <mat-hint>Tablet, syrup, injection…</mat-hint>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Strength</mat-label>
+        <input matInput [formField]="medicineForm.strength">
+
+        @if (strength.errors().length) {
+          <mat-error>Required</mat-error>
+        } @else {
+          <mat-hint>500 mg, 5 mg/mL…</mat-hint>
+        }
+      </mat-form-field>
+    </div>
+  </div>
+
+  @if (error(); as message) {
+    <p class="medicine-form__error" role="alert">
+      <mat-icon>error</mat-icon>
+      {{ message }}
+    </p>
+  }
+
+  <div class="medicine-form__actions" matDialogActions>
+    <button matButton type="button" matDialogClose [disabled]="isSaving()">Cancel</button>
+
+    <button matButton="filled" type="submit" [disabled]="medicineForm().invalid() || isSaving()">
+      @if (isSaving()) {
+        <mat-progress-spinner class="medicine-form__spinner" diameter="18" mode="indeterminate" />
+      }
+
+      {{ isEditing ? 'Save changes' : 'Add medicine' }}
+    </button>
+  </div>
+</form>

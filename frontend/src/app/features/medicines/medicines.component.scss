@@ -1,0 +1,103 @@
+:host {
+  display: block;
+}
+
+.medicines__header {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.medicines__title {
+  font: var(--mat-sys-title-large);
+  margin: 0;
+}
+
+.medicines__search {
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.medicines__list {
+  display: grid;
+  gap: 10px;
+}
+
+.medicines__state {
+  align-items: center;
+  color: var(--mat-sys-on-surface-variant);
+  display: flex;
+  font: var(--mat-sys-body-medium);
+  gap: 12px;
+  justify-content: center;
+  margin: 0;
+  padding: 32px 16px;
+}
+
+.medicines__state--error {
+  color: var(--mat-sys-error);
+}
+
+.medicine {
+  align-items: center;
+  background-color: var(--mat-sys-surface-container-lowest);
+  border-radius: var(--mat-sys-corner-medium);
+  box-shadow: var(--mat-sys-level1);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr auto auto;
+  padding: 10px 14px;
+}
+
+.medicine__what {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.medicine__name {
+  font: var(--mat-sys-title-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.medicine__detail {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.medicine__rxcui {
+  background-color: var(--mat-sys-surface-container-high);
+  border-radius: var(--mat-sys-corner-full);
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-medium);
+  padding: 4px 12px;
+  white-space: nowrap;
+}
+
+.medicine__actions {
+  display: flex;
+  gap: 4px;
+}
+
+.medicine__danger {
+  --mat-button-text-label-text-color: var(--mat-sys-error);
+}
+
+@media (width < 600px) {
+  .medicine {
+    grid-template-columns: 1fr auto;
+  }
+
+  .medicine__actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+}

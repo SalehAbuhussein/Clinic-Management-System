@@ -2,19 +2,42 @@ import { inject, Service } from '@angular/core';
 
 import { ApiService } from '@core/services/api/api.service';
 
-import { Medicine, MedicineFilters } from './medicine.types';
+import { CreateMedicineRequest, Medicine, MedicineFilters, UpdateMedicineRequest } from './medicine.types';
 
 @Service()
 export class MedicineService {
   apiService = inject(ApiService);
 
   /**
-   * The medicine catalogue as reactive state. Read-only: the API has no write
-   * verbs, because a prescription points at a medicine by id and editing one
-   * would rewrite what every past prescription says.
+   * The medicine catalogue as reactive state. Every role may read it; only an
+   * admin may change it.
    *
    * @param filters Returns the query parameters; `name` matches either name.
    * @returns The resource holding the page.
    */
   getMedicineResource = (filters: () => MedicineFilters = () => ({})) => this.apiService.getPagedResource<Medicine>('/Medicines', filters);
+
+  /**
+   * Add a medicine so it can be prescribed.
+   *
+   * @param body The RxCUI, the names, the form and the strength.
+   */
+  createMedicine = (body: CreateMedicineRequest) => this.apiService.post<Medicine>('/Medicines', body);
+
+  /**
+   * Correct a medicine. Prescriptions name a medicine by id and read its
+   * details through a join, so an edit changes what every past prescription
+   * shows. Use it to fix a typo, not to repurpose a row.
+   *
+   * @param id The medicine.
+   * @param body The replacement details. The RxCUI cannot change.
+   */
+  updateMedicine = (id: number, body: UpdateMedicineRequest) => this.apiService.put(`/Medicines/${id}`, body);
+
+  /**
+   * Remove a medicine. The API refuses one that any prescription names.
+   *
+   * @param id The medicine.
+   */
+  deleteMedicine = (id: number) => this.apiService.delete(`/Medicines/${id}`);
 }

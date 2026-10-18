@@ -56,6 +56,30 @@ namespace Clinic_DataAccess
             return dt;
         }
 
+        public static async Task<bool> HasPrescriptionByMedicineIDAsync(int medicineId)
+        {
+            bool isPrescribed = false;
+
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                await connection.OpenAsync();
+
+                string query = @"SELECT TOP 1 1 FROM PrescriptionItems WHERE MedicineID = @MedicineID;";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@MedicineID", medicineId);
+
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
+                    {
+                        isPrescribed = reader.HasRows;
+                    }
+                }
+            }
+
+            return isPrescribed;
+        }
+
         public static async Task<bool> HasPrescriptionByVisitIDAsync(int? id)
         {
             if (!id.HasValue)
