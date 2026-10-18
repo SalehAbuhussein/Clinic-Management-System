@@ -23,5 +23,5 @@ export type CreateUserRequest = {
 
 export type UpdateUserRequest = {
   email: string;
-  role: Role;
+  role?: Role;
 };

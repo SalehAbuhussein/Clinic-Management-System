@@ -88,17 +88,18 @@ namespace Clinic_Management_System.Controllers
         {
             clsUser? user = await _userRepository.FindByIdAsync(id);
             if (user == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"User with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"User with id {id} not found");
             
             clsUser? existingEmailUser = await _userRepository.FindByEmailAsync(updatedUserDTO.Email);
             bool isEmailTakenByAnotherUser = existingEmailUser != null && existingEmailUser.UserID != id;
             if (isEmailTakenByAnotherUser)
-                return Problem(statusCode: StatusCodes.Status409Conflict,
-                    detail: "That email is already in use by another user.");
+                return Problem(statusCode: StatusCodes.Status409Conflict, detail: "That email is already in use by another user.");
 
             string previousRole = user.Role;
             bool previousActive = user.Active;
+
+            if (previousRole == "Doctor" && updatedUserDTO.Role is not null && updatedUserDTO.Role != previousRole)
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "Delete them from the Doctors screen before changing their role.");
 
             user.Email = updatedUserDTO.Email; // TODO Check if the email is assigned to another user to return error
             user.Role = updatedUserDTO.Role ?? user.Role; // TODO: Check who really can change the role
@@ -114,8 +115,7 @@ namespace Clinic_Management_System.Controllers
                 return NoContent();
             }
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The user could not be saved.");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The user could not be saved.");
         }
 
         [Authorize(Roles = "Admin")]

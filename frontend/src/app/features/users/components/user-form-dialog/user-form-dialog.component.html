@@ -72,9 +72,16 @@
 
         <mat-select [ngModel]="role()" (ngModelChange)="role.set($event)">
           <mat-option value="Admin">Admin</mat-option>
-          <mat-option value="Doctor">Doctor</mat-option>
           <mat-option value="Staff">Staff</mat-option>
+
+          @if (role() === 'Doctor') {
+            <mat-option value="Doctor" disabled>Doctor</mat-option>
+          }
         </mat-select>
+
+        @if (role() === 'Doctor') {
+          <mat-hint>Managed from the Doctors screen</mat-hint>
+        }
       </mat-form-field>
     } @else {
       <mat-form-field>

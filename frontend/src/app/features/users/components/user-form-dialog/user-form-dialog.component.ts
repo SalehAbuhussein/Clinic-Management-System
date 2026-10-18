@@ -125,7 +125,10 @@ export class UserFormDialogComponent implements OnInit {
     const existing = this.existingUser;
 
     const request: Observable<unknown> = existing
-      ? this.userService.updateUser(existing.id, { email: this.email().trim(), role: this.role() })
+      ? this.userService.updateUser(existing.id, {
+        email: this.email().trim(),
+        role: this.role() === existing.role ? undefined : this.role(),
+      })
       : this.userService.createUser({
         firstname: this.firstname().trim(),
         midname: this.midname().trim(),
