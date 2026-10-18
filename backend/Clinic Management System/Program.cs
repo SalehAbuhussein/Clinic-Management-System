@@ -234,22 +234,26 @@ builder.Services.AddSwaggerGen(options =>
     var order = new Dictionary<string, int>
     {
         ["Auth"] = 1,
-        ["Users"] = 2,
-        ["Leaves"] = 3,
-        ["WorkingDays"] = 4,
-        ["Patients"] = 5,
+        ["Profile"] = 2,
+        ["Users"] = 3,
+        ["Audit"] = 4,
+        ["People"] = 5,
         ["Doctors"] = 6,
-        ["People"] = 7,
-        ["Appointments"] = 8,
-        ["Visits"] = 9,
-        ["Diagnoses"] = 10,
-        ["Prescriptions"] = 11,
+        ["Patients"] = 7,
+        ["WorkingDays"] = 8,
+        ["Leaves"] = 9,
+        ["Appointments"] = 10,
+        ["Visits"] = 11,
+        ["Diagnoses"] = 12,
+        ["Prescriptions"] = 13,
+        ["Medicines"] = 14,
+        ["Stats"] = 15,
     };
 
     options.OrderActionsBy(api =>
     {
         var controller = api.ActionDescriptor.RouteValues["controller"];
-        return $"{order.GetValueOrDefault(controller!, 999): 000}_{controller}";
+        return $"{order.GetValueOrDefault(controller!, 999):000}_{controller}";
     });
 });
 
