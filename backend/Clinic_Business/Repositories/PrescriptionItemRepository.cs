@@ -7,8 +7,8 @@ namespace Clinic_Business.Repositories
 {
     public class PrescriptionItemRepository : IPrescriptionItemRepository
     {
-        public Task<PagedResult<PrescriptionItem>> FindAllByVisitIdAsync(int visitId, int pageNumber = 1, int pageSize = 10)
-            => clsPrescriptionItem.FindAllByVisitIDAsync(visitId, pageNumber, pageSize);
+        public Task<PagedResult<PrescriptionItem>> FindAllByVisitIdAsync(int visitId)
+            => clsPrescriptionItem.FindAllByVisitIDAsync(visitId);
 
         public Task<bool> HasPrescriptionByVisitIdAsync(int? visitId)
             => clsPrescriptionItem.HasPrescriptionByVisitIDAsync(visitId);

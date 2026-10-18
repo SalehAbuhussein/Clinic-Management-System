@@ -12,12 +12,12 @@ export class PrescriptionService {
   apiService = inject(ApiService);
 
   /**
-   * The visit's prescription lines. An empty array means none was written; the
-   * API answers 200 either way, unlike the diagnosis which 404s.
+   * Every line of the visit's prescription. An empty array means none was
+   * written; the API answers 200 either way, unlike the diagnosis which 404s.
    *
-   * The endpoint pages like every other list, but a prescription is read and
-   * edited whole, so the envelope is unwrapped here rather than at each screen.
-   * Its `perPage` caps at 10, so a longer prescription arrives truncated.
+   * The response keeps the paged envelope every list uses, but this endpoint
+   * never truncates: the update replaces the whole set, so a partial read
+   * would make a save delete the rest.
    *
    * @param visitId The visit.
    */

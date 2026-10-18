@@ -37,9 +37,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<PagedResult<PrescriptionDTO>>> GetVisitPrescriptionItems(
             [FromServices] IAuthorizationService authorizationService,
-            [Range(1, int.MaxValue)] int visitId,
-            [Range(1, int.MaxValue)] int page = 1,
-            [Range(1, 10)] int perPage = 10
+            [Range(1, int.MaxValue)] int visitId
         )
         {
             var authResult = await authorizationService.AuthorizeAsync(
@@ -52,7 +50,7 @@ namespace Clinic_Management_System.Controllers
                 return Forbid();
 
             PagedResult<PrescriptionItem> itemsPage =
-                await _prescriptionItemRepository.FindAllByVisitIdAsync(visitId, page, perPage);
+                await _prescriptionItemRepository.FindAllByVisitIdAsync(visitId);
 
             List<PrescriptionDTO> prescriptions = itemsPage.Items.Select(item => new PrescriptionDTO
             {

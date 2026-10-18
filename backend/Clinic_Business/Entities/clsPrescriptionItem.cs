@@ -66,9 +66,14 @@ namespace Clinic_Business.Entities
             string Form,
             string Strength);
 
-        public static async Task<PagedResult<PrescriptionItem>> FindAllByVisitIDAsync(int visitID, int pageNumber, int pageSize)
+        /// <summary>
+        /// Every line of a visit's prescription, in the same envelope the other
+        /// lists use. It is always one page: the update replaces the whole set,
+        /// so handing back a partial read would make a save delete the rest.
+        /// </summary>
+        public static async Task<PagedResult<PrescriptionItem>> FindAllByVisitIDAsync(int visitID)
         {
-            DataTable dt = await clsPrescriptionItemDA.FindAllByVisitIDAsync(visitID, pageNumber, pageSize);
+            DataTable dt = await clsPrescriptionItemDA.FindAllByVisitIDAsync(visitID);
 
             List<PrescriptionItem> items = dt.AsEnumerable().Select(row => new PrescriptionItem(
                 row.Field<int>("PrescriptionItemID"),
@@ -83,9 +88,7 @@ namespace Clinic_Business.Entities
                 row.Field<string>("Strength") ?? string.Empty
             )).ToList();
 
-            int total = dt.Rows.Count == 0 ? 0 : dt.Rows[0].Field<int>("TotalCount");
-
-            return new PagedResult<PrescriptionItem>(items, pageNumber, pageSize, total);
+            return new PagedResult<PrescriptionItem>(items, 1, items.Count, items.Count);
         }
 
         public static Task<bool> HasPrescriptionByVisitIDAsync(int? id)

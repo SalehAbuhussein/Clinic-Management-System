@@ -13,7 +13,7 @@ namespace Clinic_DataAccess
 {
     public class clsPrescriptionItemDA
     {
-        public static async Task<DataTable> FindAllByVisitIDAsync(int visitID, int pageNumber, int pageSize)
+        public static async Task<DataTable> FindAllByVisitIDAsync(int visitID)
         {
             DataTable dt = new DataTable();
 
@@ -22,7 +22,6 @@ namespace Clinic_DataAccess
                 await connection.OpenAsync();
 
                 string query = @"SELECT
-                    COUNT(*) OVER() AS TotalCount, 
                     P.[PrescriptionItemID]
                     ,P.[VisitID]
                     ,P.[MedicineID]
@@ -38,15 +37,11 @@ namespace Clinic_DataAccess
                 FROM PrescriptionItems P
                 INNER JOIN Medicines M ON M.MedicineID = P.MedicineID
                 WHERE P.VisitID = @VisitID
-                ORDER BY P.PrescriptionItemID
-                OFFSET (@PageNumber - 1) * @PageSize ROWS
-                FETCH NEXT @PageSize ROWS ONLY;";
+                ORDER BY P.PrescriptionItemID;";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@VisitID", visitID);
-                    command.Parameters.AddWithValue("@PageNumber", pageNumber);
-                    command.Parameters.AddWithValue("@PageSize", pageSize);
 
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
