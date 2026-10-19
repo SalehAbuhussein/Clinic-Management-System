@@ -1,12 +1,16 @@
 <header class="patients__header">
   <h1 class="patients__title">Patients</h1>
 
-  @if (authService.isFrontDesk()) {
-    <button matButton="filled" type="button" (click)="openNewPatientDialog()">
-      <mat-icon>person_add</mat-icon>
-      New patient
-    </button>
-  }
+  <div class="patients__actions">
+    <app-export-button path="/Patients/export" [filters]="filters()" />
+
+    @if (authService.isFrontDesk()) {
+      <button matButton="filled" type="button" (click)="openNewPatientDialog()">
+        <mat-icon>person_add</mat-icon>
+        New patient
+      </button>
+    }
+  </div>
 </header>
 
 <div class="patients__filters">

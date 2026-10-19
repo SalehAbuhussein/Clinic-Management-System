@@ -33,6 +33,8 @@
     <button matIconButton type="button" aria-label="Next day" (click)="shiftDayBy(1)">
       <mat-icon>chevron_right</mat-icon>
     </button>
+
+    <app-export-button path="/Appointments/export" [filters]="exportFilters()" />
   </nav>
 </header>
 

@@ -1,0 +1,9 @@
+<button matButton="outlined" type="button" [disabled]="isExporting()" (click)="exportFile()">
+  @if (isExporting()) {
+    <mat-progress-spinner class="export-button__spinner" diameter="18" mode="indeterminate" />
+  } @else {
+    <mat-icon>download</mat-icon>
+  }
+
+  {{ label() }}
+</button>

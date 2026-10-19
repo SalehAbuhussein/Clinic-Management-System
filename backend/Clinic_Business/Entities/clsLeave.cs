@@ -29,21 +29,6 @@ namespace Clinic_Business.Entities
         public DateTimeOffset EndAt { get; set; }
         public string Reason { get; set; } = string.Empty;
         public byte Status { get; set; }
-        public string StatusText
-        {
-            get
-            {
-                switch (Status)
-                {
-                    case 1:
-                        return "Approved";
-                    case 2:
-                        return "Rejected";
-                    default:
-                        return "Pending"; 
-                }
-            }
-        }
         public bool IsPending { get { return Status == 0; } }
         public bool IsApproved { get { return Status == 1; } }
         public bool IsRejected { get { return Status == 2; } }
@@ -57,7 +42,7 @@ namespace Clinic_Business.Entities
         }
 
         private clsLeave(
-            int? id, 
+            int? id,
             int? userId,
             DateTimeOffset startAt,
             DateTimeOffset endAt,
@@ -77,15 +62,23 @@ namespace Clinic_Business.Entities
             UserInfo = new clsUser();
         }
 
-        public record LeaveItem(int Id, string Fullname, DateTimeOffset StartAt, DateTimeOffset EndAt, string Reason, byte Status);
+        public record LeaveItem(int Id, string Fullname, DateTimeOffset StartAt, DateTimeOffset EndAt, string Reason, byte Status)
+        {
+            public string StatusText => Status switch
+            {
+                1 => "Approved",
+                2 => "Rejected",
+                _ => "Pending",
+            };
+        }
 
         public static async Task<PagedResult<LeaveItem>> FindAllLeavesAsync(
             int? userId,
-            DateTimeOffset? from, 
+            DateTimeOffset? from,
             DateTimeOffset? to,
             int pageNumber = 1,
             int pageSize = 10
-        ) 
+        )
         {
             DataTable table = await clsLeaveDA.FindAllAsync(userId, from, to, pageNumber, pageSize);
 

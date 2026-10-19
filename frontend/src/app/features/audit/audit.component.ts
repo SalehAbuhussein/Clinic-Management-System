@@ -6,12 +6,13 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 import { AuditService } from '@shared/services/audit/audit.service';
 
+import { ExportButtonComponent } from '@shared/components/export-button/export-button.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
 
 import { ActionWording, AuditPreset, AuditRow } from './types/audit.types';
 
 @Component({
-  imports: [DatePipe, MatButtonToggle, MatButtonToggleGroup, MatIcon, MatProgressSpinner, PaginationComponent],
+  imports: [DatePipe, ExportButtonComponent, MatButtonToggle, MatButtonToggleGroup, MatIcon, MatProgressSpinner, PaginationComponent],
   selector: 'app-audit',
   styleUrl: './audit.component.scss',
   templateUrl: './audit.component.html',
@@ -52,6 +53,8 @@ export class AuditComponent {
 
     return start.toISOString();
   });
+
+  exportFilters = computed(() => ({ from: this.from() }));
 
   auditResource = this.auditService.getAuditResource(() => ({ from: this.from(), page: this.page() }));
 

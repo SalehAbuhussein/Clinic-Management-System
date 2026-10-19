@@ -24,6 +24,21 @@ export class ApiService {
   }
 
   /**
+   * Fetches a file.
+   *
+   * @param path Route below /api.
+   * @param params Query-string values; unset entries are dropped.
+   * @returns The whole response.
+   */
+  download(path: string, params?: Params): Observable<HttpResponse<Blob>> {
+    return this.httpClient.get(`${this._baseUrl}${path}`, {
+      params: this._toHttpParams(params),
+      responseType: 'blob',
+      observe: 'response',
+    });
+  }
+
+  /**
    * Sends a GET request as reactive state rather than a one-shot call.
    *
    * Returns a resource exposing `value()`, `isLoading()`, `error()` and

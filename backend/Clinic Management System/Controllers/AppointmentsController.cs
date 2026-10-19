@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using Clinic_Management_System.Export;
 
 namespace Clinic_Management_System.Controllers
 {
@@ -115,6 +116,40 @@ namespace Clinic_Management_System.Controllers
 
             return Ok(appointmentDTO);
         }
+
+        [Authorize(Roles = "Admin,Staff")]
+        [HttpGet("export", Name = "ExportAppointments")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<ActionResult> ExportAppointments(
+            int? doctorId,
+            int? patientId,
+            DateTimeOffset? from,
+            DateTimeOffset? to
+        )
+        {
+            if (from.HasValue && to.HasValue && from > to)
+                return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "The start of the range must be on or before its end.");
+
+            PagedResult<clsAppointment> appointmentsPage = await _appointmentRepository.FindAllAsync(doctorId, patientId, from, to, 1, ExcelFile.MaxRows + 1);
+
+            if (appointmentsPage.Items.Count > ExcelFile.MaxRows)
+                return Problem(statusCode: StatusCodes.Status400BadRequest, detail: $"That range hold more than {ExcelFile.MaxRows:N0} appointments. Narrow it and try again.");
+
+            return ExcelFile.Build("Appointments", ExportColumns, appointmentsPage.Items);
+        }
+
+        private static readonly ExcelColumn<clsAppointment>[] ExportColumns =
+        [
+            new("Patient", a => a.PatientInfo?.Fullname ?? string.Empty),
+            new("Doctor", a => a.DoctorInfo?.UserInfo.PersonInfo.Fullname ?? string.Empty),
+            new("Starts", a => a.StartAt),
+            new("Ends", a => a.EndAt),
+            new("Status", a => a.StatusText),
+            new("Notes", a => a.Notes),
+        ];
 
         [Authorize(Roles = "Admin,Staff")]
         [HttpPost(Name = "AddAppointment")]

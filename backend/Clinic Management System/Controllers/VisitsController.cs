@@ -2,6 +2,7 @@ using Clinic_Business.Common;
 using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Visits;
+using Clinic_Management_System.Export;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
@@ -44,7 +45,7 @@ namespace Clinic_Management_System.Controllers
                 return Problem(statusCode: StatusCodes.Status400BadRequest,
                     detail: "The start of the range must be on or before its end.");
 
-            // If Docotor tries to get visits get them the visits of there own only 
+            // If Docotor tries to get visits get them the visits of there own only
             if (User.IsInRole("Doctor"))
             {
                 clsDoctor? doctor = await _doctorRepository.FindByUserIdAsync(int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!));
@@ -72,6 +73,46 @@ namespace Clinic_Management_System.Controllers
 
             return Ok(new PagedResult<VisitDTO>(visitsList, visitsPage.Page, visitsPage.PerPage, visitsPage.Total));
         }
+
+        [Authorize(Roles = "Admin,Staff,Doctor")]
+        [HttpGet("export", Name = "ExportVisits")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<ActionResult> ExportVisits(int? doctorId, int? patientId, DateTimeOffset? from, DateTimeOffset? to)
+        {
+            if (from.HasValue && to.HasValue && from > to)
+                return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "The start of the range must be on or before its end.");
+
+            // A doctor exports their own visits only, the same scoping GetVisits applies.
+            if (User.IsInRole("Doctor"))
+            {
+                clsDoctor? doctor = await _doctorRepository.FindByUserIdAsync(int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!));
+
+                if (doctor == null)
+                    return Problem(statusCode: StatusCodes.Status403Forbidden, detail: "This account has the Doctor role but no doctor record.");
+
+                doctorId = doctor.DoctorID;
+            }
+
+            PagedResult<clsVisit.VisitItem> visitsPage = await _visitRepository.FindAllAsync(doctorId, patientId, from, to, 1, ExcelFile.MaxRows + 1);
+
+            if (visitsPage.Items.Count > ExcelFile.MaxRows)
+                return Problem(statusCode: StatusCodes.Status400BadRequest, detail: $"That range holds more than {ExcelFile.MaxRows:N0} visits. Narrow it and try again.");
+
+            return ExcelFile.Build("Visits", ExportColumns, visitsPage.Items);
+        }
+
+        private static readonly ExcelColumn<clsVisit.VisitItem>[] ExportColumns =
+        [
+            new("Patient", v => v.PatientName),
+            new("Doctor", v => v.DoctorName),
+            new("Appointment", v => v.AppointmentStartAt),
+            new("Checked in", v => v.CheckinTime),
+            new("Checked out", v => v.CheckoutTime),
+            new("Notes", v => v.Notes),
+        ];
 
         [Authorize(Roles = "Admin, Staff")]
         [HttpGet("{id}", Name = "GetVisitByID")]

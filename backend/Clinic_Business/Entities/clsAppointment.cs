@@ -23,6 +23,19 @@ namespace Clinic_Business.Entities
         public DateTimeOffset StartAt { get; set; }
         public DateTimeOffset EndAt { get; set; }
         public byte Status { get; set; }
+        public string StatusText
+        {
+            get
+            {
+                switch (Status)
+                {
+                    case 1: return "Attended";
+                    case 2: return "Not attended";
+                    case 3: return "Cancelled";
+                    default: return "Scheduled";
+                }
+            }
+        }
         public string? Notes { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }

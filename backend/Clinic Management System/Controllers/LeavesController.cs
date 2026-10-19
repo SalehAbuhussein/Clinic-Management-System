@@ -2,6 +2,7 @@
 using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Leaves;
+using Clinic_Management_System.Export;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
@@ -51,6 +52,35 @@ namespace Clinic_Management_System.Controllers
 
             return Ok(new PagedResult<LeaveDTO>(itemsDTO, page, perPage, leavesPage.Total));
         }
+
+        [Authorize]
+        [HttpGet("export", Name = "ExportLeaves")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult> ExportLeaves(DateTimeOffset? from, DateTimeOffset? to)
+        {
+            // Everyone but an admin exports their own leave, the same scoping GetLeaves applies.
+            int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            string role = User.FindFirstValue(ClaimTypes.Role)!;
+            int? scopedUserId = role == "Admin" ? null : userId;
+
+            PagedResult<LeaveItem> leavesPage = await _leaveRepository.FindAllLeavesAsync(scopedUserId, from, to, 1, ExcelFile.MaxRows + 1);
+
+            if (leavesPage.Items.Count > ExcelFile.MaxRows)
+                return Problem(statusCode: StatusCodes.Status400BadRequest, detail: $"That range holds more than {ExcelFile.MaxRows:N0} leave requests. Narrow it and try again.");
+
+            return ExcelFile.Build("Leaves", ExportColumns, leavesPage.Items);
+        }
+
+        private static readonly ExcelColumn<LeaveItem>[] ExportColumns =
+        [
+            new("Requested by", l => l.Fullname),
+            new("From", l => l.StartAt),
+            new("To", l => l.EndAt),
+            new("Status", l => l.StatusText),
+            new("Reason", l => l.Reason),
+        ];
 
         [Authorize]
         [HttpGet("{id}", Name = "GetLeaveByID")]

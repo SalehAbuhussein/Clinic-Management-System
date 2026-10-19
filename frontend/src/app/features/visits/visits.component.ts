@@ -13,8 +13,11 @@ import { Observable } from 'rxjs';
 
 import { VisitService } from '@shared/services/visit/visit.service';
 
+import { dayRange } from '@core/utils/day.utils';
+
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { DiagnosisDialogComponent } from './components/diagnosis-dialog/diagnosis-dialog.component';
+import { ExportButtonComponent } from '@shared/components/export-button/export-button.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
 import { PrescriptionDialogComponent } from './components/prescription-dialog/prescription-dialog.component';
 import { VisitDetailAction, VisitDetailDialogComponent } from './components/visit-detail-dialog/visit-detail-dialog.component';
@@ -26,7 +29,7 @@ import { ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dia
 import { Visit } from '@shared/services/visit/visit.types';
 
 @Component({
-  imports: [FormsModule, MatButton, MatDatepickerModule, MatIcon, MatIconButton, MatProgressSpinner, PaginationComponent, VisitRowComponent],
+  imports: [ExportButtonComponent, FormsModule, MatButton, MatDatepickerModule, MatIcon, MatIconButton, MatProgressSpinner, PaginationComponent, VisitRowComponent],
   selector: 'app-visits',
   styleUrl: './visits.component.scss',
   templateUrl: './visits.component.html',
@@ -51,6 +54,8 @@ export class VisitsComponent {
     source: this.dayParam,
     computation: (_, previous) => previous ? 1 : this.pageFromUrl(),
   });
+
+  exportFilters = computed(() => dayRange(this.day()));
 
   visitsResource = this.visitService.getVisitResource(this.day, this.page);
 

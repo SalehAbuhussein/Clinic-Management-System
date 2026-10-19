@@ -2,6 +2,7 @@ using Clinic_Business.Common;
 using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Patients;
+using Clinic_Management_System.Export;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
@@ -48,6 +49,33 @@ namespace Clinic_Management_System.Controllers
 
             return Ok(new PagedResult<PatientDTO>(patientsList, patientsPage.Page, patientsPage.PerPage, patientsPage.Total));
         }
+
+        [Authorize(Roles = "Admin,Staff")]
+        [HttpGet("export", Name = "ExportPatients")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<ActionResult> ExportPatients(string? fullname, string? phone)
+        {
+            fullname = fullname?.Trim().Replace("%", "").Replace("_", "").Replace("[", "");
+            phone = phone?.Trim().Replace("%", "").Replace("_", "").Replace("[", "");
+
+            PagedResult<clsPatient.PatientItem> patientsPage = await _patientRepository.FindAllAsync(fullname, phone, 1, ExcelFile.MaxRows + 1);
+
+            if (patientsPage.Items.Count > ExcelFile.MaxRows)
+                return Problem(statusCode: StatusCodes.Status400BadRequest, detail: $"That search matches more than {ExcelFile.MaxRows:N0} patients. Narrow it and try again.");
+
+            return ExcelFile.Build("Patients", ExportColumns, patientsPage.Items);
+        }
+
+        private static readonly ExcelColumn<clsPatient.PatientItem>[] ExportColumns =
+        [
+            new("Patient", p => p.Fullname),
+            new("Phone", p => p.Phone),
+            new("Emergency contact", p => p.EmergencyContactName),
+            new("Emergency number", p => p.EmergencyContactNumber),
+        ];
 
         [Authorize(Roles = "Admin,Staff,Doctor")]
         [HttpGet("{id}", Name = "GetPatientByID")]

@@ -21,10 +21,12 @@ import { AppointmentDetailAction, AppointmentDetailDialogComponent } from './com
 import { BookAppointmentDialogComponent } from '@features/book-appointment/components/book-appointment-dialog/book-appointment-dialog.component';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.types';
+import { ExportButtonComponent } from '@shared/components/export-button/export-button.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
 
 import { ApiError } from '@core/auth/types/auth.types';
 import { AppointmentCard } from '@shared/services/appointment/appointment.types';
+import { dayRange } from '@core/utils/day.utils';
 import { BookedAppointment } from '@features/book-appointment/types/book-appointment.types';
 
 @Component({
@@ -33,6 +35,7 @@ import { BookedAppointment } from '@features/book-appointment/types/book-appoint
     AppointmentsListComponent,
     AppointmentsListEmptyStateComponent,
     AppointmentsListErrorStateComponent,
+    ExportButtonComponent,
     FormsModule,
     MatButton,
     MatDatepickerModule,
@@ -65,6 +68,13 @@ export class TodayAppointmentsComponent {
   });
   total = computed(() => this.appointmentsResource.hasValue() ? this.appointmentsResource.value().total : 0);
   perPage = computed(() => this.appointmentsResource.hasValue() ? this.appointmentsResource.value().perPage : 10);
+
+  /**
+   * What the export covers: the day on screen, and nothing about paging. It
+   * reuses the same dayRange the list resource does, so the file and the screen
+   * can never disagree about where the day starts.
+   */
+  exportFilters = computed(() => dayRange(this.day()));
 
   appointmentsResource = this.appointmentService.getTodayAppointmentResource(this.day, this.page);
   appointments = computed(() => this.appointmentsResource.hasValue() ? this.appointmentsResource.value().items : []);

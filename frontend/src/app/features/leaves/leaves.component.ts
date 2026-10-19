@@ -13,6 +13,7 @@ import { LeaveService } from '@shared/services/leave/leave.service';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { LeaveDetailDialogComponent } from './components/leave-detail-dialog/leave-detail-dialog.component';
 import { LeavesListComponent } from './components/leaves-list/leaves-list.component';
+import { ExportButtonComponent } from '@shared/components/export-button/export-button.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
 import { RequestLeaveDialogComponent } from './components/request-leave-dialog/request-leave-dialog.component';
 
@@ -23,6 +24,7 @@ import { LeaveDetailAction } from './types/leaves.types';
 
 @Component({
   imports: [
+    ExportButtonComponent,
     LeavesListComponent,
     MatButton,
     MatIcon,
