@@ -16,7 +16,7 @@ export const routes: Routes = [
         path: '',
         canActivate: [roleGuard],
         data: { roles: ['Admin', 'Staff'] },
-        loadChildren: () => import('./features/today-appointments/today-appointments.routes').then(r => r.todayAppointmentsRoutes),
+        loadChildren: () => import('./features/appointments/appointments.routes').then(r => r.appointmentsRoutes),
       },
       {
         path: 'patients',

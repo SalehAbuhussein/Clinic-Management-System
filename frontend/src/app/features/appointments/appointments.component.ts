@@ -14,6 +14,7 @@ import { AppointmentService } from '@shared/services/appointment/appointment.ser
 import { VisitService } from '@shared/services/visit/visit.service';
 
 import { AppointmentCardShimmerComponent } from '@shared/components/appointment-card-shimmer/appointment-card-shimmer.component';
+import { DateRangePickerComponent } from '@shared/components/date-range-picker/date-range-picker.component';
 import { AppointmentsListComponent } from './components/appointments-list/appointments-list.component';
 import { AppointmentsListEmptyStateComponent } from './components/appointments-list-empty-state/appointments-list-empty-state.component';
 import { AppointmentsListErrorStateComponent } from './components/appointments-list-error-state/appointments-list-error-state.component';
@@ -26,8 +27,8 @@ import { PaginationComponent } from '@shared/components/pagination/pagination.co
 
 import { ApiError } from '@core/auth/types/auth.types';
 import { AppointmentCard } from '@shared/services/appointment/appointment.types';
-import { AppointmentDetailAction } from './types/today-appointments.types';
-import { dayRange } from '@core/utils/day.utils';
+import { AppointmentDetailAction } from './types/appointments.types';
+import { rangeBetween } from '@core/utils/day.utils';
 import { BookedAppointment } from '@features/book-appointment/types/book-appointment.types';
 
 @Component({
@@ -36,19 +37,16 @@ import { BookedAppointment } from '@features/book-appointment/types/book-appoint
     AppointmentsListComponent,
     AppointmentsListEmptyStateComponent,
     AppointmentsListErrorStateComponent,
+    DateRangePickerComponent,
     ExportButtonComponent,
-    FormsModule,
-    MatButton,
-    MatDatepickerModule,
     MatIcon,
-    MatIconButton,
     PaginationComponent,
   ],
-  selector: 'app-today-appointments',
-  styleUrl: './today-appointments.component.scss',
-  templateUrl: './today-appointments.component.html',
+  selector: 'app-appointments',
+  styleUrl: './appointments.component.scss',
+  templateUrl: './appointments.component.html',
 })
-export class TodayAppointmentsComponent {
+export class AppointmentsComponent {
   appointmentService = inject(AppointmentService);
   dialog = inject(MatDialog);
   route = inject(ActivatedRoute);
@@ -56,15 +54,17 @@ export class TodayAppointmentsComponent {
   snackbar = inject(MatSnackBar);
   visitService = inject(VisitService);
 
-  day = signal(this.dayFromUrl());
+  from = signal(this.dateFromUrl('from'));
+  to = signal(this.dateFromUrl('to'));
 
-  dayParam = computed(() => formatDate(this.day(), 'yyyy-MM-dd', 'en-US'));
-  dayLabel = computed(() => formatDate(this.day(), 'EEEE d MMMM', 'en-US'));
-  isToday = computed(() => this.dayParam() === formatDate(new Date(), 'yyyy-MM-dd', 'en-US'));
-  isYesterday = computed(() => this.dayParam() === formatDate(this.yesterday(), 'yyyy-MM-dd', 'en-US'));
+  rangeKey = computed(() => `${this.asParam(this.from())}_${this.asParam(this.to())}`);
+  isOneDay = computed(() => this.asParam(this.from()) === this.asParam(this.to()));
+  rangeLabel = computed(() => this.isOneDay()
+    ? formatDate(this.from(), 'EEEE d MMMM', 'en-US')
+    : `${formatDate(this.from(), 'd MMM', 'en-US')} to ${formatDate(this.to(), 'd MMM', 'en-US')}`);
 
   page = linkedSignal<string, number>({
-    source: this.dayParam,
+    source: this.rangeKey,
     computation: (_, previous) => previous ? 1 : this.pageFromUrl(),
   });
   total = computed(() => this.appointmentsResource.hasValue() ? this.appointmentsResource.value().total : 0);
@@ -75,34 +75,37 @@ export class TodayAppointmentsComponent {
    * reuses the same dayRange the list resource does, so the file and the screen
    * can never disagree about where the day starts.
    */
-  exportFilters = computed(() => dayRange(this.day()));
+  exportFilters = computed(() => rangeBetween(this.from(), this.to()));
 
-  appointmentsResource = this.appointmentService.getTodayAppointmentResource(this.day, this.page);
+  appointmentsResource = this.appointmentService.getAppointmentsInRangeResource(this.from, this.to, this.page);
   appointments = computed(() => this.appointmentsResource.hasValue() ? this.appointmentsResource.value().items : []);
 
   constructor() {
     effect(() => {
       this.router.navigate([], {
-        queryParams: { day: this.dayParam(), page: this.page() },
+        queryParams: { from: this.asParam(this.from()), to: this.asParam(this.to()), page: this.page() },
         relativeTo: this.route,
         replaceUrl: true,
       });
     });
   }
 
+
   /**
-   * Reads the day to show. A date with no time parses as UTC, so the midnight
-   * is spelled out to keep it local.
+   * Reads one end of the range. A date with no time parses as UTC, so the
+   * midnight is spelled out to keep it local.
    *
-   * @returns The day from the URL, or today.
+   * @param key Which query parameter to read.
+   * @returns That day, or today when the URL does not say.
    */
-  dayFromUrl(): Date {
-    const value = this.route.snapshot.queryParamMap.get('day');
+  dateFromUrl(key: 'from' | 'to'): Date {
+    const value = this.route.snapshot.queryParamMap.get(key);
     const day = value ? new Date(`${value}T00:00:00`) : null;
 
     return day && !Number.isNaN(day.getTime()) ? day : new Date();
   }
 
+  asParam = (day: Date) => formatDate(day, 'yyyy-MM-dd', 'en-US');
   /**
    * @returns The page from the URL, or the first one.
    */
@@ -112,34 +115,6 @@ export class TodayAppointmentsComponent {
     return Number.isInteger(page) && page > 0 ? page : 1;
   }
 
-  /**
-   * Move the shown day.
-   *
-   * @param days Offset in days; negative goes back.
-   */
-  shiftDayBy = (days: number) => this.day.update((current) => new Date(current.getFullYear(), current.getMonth(), current.getDate() + days));
-
-  /**
-   * Jump back to the current day.
-   */
-  goToToday = () => this.day.set(new Date());
-
-  goToYesterday = () => this.day.set(this.yesterday());
-
-  /**
-   * Yesterday as a date, not one day back from whatever is shown: the button
-   * means the same thing wherever the user has wandered to.
-   *
-   * Built from date parts rather than by subtracting 24 hours, so it survives
-   * a daylight-saving change.
-   *
-   * @returns Yesterday.
-   */
-  yesterday(): Date {
-    const today = new Date();
-
-    return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
-  }
 
   /**
    * Open the booking dialog and show the new appointment.

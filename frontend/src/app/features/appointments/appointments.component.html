@@ -1,0 +1,28 @@
+<header class="appointments__header">
+  <div class="appointments__heading">
+    <h1 class="appointments__title">{{ rangeLabel() }}</h1>
+  </div>
+
+  <div class="appointments__controls">
+    <app-date-range-picker [(from)]="from" [(to)]="to" />
+    <app-export-button path="/Appointments/export" [filters]="exportFilters()" askForRange />
+  </div>
+</header>
+
+@if (appointmentsResource.isLoading()) {
+  <app-appointment-card-shimmer />
+} @else if (appointmentsResource.error(); as error) {
+  <app-appointments-list-error-state [message]="error.message" (retry)="appointmentsResource.reload()" />
+} @else {
+  @let appointmentList = appointments();
+
+  @if (appointmentList.length) {
+    <app-appointments-list [data]="appointmentList" (open)="openAppointment($event)" />
+
+    @if (total() > perPage()) {
+      <app-pagination [(page)]="page" [total]="total()" [pageSize]="perPage()" />
+    }
+  } @else {
+    <app-appointments-list-empty-state [day]="rangeLabel()" (book)="openBookingDialog()" />
+  }
+}

@@ -20,3 +20,15 @@ export const dayRange = (day: Date) => {
     to: to.toISOString(),
   };
 };
+
+/**
+ * The same half-open range, spanning several days.
+ *
+ * @param from The first day to include.
+ * @param to The last day to include.
+ * @returns The first day's midnight and the day after the last one's, as UTC.
+ */
+export const rangeBetween = (from: Date, to: Date) => ({
+  from: dayRange(from).from,
+  to: dayRange(to).to,
+});
