@@ -19,18 +19,58 @@
           <mat-icon class="dashboard-side__icon" matListItemIcon>insights</mat-icon>
           <span class="dashboard-side__label" matListItemTitle>Stats</span>
         </a>
+      }
+
+      @if (authService.isFrontDesk()) {
+        <a
+          class="dashboard-side__link"
+          mat-list-item
+          routerLink="/dashboard"
+          routerLinkActive
+          #appointments="routerLinkActive"
+          [routerLinkActiveOptions]="{ exact: true }"
+          [activated]="appointments.isActive">
+          <mat-icon class="dashboard-side__icon" matListItemIcon>today</mat-icon>
+          <span class="dashboard-side__label" matListItemTitle>Appointments</span>
+        </a>
 
         <a
           class="dashboard-side__link"
           mat-list-item
-          routerLink="/dashboard/users"
+          routerLink="/dashboard/patients"
           routerLinkActive
-          #users="routerLinkActive"
-          [activated]="users.isActive">
-          <mat-icon class="dashboard-side__icon" matListItemIcon>manage_accounts</mat-icon>
-          <span class="dashboard-side__label" matListItemTitle>Users</span>
+          #patients="routerLinkActive"
+          [activated]="patients.isActive">
+          <mat-icon class="dashboard-side__icon" matListItemIcon>groups</mat-icon>
+          <span class="dashboard-side__label" matListItemTitle>Patients</span>
         </a>
+      }
 
+      <a
+        class="dashboard-side__link"
+        mat-list-item
+        routerLink="/dashboard/visits"
+        routerLinkActive
+        #visits="routerLinkActive"
+        [activated]="visits.isActive">
+        <mat-icon class="dashboard-side__icon" matListItemIcon>assignment</mat-icon>
+        <span class="dashboard-side__label" matListItemTitle>
+          {{ authService.role() === 'Doctor' ? 'My patients' : 'Visits' }}
+        </span>
+      </a>
+
+      <a
+        class="dashboard-side__link"
+        mat-list-item
+        routerLink="/dashboard/leaves"
+        routerLinkActive
+        #leaves="routerLinkActive"
+        [activated]="leaves.isActive">
+        <mat-icon class="dashboard-side__icon" matListItemIcon>flight_takeoff</mat-icon>
+        <span class="dashboard-side__label" matListItemTitle>Leaves</span>
+      </a>
+
+      @if (authService.isAdmin()) {
         <a
           class="dashboard-side__link"
           mat-list-item
@@ -67,6 +107,17 @@
         <a
           class="dashboard-side__link"
           mat-list-item
+          routerLink="/dashboard/users"
+          routerLinkActive
+          #users="routerLinkActive"
+          [activated]="users.isActive">
+          <mat-icon class="dashboard-side__icon" matListItemIcon>manage_accounts</mat-icon>
+          <span class="dashboard-side__label" matListItemTitle>Users</span>
+        </a>
+
+        <a
+          class="dashboard-side__link"
+          mat-list-item
           routerLink="/dashboard/audit"
           routerLinkActive
           #audit="routerLinkActive"
@@ -75,55 +126,6 @@
           <span class="dashboard-side__label" matListItemTitle>Audit</span>
         </a>
       }
-
-      <a
-        class="dashboard-side__link"
-        routerLink="/dashboard/leaves"
-        mat-list-item
-        routerLinkActive
-        #leaves="routerLinkActive"
-        [activated]="leaves.isActive">
-        <mat-icon class="dashboard-side__icon" matListItemIcon>flight_takeoff</mat-icon>
-        <span class="dashboard-side__label" matListItemTitle>Leaves</span>
-      </a>
-
-      @if (authService.isFrontDesk()) {
-        <a
-          class="dashboard-side__link"
-          mat-list-item
-          routerLink="/dashboard"
-          routerLinkActive
-          #today="routerLinkActive"
-          [routerLinkActiveOptions]="{ exact: true }"
-          [activated]="today.isActive">
-          <mat-icon class="dashboard-side__icon" matListItemIcon>today</mat-icon>
-          <span class="dashboard-side__label" matListItemTitle>Appointments</span>
-        </a>
-
-        <a
-          class="dashboard-side__link"
-          mat-list-item
-          routerLink="/dashboard/patients"
-          routerLinkActive
-          #patients="routerLinkActive"
-          [activated]="patients.isActive">
-          <mat-icon class="dashboard-side__icon" matListItemIcon>groups</mat-icon>
-          <span class="dashboard-side__label" matListItemTitle>Patients</span>
-        </a>
-      }
-
-      <a
-        class="dashboard-side__link"
-        mat-list-item
-        routerLink="/dashboard/visits"
-        routerLinkActive
-        #visits="routerLinkActive"
-        [activated]="visits.isActive">
-        <mat-icon class="dashboard-side__icon" matListItemIcon>assignment</mat-icon>
-        <span class="dashboard-side__label" matListItemTitle>
-          {{ authService.role() === 'Doctor' ? 'My patients' : 'Visits' }}
-        </span>
-      </a>
     </mat-nav-list>
 
     <mat-nav-list class="dashboard-side__nav dashboard-side__footer">
