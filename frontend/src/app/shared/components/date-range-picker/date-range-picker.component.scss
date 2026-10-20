@@ -2,14 +2,19 @@
   align-items: center;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
 }
 
 .range__dates {
-  min-width: 220px;
+  inline-size: 240px;
+
+  input {
+    cursor: pointer;
+  }
 }
 
-.range__presets {
-  display: flex;
-  gap: 4px;
+@media (width < 600px) {
+  .range__dates {
+    inline-size: 100%;
+  }
 }

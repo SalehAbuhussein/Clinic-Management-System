@@ -1,17 +1,26 @@
 <div class="range">
-  <mat-form-field class="range__dates" subscriptSizing="dynamic">
-    <mat-date-range-input [rangePicker]="picker">
-      <input matStartDate placeholder="Start" readonly [ngModel]="from()" (ngModelChange)="setFrom($event)" (click)="picker.open()">
-      <input matEndDate placeholder="End" readonly [ngModel]="to()" (ngModelChange)="setTo($event)" (click)="picker.open()">
-    </mat-date-range-input>
+  <mat-button-toggle-group
+    aria-label="Range"
+    hideSingleSelectionIndicator
+    [value]="preset()"
+    (change)="selectPreset($event.value)">
+    <mat-button-toggle value="1">Today</mat-button-toggle>
+    <mat-button-toggle value="7">7 days</mat-button-toggle>
+    <mat-button-toggle value="30">30 days</mat-button-toggle>
+    <mat-button-toggle value="custom">Custom</mat-button-toggle>
+  </mat-button-toggle-group>
 
-    <mat-datepicker-toggle matIconSuffix [for]="picker" />
-    <mat-date-range-picker #picker />
-  </mat-form-field>
+  @if (preset() === 'custom') {
+    <mat-form-field class="range__dates" subscriptSizing="dynamic">
+      <mat-label>Range</mat-label>
 
-  <div class="range__presets">
-    <button matButton type="button" (click)="selectLastDays(1)">Today</button>
-    <button matButton type="button" (click)="selectLastDays(7)">7 days</button>
-    <button matButton type="button" (click)="selectLastDays(30)">30 days</button>
-  </div>
+      <mat-date-range-input [rangePicker]="picker">
+        <input matStartDate placeholder="Start" readonly [ngModel]="from()" (ngModelChange)="setFrom($event)" (click)="picker.open()">
+        <input matEndDate placeholder="End" readonly [ngModel]="to()" (ngModelChange)="setTo($event)" (click)="picker.open()">
+      </mat-date-range-input>
+
+      <mat-datepicker-toggle matIconSuffix [for]="picker" />
+      <mat-date-range-picker #picker />
+    </mat-form-field>
+  }
 </div>
