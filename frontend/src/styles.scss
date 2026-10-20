@@ -17,6 +17,10 @@ html {
       density: 0,
     )
   );
+
+  @include mat.dialog-overrides((
+    container-color: var(--mat-sys-surface-container-high),
+  ));
 }
 
 body {
@@ -31,3 +35,7 @@ body {
   margin: 0;
 }
 /* You can add global styles to this file, and also import other style files */
+
+.mat-mdc-dialog-surface {
+  outline: 1px solid var(--mat-sys-outline-variant);
+}
