@@ -2,7 +2,7 @@ import { inject, Service } from '@angular/core';
 
 import { ApiService } from '@core/services/api/api.service';
 
-import { dayRange } from '@core/utils/day.utils';
+import { rangeBetween } from '@core/utils/day.utils';
 
 import { Visit } from './visit.types';
 
@@ -11,14 +11,17 @@ export class VisitService {
   apiService = inject(ApiService);
 
   /**
-   * One day's visits, newest check-in first. A doctor gets their own patients
-   * whatever they ask for; the API ignores any doctor the caller names.
+   * Visits across a range of days, newest check-in first. A doctor gets their
+   * own patients whatever they ask for; the API ignores any doctor the caller
+   * names.
    *
-   * @param day Returns the day to show; the time of day is ignored.
+   * @param from Returns the first day to include; the time of day is ignored.
+   * @param to Returns the last day to include.
    * @param page Returns the page to show.
    * @returns The resource holding the page.
    */
-  getVisitResource = (day: () => Date, page: () => number) => this.apiService.getPagedResource<Visit>('/Visits', () => ({ ...dayRange(day()), page: page() }));
+  getVisitResource = (from: () => Date, to: () => Date, page: () => number) =>
+    this.apiService.getPagedResource<Visit>('/Visits', () => ({ ...rangeBetween(from(), to()), page: page() }));
 
   /**
    * One patient's visits, newest first. A doctor gets only their own visits

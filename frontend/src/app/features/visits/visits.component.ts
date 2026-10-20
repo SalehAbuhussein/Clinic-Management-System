@@ -13,9 +13,10 @@ import { Observable } from 'rxjs';
 
 import { VisitService } from '@shared/services/visit/visit.service';
 
-import { dayRange } from '@core/utils/day.utils';
+import { rangeBetween } from '@core/utils/day.utils';
 
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
+import { DateRangePickerComponent } from '@shared/components/date-range-picker/date-range-picker.component';
 import { DiagnosisDialogComponent } from './components/diagnosis-dialog/diagnosis-dialog.component';
 import { ExportButtonComponent } from '@shared/components/export-button/export-button.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
@@ -30,7 +31,7 @@ import { Visit } from '@shared/services/visit/visit.types';
 import { VisitDetailAction } from './types/visits.types';
 
 @Component({
-  imports: [ExportButtonComponent, FormsModule, MatButton, MatDatepickerModule, MatIcon, MatIconButton, MatProgressSpinner, PaginationComponent, VisitRowComponent],
+  imports: [DateRangePickerComponent, ExportButtonComponent, MatIcon, MatProgressSpinner, PaginationComponent, VisitRowComponent],
   selector: 'app-visits',
   styleUrl: './visits.component.scss',
   templateUrl: './visits.component.html',
@@ -42,23 +43,25 @@ export class VisitsComponent {
   snackbar = inject(MatSnackBar);
   visitService = inject(VisitService);
 
-  day = signal(this.dayFromUrl());
+  from = signal(this.dateFromUrl('from'));
+  to = signal(this.dateFromUrl('to'));
 
-  dayParam = computed(() => formatDate(this.day(), 'yyyy-MM-dd', 'en-US'));
-  dayLabel = computed(() => formatDate(this.day(), 'EEEE d MMMM', 'en-US'));
-  isToday = computed(() => this.dayParam() === formatDate(new Date(), 'yyyy-MM-dd', 'en-US'));
-  isYesterday = computed(() => this.dayParam() === formatDate(this.yesterday(), 'yyyy-MM-dd', 'en-US'));
+  rangeKey = computed(() => `${this.asParam(this.from())}_${this.asParam(this.to())}`);
+  isOneDay = computed(() => this.asParam(this.from()) === this.asParam(this.to()));
+  rangeLabel = computed(() => this.isOneDay()
+    ? formatDate(this.from(), 'EEEE d MMMM', 'en-US')
+    : `${formatDate(this.from(), 'd MMM', 'en-US')} to ${formatDate(this.to(), 'd MMM', 'en-US')}`);
 
-  // Resets to the first page on a new day, but takes the URL's page on the
+  // Resets to the first page on a new range, but takes the URL's page on the
   // first run so a reload or a shared link lands where it left off.
   page = linkedSignal<string, number>({
-    source: this.dayParam,
+    source: this.rangeKey,
     computation: (_, previous) => previous ? 1 : this.pageFromUrl(),
   });
 
-  exportFilters = computed(() => dayRange(this.day()));
+  exportFilters = computed(() => rangeBetween(this.from(), this.to()));
 
-  visitsResource = this.visitService.getVisitResource(this.day, this.page);
+  visitsResource = this.visitService.getVisitResource(this.from, this.to, this.page);
 
   visits = computed(() => this.visitsResource.value().items);
   total = computed(() => this.visitsResource.value().total);
@@ -67,7 +70,7 @@ export class VisitsComponent {
   constructor() {
     effect(() => {
       this.router.navigate([], {
-        queryParams: { day: this.dayParam(), page: this.page() },
+        queryParams: { from: this.asParam(this.from()), to: this.asParam(this.to()), page: this.page() },
         relativeTo: this.route,
         replaceUrl: true,
       });
@@ -80,11 +83,11 @@ export class VisitsComponent {
    * Opens the visit a link named, so another screen can hand one over rather
    * than repeating everything this one does with it.
    *
-   * The day comes from the visit itself, because a link only carries the id
-   * and the list behind the dialog should be showing the right day.
+   * The range narrows to the visit's own day, because a link only carries the
+   * id and the list behind the dialog should be showing it.
    *
-   * The effect above rewrites the query string from `day` and `page` alone,
-   * so the `visitId` drops off once it has been read.
+   * The effect above rewrites the query string from the range and the page
+   * alone, so the `visitId` drops off once it has been read.
    */
   openVisitFromUrl(): void {
     const id = Number(this.route.snapshot.queryParamMap.get('visitId'));
@@ -95,56 +98,12 @@ export class VisitsComponent {
 
     this.visitService.getVisit(id).subscribe({
       next: (visit) => {
-        this.day.set(new Date(visit.checkinTime));
+        this.from.set(new Date(visit.checkinTime));
+        this.to.set(new Date(visit.checkinTime));
         this.openVisit(visit);
       },
       error: (error: ApiError) => this.snackbar.open(error.message, 'Dismiss', { duration: 8000 }),
     });
-  }
-
-  /**
-   * Reads the day to show. A date with no time parses as UTC, so the midnight
-   * is spelled out to keep it local.
-   *
-   * @returns The day from the URL, or today.
-   */
-  dayFromUrl(): Date {
-    const value = this.route.snapshot.queryParamMap.get('day');
-    const day = value ? new Date(`${value}T00:00:00`) : null;
-
-    return day && !Number.isNaN(day.getTime()) ? day : new Date();
-  }
-
-  /**
-   * Move the shown day.
-   *
-   * @param days Offset in days; negative goes back.
-   */
-  shiftDayBy = (days: number) => this.day.update((current) => new Date(current.getFullYear(), current.getMonth(), current.getDate() + days));
-
-  /**
-   * Move to today
-   */
-  goToToday = () => this.day.set(new Date());
-
-  /**
-   * Move to yesterday
-   */
-  goToYesterday = () => this.day.set(this.yesterday());
-
-  /**
-   * Yesterday as a date, not one day back from whatever is shown: the button
-   * means the same thing wherever the user has wandered to.
-   *
-   * Built from date parts rather than by subtracting 24 hours, so it survives
-   * a daylight-saving change.
-   *
-   * @returns Yesterday.
-   */
-  yesterday(): Date {
-    const today = new Date();
-
-    return new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
   }
 
   /**
@@ -155,6 +114,23 @@ export class VisitsComponent {
 
     return Number.isInteger(page) && page > 0 ? page : 1;
   }
+
+
+  /**
+   * Reads one end of the range. A date with no time parses as UTC, so the
+   * midnight is spelled out to keep it local.
+   *
+   * @param key Which query parameter to read.
+   * @returns That day, or today when the URL does not say.
+   */
+  dateFromUrl(key: 'from' | 'to'): Date {
+    const value = this.route.snapshot.queryParamMap.get(key);
+    const day = value ? new Date(`${value}T00:00:00`) : null;
+
+    return day && !Number.isNaN(day.getTime()) ? day : new Date();
+  }
+
+  asParam = (day: Date) => formatDate(day, 'yyyy-MM-dd', 'en-US');
 
   /**
    * Show everything on a visit, and act on whatever the dialog closes with.

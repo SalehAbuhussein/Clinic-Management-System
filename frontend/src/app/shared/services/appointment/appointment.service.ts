@@ -2,7 +2,7 @@ import { inject, Service } from '@angular/core';
 
 import { ApiService } from '@core/services/api/api.service';
 
-import { dayRange } from '@core/utils/day.utils';
+import { dayRange, rangeBetween } from '@core/utils/day.utils';
 
 import { AppointmentFilters, CreateAppointmentRequest, CreateDoctorAppoinmentResponse, GetAppointmentsResponse, GetDoctorSchedulesResponse, RescheduleAppointmentRequest } from './appointment.types';
 
@@ -24,17 +24,18 @@ export class AppointmentService {
   getAppointmentResource = (filters: () => AppointmentFilters = () => ({})) => this.apiService.getResource<GetAppointmentsResponse>('/Appointments', filters);
 
   /**
-   * Appointments for a single calendar day.
+   * Appointments across a range of days.
    *
    * The bounds go out as instants carrying this browser's offset, because the
    * API compares them against stored instants. A bare date would widen to UTC
    * midnight in SQL Server and cut the day at the wrong hour.
    *
-   * @param day Returns the day to show; the time of day is ignored.
-   * @returns The resource holding that day's appointments.
+   * @param from Returns the first day to include; the time of day is ignored.
+   * @param to Returns the last day to include.
+   * @returns The resource holding those appointments.
    */
-  getTodayAppointmentResource = (day: () => Date, page: () => number) => this.getAppointmentResource(() => ({
-    ...dayRange(day()),
+  getAppointmentsInRangeResource = (from: () => Date, to: () => Date, page: () => number) => this.getAppointmentResource(() => ({
+    ...rangeBetween(from(), to()),
     page: page(),
   }));
 

@@ -1,0 +1,15 @@
+.range {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.range__dates {
+  min-width: 220px;
+}
+
+.range__presets {
+  display: flex;
+  gap: 4px;
+}

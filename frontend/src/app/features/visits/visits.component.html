@@ -1,41 +1,12 @@
 <header class="visits__header">
   <div class="visits__heading">
-    <h1 class="visits__title">
-      <button class="visits__pick" type="button" aria-label="Pick a day" (click)="picker.open()">
-        {{ dayLabel() }}
-        <mat-icon>arrow_drop_down</mat-icon>
-      </button>
-
-      <input class="visits__picker-anchor" [matDatepicker]="picker" [ngModel]="day()" (ngModelChange)="day.set($event)">
-      <mat-datepicker #picker />
-    </h1>
-
-    @if (isToday()) {
-      <p class="visits__subtitle">Today</p>
-    } @else if (isYesterday()) {
-      <p class="visits__subtitle">Yesterday</p>
-    }
+    <h1 class="visits__title">{{ rangeLabel() }}</h1>
   </div>
 
-  <nav class="visits__days" aria-label="Change day">
-    <button matIconButton type="button" aria-label="Previous day" (click)="shiftDayBy(-1)">
-      <mat-icon>chevron_left</mat-icon>
-    </button>
-
-    @if (!isYesterday()) {
-      <button matButton type="button" (click)="goToYesterday()">Yesterday</button>
-    }
-
-    @if (!isToday()) {
-      <button matButton type="button" (click)="goToToday()">Today</button>
-    }
-
-    <button matIconButton type="button" aria-label="Next day" (click)="shiftDayBy(1)">
-      <mat-icon>chevron_right</mat-icon>
-    </button>
-
+  <div class="visits__controls">
+    <app-date-range-picker [(from)]="from" [(to)]="to" />
     <app-export-button path="/Visits/export" [filters]="exportFilters()" askForRange />
-  </nav>
+  </div>
 </header>
 
 @if (visitsResource.isLoading()) {
@@ -64,7 +35,7 @@
   } @else {
     <p class="visits__state">
       <mat-icon>assignment</mat-icon>
-      Nobody checked in on {{ dayLabel() }}.
+      No visits in {{ rangeLabel() }}.
     </p>
   }
 }
