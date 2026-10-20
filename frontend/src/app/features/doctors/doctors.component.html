@@ -24,22 +24,23 @@
     <div class="doctors__list">
       @for (doctor of list; track doctor.id) {
         <article class="doctor" [class.doctor--inactive]="!doctor.active">
-          <span class="doctor__who">
-            <span class="doctor__name">{{ doctor.fullname }}</span>
-            <span class="doctor__school">{{ doctor.medicalSchool }} · {{ doctor.graduationYear }}</span>
-          </span>
-
-          <span class="doctor__specialization">{{ doctor.specialization }}</span>
-
-          @if (!doctor.active) {
-            <span class="doctor__inactive">
-              <mat-icon>block</mat-icon>
-              Inactive
+          <button class="doctor__open" type="button" (click)="openDetail(doctor)">
+            <span class="doctor__who">
+              <span class="doctor__name">{{ doctor.fullname }}</span>
+              <span class="doctor__school">{{ doctor.medicalSchool }} · {{ doctor.graduationYear }}</span>
             </span>
-          }
+
+            <span class="doctor__specialization">{{ doctor.specialization }}</span>
+
+            @if (!doctor.active) {
+              <span class="doctor__inactive">
+                <mat-icon>block</mat-icon>
+                Inactive
+              </span>
+            }
+          </button>
 
           <span class="doctor__actions">
-            <button matButton type="button" (click)="openDetail(doctor)">View</button>
             <button matButton type="button" (click)="openForm(doctor)">Edit</button>
             <button class="doctor__danger" matButton type="button" (click)="deleteDoctor(doctor)">Delete</button>
           </span>

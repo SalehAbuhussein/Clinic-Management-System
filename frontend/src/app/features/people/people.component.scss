@@ -41,10 +41,29 @@
   background-color: var(--mat-sys-surface-container-lowest);
   border-radius: var(--mat-sys-corner-medium);
   box-shadow: var(--mat-sys-level1);
+  display: flex;
+  flex-wrap: wrap;
+  overflow: hidden;
+}
+
+.person__open {
+  align-items: center;
+  background: none;
+  border: 0;
+  color: var(--mat-sys-on-surface);
+  cursor: pointer;
   display: grid;
+  flex: 1;
+  font: inherit;
   gap: 12px;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 1fr auto;
+  min-inline-size: 0;
   padding: 10px 14px;
+  text-align: start;
+
+  &:hover {
+    background-color: var(--mat-sys-surface-container-low);
+  }
 }
 
 .person__who {
@@ -77,6 +96,7 @@
 .person__actions {
   display: flex;
   gap: 4px;
+  padding-inline-end: 14px;
 }
 
 .person__danger {
@@ -84,12 +104,9 @@
 }
 
 @media (width < 600px) {
-  .person {
-    grid-template-columns: 1fr auto;
-  }
-
   .person__actions {
-    grid-column: 1 / -1;
+    flex: 1;
     justify-content: flex-end;
+    padding-block-end: 10px;
   }
 }

@@ -19,18 +19,19 @@
     <div class="people__list">
       @for (person of list; track person.id) {
         <article class="person">
-          <span class="person__who">
-            <span class="person__name">
-              {{ person.firstname }} {{ person.midname }} {{ person.thirdname }} {{ person.lastname }}
+          <button class="person__open" type="button" (click)="openDetail(person)">
+            <span class="person__who">
+              <span class="person__name">
+                {{ person.firstname }} {{ person.midname }} {{ person.thirdname }} {{ person.lastname }}
+              </span>
+
+              <span class="person__detail">{{ person.phone }}</span>
             </span>
 
-            <span class="person__detail">{{ person.phone }}</span>
-          </span>
-
-          <span class="person__national">{{ person.nationalNo }}</span>
+            <span class="person__national">{{ person.nationalNo }}</span>
+          </button>
 
           <span class="person__actions">
-            <button matButton type="button" (click)="openDetail(person)">View</button>
             <button matButton type="button" (click)="openForm(person)">Edit</button>
             <button class="person__danger" matButton type="button" (click)="deletePerson(person)">Delete</button>
           </span>
