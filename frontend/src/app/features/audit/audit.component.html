@@ -12,7 +12,7 @@
     <mat-button-toggle value="all">All</mat-button-toggle>
   </mat-button-toggle-group>
 
-  <app-export-button path="/Audit/export" [filters]="exportFilters()" />
+  <app-export-button path="/Audit/export" [filters]="exportFilters()" askForRange />
 </header>
 
 @if (auditResource.isLoading()) {

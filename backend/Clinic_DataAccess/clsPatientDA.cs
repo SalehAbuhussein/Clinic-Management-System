@@ -10,7 +10,7 @@ namespace Clinic_DataAccess
 {
     public class clsPatientDA
     {
-        public static async Task<DataTable> FindAllAsync(string? fullname = null, string? phone = null, int pageNumber = 1, int pageSize = 10)
+        public static async Task<DataTable> FindAllAsync(string? fullname = null, string? phone = null, DateTimeOffset? from = null, DateTimeOffset? to = null, int pageNumber = 1, int pageSize = 10)
         {
             DataTable dt = new DataTable();
 
@@ -49,6 +49,18 @@ namespace Clinic_DataAccess
                         // middle, and a leading wildcard would rule out an index seek.
                         conditions.Add("P.Phone LIKE @Phone");
                         command.Parameters.AddWithValue("@Phone", $"{phone.Trim()}%");
+                    }
+
+                    if (from.HasValue)
+                    {
+                        conditions.Add("PT.CreatedAt >= @From");
+                        command.Parameters.AddWithValue("@From", from.Value.UtcDateTime);
+                    }
+
+                    if (to.HasValue)
+                    {
+                        conditions.Add("PT.CreatedAt < @To");
+                        command.Parameters.AddWithValue("@To", to.Value.UtcDateTime);
                     }
 
                     if (conditions.Count > 0)

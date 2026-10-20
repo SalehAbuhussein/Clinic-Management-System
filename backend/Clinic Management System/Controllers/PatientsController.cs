@@ -34,7 +34,7 @@ namespace Clinic_Management_System.Controllers
             fullname = fullname?.Trim().Replace("%", "").Replace("_", "").Replace("[", "");
             phone = phone?.Trim().Replace("%", "").Replace("_", "").Replace("[", "");
 
-            PagedResult<clsPatient.PatientItem> patientsPage = await _patientRepository.FindAllAsync(fullname, phone, page, perPage);
+            PagedResult<clsPatient.PatientItem> patientsPage = await _patientRepository.FindAllAsync(fullname, phone, null, null, page, perPage);
 
             List<PatientDTO> patientsList = patientsPage.Items
                 .Select(patient => new PatientDTO
@@ -56,12 +56,12 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult> ExportPatients(string? fullname, string? phone)
+        public async Task<ActionResult> ExportPatients(string? fullname, string? phone, DateTimeOffset? from, DateTimeOffset? to)
         {
             fullname = fullname?.Trim().Replace("%", "").Replace("_", "").Replace("[", "");
             phone = phone?.Trim().Replace("%", "").Replace("_", "").Replace("[", "");
 
-            PagedResult<clsPatient.PatientItem> patientsPage = await _patientRepository.FindAllAsync(fullname, phone, 1, ExcelFile.MaxRows + 1);
+            PagedResult<clsPatient.PatientItem> patientsPage = await _patientRepository.FindAllAsync(fullname, phone, from, to, 1, ExcelFile.MaxRows + 1);
 
             if (patientsPage.Items.Count > ExcelFile.MaxRows)
                 return Problem(statusCode: StatusCodes.Status400BadRequest, detail: $"That search matches more than {ExcelFile.MaxRows:N0} patients. Narrow it and try again.");
@@ -75,6 +75,7 @@ namespace Clinic_Management_System.Controllers
             new("Phone", p => p.Phone),
             new("Emergency contact", p => p.EmergencyContactName),
             new("Emergency number", p => p.EmergencyContactNumber),
+            new("Registered", p => p.RegisteredAt),
         ];
 
         [Authorize(Roles = "Admin,Staff,Doctor")]

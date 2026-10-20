@@ -1,0 +1,22 @@
+<h2 class="export-range__title" matDialogTitle>Export range</h2>
+
+<div class="export-range__content" matDialogContent>
+  <mat-form-field class="export-range__dates" subscriptSizing="dynamic">
+    <mat-label>{{ data.label }}</mat-label>
+
+    <mat-date-range-input [rangePicker]="picker" [max]="maxDate">
+      <input matStartDate placeholder="Start" readonly [ngModel]="from()" (ngModelChange)="from.set($event)" (click)="picker.open()">
+      <input matEndDate placeholder="End" readonly [ngModel]="to()" (ngModelChange)="to.set($event)" (click)="picker.open()">
+    </mat-date-range-input>
+
+    <mat-datepicker-toggle matIconSuffix [for]="picker" />
+    <mat-date-range-picker #picker />
+
+    <mat-hint>Leave both empty to export everything.</mat-hint>
+  </mat-form-field>
+</div>
+
+<div class="export-range__actions" matDialogActions>
+  <button matButton type="button" matDialogClose>Cancel</button>
+  <button matButton="filled" type="button" (click)="confirm()">Export</button>
+</div>

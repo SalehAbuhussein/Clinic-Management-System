@@ -1,12 +1,15 @@
-import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
+import { booleanAttribute, ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
 import { HttpResponse } from '@angular/common/http';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
+import { MatDialog } from '@angular/material/dialog';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Params } from '@angular/router';
 
 import { ApiService } from '@core/services/api/api.service';
+
+import { ExportRangeDialogComponent } from '@shared/components/export-range-dialog/export-range-dialog.component';
 
 import { ApiError } from '@core/auth/types/auth.types';
 
@@ -19,13 +22,22 @@ import { ApiError } from '@core/auth/types/auth.types';
 })
 export class ExportButtonComponent {
   apiService = inject(ApiService);
+  dialog = inject(MatDialog);
   snackbar = inject(MatSnackBar);
 
   path = input.required<string>();
-
   filters = input<Params>({});
-
   label = input('Export');
+  rangeLabel = input('Range');
+
+  /**
+   * Whether to ask for a date range first.
+   *
+   * On by default for screens that show one day at a time, because a day is a
+   * viewing choice and rarely the range anyone wants out. Off for screens whose
+   * filter is already the export anyone would ask for, such as a patient search.
+   */
+  askForRange = input(false, { transform: booleanAttribute });
 
   isExporting = signal(false);
 
@@ -36,9 +48,31 @@ export class ExportButtonComponent {
    * cannot start a second download of the same thing.
    */
   exportFile(): void {
+    if (!this.askForRange()) {
+      this._download(this.filters());
+      return;
+    }
+
+    this.dialog.open(ExportRangeDialogComponent, { width: '380px', data: { filters: this.filters(), label: this.rangeLabel() } })
+      .afterClosed()
+      .subscribe((range: Params | undefined) => {
+        if (!range) {
+          return;
+        }
+
+        this._download({ ...this.filters(), ...range });
+      });
+  }
+
+  /**
+   * Fetch the file for one set of query parameters.
+   *
+   * @param params What to send, already resolved.
+   */
+  _download(params: Params): void {
     this.isExporting.set(true);
 
-    this.apiService.download(this.path(), this.filters()).subscribe({
+    this.apiService.download(this.path(), params).subscribe({
       next: (response) => {
         this.isExporting.set(false);
 

@@ -32,8 +32,8 @@ namespace Clinic_Business.Entities
         }
 
         private clsPatient(
-            int? id, 
-            string? emergencyContactNumber, 
+            int? id,
+            string? emergencyContactNumber,
             string? emergencyContactName,
             DateTime createdAt,
             DateTime updatedAt,
@@ -74,11 +74,11 @@ namespace Clinic_Business.Entities
             base.NationalNo = nationalNo;
         }
 
-        public record PatientItem(int Id, string? Fullname, string? Phone, string? EmergencyContactName, string? EmergencyContactNumber, int PersonID);
+        public record PatientItem(int Id, string? Fullname, string? Phone, string? EmergencyContactName, string? EmergencyContactNumber, int PersonID, DateTime RegisteredAt);
 
-        public static async Task<PagedResult<PatientItem>> FindPatientsAsync(string? fullname = null, string? phone = null, int pageNumber = 1, int pageSize = 10)
+        public static async Task<PagedResult<PatientItem>> FindPatientsAsync(string? fullname = null, string? phone = null, DateTimeOffset? from = null, DateTimeOffset? to = null, int pageNumber = 1, int pageSize = 10)
         {
-            DataTable table = await clsPatientDA.FindAllAsync(fullname, phone, pageNumber, pageSize);
+            DataTable table = await clsPatientDA.FindAllAsync(fullname, phone, from, to, pageNumber, pageSize);
 
             List<PatientItem> patients = table.AsEnumerable().Select(row => new PatientItem(
                 row.Field<int>("PatientID"),
@@ -86,7 +86,8 @@ namespace Clinic_Business.Entities
                 row.Field<string>("Phone"),
                 row.Field<string>("EmergencyContactName"),
                 row.Field<string>("EmergencyContactNumber"),
-                row.Field<int>("PersonID")
+                row.Field<int>("PersonID"),
+                row.Field<DateTime>("CreatedAt")
             )).ToList();
 
             int total = table.Rows.Count == 0 ? 0 : table.Rows[0].Field<int>("TotalCount");
@@ -134,8 +135,8 @@ namespace Clinic_Business.Entities
                 row.Field<string>("NationalNo") ?? string.Empty
             );
         }
-        
-        
+
+
         public static Task<bool> DeletePatientAsync(int? id)
         {
             return clsPatientDA.DeleteAsync(id);
@@ -151,9 +152,9 @@ namespace Clinic_Business.Entities
         private async Task<bool> _CreatePatientAsync()
         {
             PatientID = await clsPatientDA.CreateAsync(
-                EmergencyContactNumber, 
-                EmergencyContactName, 
-                CreatedAt, 
+                EmergencyContactNumber,
+                EmergencyContactName,
+                CreatedAt,
                 UpdatedAt,
                 CreatedBy,
                 Firstname,
@@ -172,9 +173,9 @@ namespace Clinic_Business.Entities
         private Task<bool> _UpdatePatientAsync()
         {
             return clsPatientDA.UpdateAsync(
-                PatientID, 
-                EmergencyContactNumber, 
-                EmergencyContactName, 
+                PatientID,
+                EmergencyContactNumber,
+                EmergencyContactName,
                 PersonID,
                 Firstname,
                 Midname,

@@ -2,7 +2,7 @@
   <header class="leaves-header">
     <h1 class="leaves-title">Leaves</h1>
 
-    <app-export-button path="/Leaves/export" />
+    <app-export-button path="/Leaves/export" askForRange />
 
     @if (!authService.isAdmin()) {
       <button class="leaves-header__request" matButton="filled" type="button" (click)="openRequestLeaveDialog()">

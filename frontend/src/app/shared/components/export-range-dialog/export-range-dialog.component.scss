@@ -1,0 +1,14 @@
+.export-range__content {
+  display: flex;
+  flex-direction: column;
+  padding-top: 8px;
+}
+
+.export-range__dates {
+  width: 100%;
+}
+
+.export-range__actions {
+  gap: 8px;
+  justify-content: flex-end;
+}

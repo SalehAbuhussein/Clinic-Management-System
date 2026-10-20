@@ -2,7 +2,7 @@
   <h1 class="patients__title">Patients</h1>
 
   <div class="patients__actions">
-    <app-export-button path="/Patients/export" [filters]="filters()" />
+    <app-export-button path="/Patients/export" [filters]="filters()" rangeLabel="Registered between" askForRange />
 
     @if (authService.isFrontDesk()) {
       <button matButton="filled" type="button" (click)="openNewPatientDialog()">

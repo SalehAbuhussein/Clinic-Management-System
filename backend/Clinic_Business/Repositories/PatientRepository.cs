@@ -16,9 +16,9 @@ namespace Clinic_Business.Repositories
             return clsPatient.FindPatientByNationalNoAsync(nationalNo);
         }
 
-        public Task<PagedResult<clsPatient.PatientItem>> FindAllAsync(string? fullname = null, string? phone = null, int pageNumber = 1, int pageSize = 10)
+        public Task<PagedResult<clsPatient.PatientItem>> FindAllAsync(string? fullname = null, string? phone = null, DateTimeOffset? from = null, DateTimeOffset? to = null, int pageNumber = 1, int pageSize = 10)
         {
-            return clsPatient.FindPatientsAsync(fullname, phone, pageNumber, pageSize);
+            return clsPatient.FindPatientsAsync(fullname, phone, from, to, pageNumber, pageSize);
         }
 
         public Task<bool> DeleteAsync(int? id)
