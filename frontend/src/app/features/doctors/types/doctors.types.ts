@@ -3,6 +3,8 @@
  * the national number, email and password untouched, because the API fixes
  * those at creation.
  */
+export type DoctorDetailAction = 'edit';
+
 export type DoctorFormData = {
   firstname: string;
   midname: string;

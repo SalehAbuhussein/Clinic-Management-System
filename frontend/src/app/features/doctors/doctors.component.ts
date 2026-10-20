@@ -8,11 +8,13 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { DoctorService } from '@shared/services/doctor/doctor.service';
 
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
+import { DoctorDetailDialogComponent } from './components/doctor-detail-dialog/doctor-detail-dialog.component';
 import { DoctorFormDialogComponent } from './components/doctor-form-dialog/doctor-form-dialog.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
 
 import { ApiError } from '@core/auth/types/auth.types';
 import { Doctor } from '@shared/services/doctor/doctor.types';
+import { DoctorDetailAction } from './types/doctors.types';
 
 @Component({
   imports: [MatButton, MatIcon, MatProgressSpinner, PaginationComponent],
@@ -69,6 +71,16 @@ export class DoctorsComponent {
    *
    * @param doctor The row being edited, or null to add one.
    */
+  openDetail(doctor: Doctor): void {
+    this.dialog.open(DoctorDetailDialogComponent, { width: '440px', data: doctor })
+      .afterClosed()
+      .subscribe((action: DoctorDetailAction | undefined) => {
+        if (action === 'edit') {
+          this.openForm(doctor);
+        }
+      });
+  }
+
   openForm(doctor: Doctor | null): void {
     this.dialog.open(DoctorFormDialogComponent, { width: '640px', maxWidth: '100vw', data: doctor })
       .afterClosed()

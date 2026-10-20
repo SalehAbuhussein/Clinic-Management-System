@@ -17,13 +17,14 @@ import { PatientService } from '@shared/services/patient/patient.service';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { ExportButtonComponent } from '@shared/components/export-button/export-button.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
-import { PatientDetailAction, PatientDetailDialogComponent } from './components/patient-detail-dialog/patient-detail-dialog.component';
+import { PatientDetailDialogComponent } from './components/patient-detail-dialog/patient-detail-dialog.component';
 import { PatientFormDialogComponent } from './components/patient-form-dialog/patient-form-dialog.component';
 import { PatientsListComponent } from './components/patients-list/patients-list.component';
 
 import { ApiError } from '@core/auth/types/auth.types';
 import { ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.types';
 import { Patient, PatientFilters } from '@shared/services/patient/patient.types';
+import { PatientDetailAction } from './types/patients.types';
 
 @Component({
   imports: [

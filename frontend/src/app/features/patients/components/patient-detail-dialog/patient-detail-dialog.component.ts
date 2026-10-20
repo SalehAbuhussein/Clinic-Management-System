@@ -15,12 +15,6 @@ import { PaginationComponent } from '@shared/components/pagination/pagination.co
 import { ApiError } from '@core/auth/types/auth.types';
 import { Patient } from '@shared/services/patient/patient.types';
 
-/**
- * What the dialog closes with. Both open another dialog, so the screen owns
- * them rather than stacking two on top of each other.
- */
-export type PatientDetailAction = 'edit' | 'delete';
-
 @Component({
   imports: [DatePipe, MatButton, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle, MatIcon, MatProgressSpinner, PaginationComponent],
   selector: 'app-patient-detail-dialog',

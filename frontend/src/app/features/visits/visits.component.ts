@@ -20,13 +20,14 @@ import { DiagnosisDialogComponent } from './components/diagnosis-dialog/diagnosi
 import { ExportButtonComponent } from '@shared/components/export-button/export-button.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
 import { PrescriptionDialogComponent } from './components/prescription-dialog/prescription-dialog.component';
-import { VisitDetailAction, VisitDetailDialogComponent } from './components/visit-detail-dialog/visit-detail-dialog.component';
+import { VisitDetailDialogComponent } from './components/visit-detail-dialog/visit-detail-dialog.component';
 import { VisitEditDialogComponent } from './components/visit-edit-dialog/visit-edit-dialog.component';
 import { VisitRowComponent } from './components/visit-row/visit-row.component';
 
 import { ApiError } from '@core/auth/types/auth.types';
 import { ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.types';
 import { Visit } from '@shared/services/visit/visit.types';
+import { VisitDetailAction } from './types/visits.types';
 
 @Component({
   imports: [ExportButtonComponent, FormsModule, MatButton, MatDatepickerModule, MatIcon, MatIconButton, MatProgressSpinner, PaginationComponent, VisitRowComponent],

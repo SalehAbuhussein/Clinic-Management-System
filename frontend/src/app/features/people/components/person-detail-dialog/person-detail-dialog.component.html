@@ -1,0 +1,24 @@
+<h2 class="person-detail__title" matDialogTitle>
+  {{ person.firstname }} {{ person.midname }} {{ person.thirdname }} {{ person.lastname }}
+</h2>
+
+<div class="person-detail__content" matDialogContent>
+  <dl class="person-detail__facts">
+    <dt>National number</dt>
+    <dd>{{ person.nationalNo }}</dd>
+
+    <dt>Phone</dt>
+    <dd>{{ person.phone || '—' }}</dd>
+
+    <dt>Gender</dt>
+    <dd>{{ person.gender ? 'Male' : 'Female' }}</dd>
+
+    <dt>Date of birth</dt>
+    <dd>{{ person.dateOfBirth ? (person.dateOfBirth | date:'d MMM yyyy') : '—' }}</dd>
+  </dl>
+</div>
+
+<div class="person-detail__actions" matDialogActions>
+  <button matButton type="button" matDialogClose>Close</button>
+  <button matButton="filled" type="button" [matDialogClose]="'edit'">Edit person</button>
+</div>

@@ -14,12 +14,6 @@ import { Diagnosis } from '@shared/services/diagnosis/diagnosis.types';
 import { PrescriptionItem } from '@shared/services/prescription/prescription.types';
 import { Visit } from '@shared/services/visit/visit.types';
 
-/**
- * What the dialog closes with. The screen owns every one of these, because each
- * opens another dialog and two stacked dialogs read badly.
- */
-export type VisitDetailAction = 'diagnose' | 'prescribe' | 'edit' | 'checkout' | 'delete';
-
 @Component({
   imports: [DatePipe, MatButton, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle, MatIcon, MatProgressSpinner],
   selector: 'app-visit-detail-dialog',

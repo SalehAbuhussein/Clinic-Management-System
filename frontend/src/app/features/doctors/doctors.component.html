@@ -39,6 +39,7 @@
           }
 
           <span class="doctor__actions">
+            <button matButton type="button" (click)="openDetail(doctor)">View</button>
             <button matButton type="button" (click)="openForm(doctor)">Edit</button>
             <button class="doctor__danger" matButton type="button" (click)="deleteDoctor(doctor)">Delete</button>
           </span>

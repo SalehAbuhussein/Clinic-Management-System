@@ -1,0 +1,43 @@
+<h2 class="doctor-detail__title" matDialogTitle>{{ doctor.fullname }}</h2>
+
+<div class="doctor-detail__content" matDialogContent>
+  <dl class="doctor-detail__facts">
+    <dt>Specialization</dt>
+    <dd>{{ doctor.specialization }}</dd>
+
+    <dt>Medical school</dt>
+    <dd>{{ doctor.medicalSchool }}</dd>
+
+    <dt>Graduated</dt>
+    <dd>{{ doctor.graduationYear }}</dd>
+
+    <dt>National number</dt>
+    <dd>{{ doctor.nationalNo }}</dd>
+
+    <dt>Phone</dt>
+    <dd>{{ doctor.phone || '—' }}</dd>
+
+    <dt>Gender</dt>
+    <dd>{{ doctor.gender ? 'Male' : 'Female' }}</dd>
+
+    <dt>Date of birth</dt>
+    <dd>{{ doctor.dateOfBirth ? (doctor.dateOfBirth | date:'d MMM yyyy') : '—' }}</dd>
+
+    <dt>Status</dt>
+    <dd>
+      @if (doctor.active) {
+        Active
+      } @else {
+        <span class="doctor-detail__inactive">
+          <mat-icon>block</mat-icon>
+          Inactive
+        </span>
+      }
+    </dd>
+  </dl>
+</div>
+
+<div class="doctor-detail__actions" matDialogActions>
+  <button matButton type="button" matDialogClose>Close</button>
+  <button matButton="filled" type="button" [matDialogClose]="'edit'">Edit doctor</button>
+</div>

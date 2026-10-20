@@ -12,13 +12,14 @@ import { UserService } from '@shared/services/user/user.service';
 
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
-import { UserDetailAction, UserDetailDialogComponent } from './components/user-detail-dialog/user-detail-dialog.component';
+import { UserDetailDialogComponent } from './components/user-detail-dialog/user-detail-dialog.component';
 import { UserFormDialogComponent } from './components/user-form-dialog/user-form-dialog.component';
 import { UserRowComponent } from './components/user-row/user-row.component';
 
 import { ApiError } from '@core/auth/types/auth.types';
 import { ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.types';
 import { User } from '@shared/services/user/user.types';
+import { UserDetailAction } from './types/users.types';
 
 @Component({
   imports: [MatButton, MatIcon, MatProgressSpinner, PaginationComponent, UserRowComponent],

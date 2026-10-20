@@ -7,9 +7,6 @@ import { AuthService } from '@core/auth/service/auth.service';
 
 import { User } from '@shared/services/user/user.types';
 
-/** What the dialog closes with. Each one opens another dialog or a confirmation. */
-export type UserDetailAction = 'edit' | 'activate' | 'deactivate';
-
 @Component({
   imports: [MatButton, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle, MatIcon],
   selector: 'app-user-detail-dialog',

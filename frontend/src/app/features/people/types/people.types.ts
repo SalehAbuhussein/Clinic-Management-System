@@ -1,3 +1,5 @@
+export type PersonDetailAction = 'edit';
+
 export type PersonFormData = {
   firstname: string;
   midname: string;

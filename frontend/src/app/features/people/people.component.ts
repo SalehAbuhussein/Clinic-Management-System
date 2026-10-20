@@ -9,10 +9,12 @@ import { PersonService } from '@shared/services/person/person.service';
 
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
+import { PersonDetailDialogComponent } from './components/person-detail-dialog/person-detail-dialog.component';
 import { PersonFormDialogComponent } from './components/person-form-dialog/person-form-dialog.component';
 
 import { ApiError } from '@core/auth/types/auth.types';
 import { Person } from '@shared/services/person/person.types';
+import { PersonDetailAction } from './types/people.types';
 
 @Component({
   imports: [MatButton, MatIcon, MatProgressSpinner, PaginationComponent],
@@ -38,6 +40,16 @@ export class PeopleComponent {
    *
    * @param person The row that was picked.
    */
+  openDetail(person: Person): void {
+    this.dialog.open(PersonDetailDialogComponent, { width: '440px', data: person })
+      .afterClosed()
+      .subscribe((action: PersonDetailAction | undefined) => {
+        if (action === 'edit') {
+          this.openForm(person);
+        }
+      });
+  }
+
   openForm(person: Person): void {
     this.dialog.open(PersonFormDialogComponent, { width: '640px', maxWidth: '100vw', data: person })
       .afterClosed()

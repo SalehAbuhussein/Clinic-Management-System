@@ -30,6 +30,7 @@
           <span class="person__national">{{ person.nationalNo }}</span>
 
           <span class="person__actions">
+            <button matButton type="button" (click)="openDetail(person)">View</button>
             <button matButton type="button" (click)="openForm(person)">Edit</button>
             <button class="person__danger" matButton type="button" (click)="deletePerson(person)">Delete</button>
           </span>
