@@ -39,12 +39,22 @@
 .entry {
   align-items: center;
   background-color: var(--mat-sys-surface-container-lowest);
+  border: 0;
   border-radius: var(--mat-sys-corner-medium);
   box-shadow: var(--mat-sys-level1);
+  color: var(--mat-sys-on-surface);
+  cursor: pointer;
   display: grid;
+  font: inherit;
   gap: 12px;
   grid-template-columns: auto 1fr auto;
+  inline-size: 100%;
   padding: 10px 14px;
+  text-align: start;
+
+  &:hover {
+    background-color: var(--mat-sys-surface-container-low);
+  }
 }
 
 .entry__badge {

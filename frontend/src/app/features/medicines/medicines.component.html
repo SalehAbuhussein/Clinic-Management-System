@@ -30,18 +30,20 @@
     <div class="medicines__list">
       @for (medicine of list; track medicine.id) {
         <article class="medicine">
-          <span class="medicine__what">
-            <span class="medicine__name">{{ medicine.genericname }}</span>
+          <button class="medicine__open" type="button" (click)="openDetail(medicine)">
+            <span class="medicine__what">
+              <span class="medicine__name">{{ medicine.genericname }}</span>
 
-            <span class="medicine__detail">
-              @if (medicine.brandname) {
-                {{ medicine.brandname }} ·
-              }
-              {{ medicine.form }} · {{ medicine.strength }}
+              <span class="medicine__detail">
+                @if (medicine.brandname) {
+                  {{ medicine.brandname }} ·
+                }
+                {{ medicine.form }} · {{ medicine.strength }}
+              </span>
             </span>
-          </span>
 
-          <span class="medicine__rxcui">RxCUI {{ medicine.rxCUI }}</span>
+            <span class="medicine__rxcui">RxCUI {{ medicine.rxCUI }}</span>
+          </button>
 
           <span class="medicine__actions">
             <button matButton type="button" (click)="openForm(medicine)">Edit</button>

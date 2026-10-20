@@ -31,7 +31,7 @@
   @if (list.length) {
     <div class="audit__list">
       @for (entry of list; track entry.id) {
-        <article class="entry">
+        <button class="entry" type="button" (click)="openDetail(entry)">
           <span class="entry__badge">
             <mat-icon>{{ entry.icon }}</mat-icon>
           </span>
@@ -47,7 +47,7 @@
           </span>
 
           <span class="entry__when">{{ entry.occurredAt | date:'d MMM, HH:mm' }}</span>
-        </article>
+        </button>
       }
     </div>
 

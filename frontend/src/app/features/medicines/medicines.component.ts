@@ -14,11 +14,13 @@ import { debounceTime } from 'rxjs';
 import { MedicineService } from '@shared/services/medicine/medicine.service';
 
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
+import { MedicineDetailDialogComponent } from './components/medicine-detail-dialog/medicine-detail-dialog.component';
 import { MedicineFormDialogComponent } from './components/medicine-form-dialog/medicine-form-dialog.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
 
 import { ApiError } from '@core/auth/types/auth.types';
 import { Medicine } from '@shared/services/medicine/medicine.types';
+import { MedicineDetailAction } from './types/medicines.types';
 
 @Component({
   imports: [FormsModule, MatButton, MatFormField, MatIcon, MatInput, MatLabel, MatPrefix, MatProgressSpinner, PaginationComponent],
@@ -85,6 +87,16 @@ export class MedicinesComponent {
    *
    * @param medicine The row being edited, or null to add one.
    */
+  openDetail(medicine: Medicine): void {
+    this.dialog.open(MedicineDetailDialogComponent, { width: '420px', data: medicine })
+      .afterClosed()
+      .subscribe((action: MedicineDetailAction | undefined) => {
+        if (action === 'edit') {
+          this.openForm(medicine);
+        }
+      });
+  }
+
   openForm(medicine: Medicine | null): void {
     this.dialog.open(MedicineFormDialogComponent, { width: '560px', maxWidth: '100vw', data: medicine })
       .afterClosed()

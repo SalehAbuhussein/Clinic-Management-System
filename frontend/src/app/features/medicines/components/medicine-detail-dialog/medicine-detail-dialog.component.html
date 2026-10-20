@@ -1,0 +1,22 @@
+<h2 class="medicine-detail__title" matDialogTitle>{{ medicine.genericname }}</h2>
+
+<div class="medicine-detail__content" matDialogContent>
+  <dl class="medicine-detail__facts">
+    <dt>Brand</dt>
+    <dd>{{ medicine.brandname || '\u2014' }}</dd>
+
+    <dt>Form</dt>
+    <dd>{{ medicine.form }}</dd>
+
+    <dt>Strength</dt>
+    <dd>{{ medicine.strength }}</dd>
+
+    <dt>RxCUI</dt>
+    <dd>{{ medicine.rxCUI }}</dd>
+  </dl>
+</div>
+
+<div class="medicine-detail__actions" matDialogActions>
+  <button matButton type="button" matDialogClose>Close</button>
+  <button matButton="filled" type="button" [matDialogClose]="'edit'">Edit medicine</button>
+</div>

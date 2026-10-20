@@ -1,0 +1,33 @@
+<h2 class="audit-detail__title" matDialogTitle>{{ entry.actor }} {{ entry.label }}</h2>
+
+<div class="audit-detail__content" matDialogContent>
+  <dl class="audit-detail__facts">
+    <dt>When</dt>
+    <dd>{{ entry.occurredAt | date:'EEEE d MMMM, HH:mm:ss' }}</dd>
+
+    <dt>Actor</dt>
+    <dd>{{ entry.actorName || '\u2014' }}</dd>
+
+    <dt>Actor ID</dt>
+    <dd>{{ entry.actorId ?? '\u2014' }}</dd>
+
+    <dt>Action</dt>
+    <dd>{{ entry.action }}</dd>
+
+    <dt>Target</dt>
+    <dd>
+      @if (entry.targetType) {
+        {{ entry.targetType }} {{ entry.targetId }}
+      } @else {
+        &#8212;
+      }
+    </dd>
+
+    <dt>Detail</dt>
+    <dd>{{ entry.detail || '\u2014' }}</dd>
+  </dl>
+</div>
+
+<div class="audit-detail__actions" matDialogActions>
+  <button matButton="filled" type="button" matDialogClose>Close</button>
+</div>

@@ -1,3 +1,5 @@
+export type MedicineDetailAction = 'edit';
+
 export type MedicineFormData = {
   rxCUI: number | null;
   genericname: string;

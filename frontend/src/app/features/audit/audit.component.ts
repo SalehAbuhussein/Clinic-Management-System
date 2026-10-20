@@ -7,7 +7,10 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { AuditService } from '@shared/services/audit/audit.service';
 
 import { ExportButtonComponent } from '@shared/components/export-button/export-button.component';
+import { AuditDetailDialogComponent } from './components/audit-detail-dialog/audit-detail-dialog.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
+
+import { MatDialog } from '@angular/material/dialog';
 
 import { ActionWording, AuditPreset, AuditRow } from './types/audit.types';
 
@@ -19,6 +22,7 @@ import { ActionWording, AuditPreset, AuditRow } from './types/audit.types';
 })
 export class AuditComponent {
   auditService = inject(AuditService);
+  dialog = inject(MatDialog);
 
   /**
    * What each action reads as on screen, and the icon beside it. The API
@@ -70,6 +74,16 @@ export class AuditComponent {
     ...(this.ACTION_WORDING[entry.action] ?? { label: entry.action, icon: 'help' }),
     actor: entry.actorName || 'Someone unidentified',
   })));
+
+  /**
+   * Show everything stored about one entry, including the target and the raw
+   * action key, which the row itself softens into a sentence.
+   *
+   * @param entry The row that was picked.
+   */
+  openDetail(entry: AuditRow): void {
+    this.dialog.open(AuditDetailDialogComponent, { width: '460px', data: entry });
+  }
 
   /**
    * Narrow or widen the window. The page resets, because page 4 of a week
