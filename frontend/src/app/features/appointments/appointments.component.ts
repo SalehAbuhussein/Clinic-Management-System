@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialog } from '@angular/material/dialog';
-import { MatIcon } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { formatDate } from '@angular/common';
 
@@ -39,7 +38,6 @@ import { BookedAppointment } from '@features/book-appointment/types/book-appoint
     AppointmentsListErrorStateComponent,
     DateRangePickerComponent,
     ExportButtonComponent,
-    MatIcon,
     PaginationComponent,
   ],
   selector: 'app-appointments',

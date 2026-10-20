@@ -11,7 +11,7 @@ namespace Clinic_DataAccess
 {
     public class clsUserDA
     {
-        public static async Task<DataTable> FindUsersAsync(int pageNumber = 1, int pageSize = 10)
+        public static async Task<DataTable> FindUsersAsync(string? fullname = null, string? email = null, bool? active = null, int pageNumber = 1, int pageSize = 10)
         {
             DataTable dt = new DataTable();
 
@@ -28,15 +28,44 @@ namespace Clinic_DataAccess
 	                U.Role,
 	                U.Active
                 FROM Users U
-                INNER JOIN People P ON U.PersonID = P.PersonID
-                ORDER BY UserID
-                OFFSET (@PageNumber - 1) * @PageSize ROWS
-                FETCH NEXT @PageSize ROWS ONLY;";
+                INNER JOIN People P ON U.PersonID = P.PersonID";
 
-                using (SqlCommand command = new SqlCommand(query, connection))
+                using (SqlCommand command = new SqlCommand())
                 {
+                    command.Connection = connection;
+
+                    List<string> conditions = new List<string>();
+
+                    if (!string.IsNullOrWhiteSpace(fullname))
+                    {
+                        conditions.Add("CONCAT_WS(' ', P.Firstname, P.Midname, P.Thirdname, P.Lastname) LIKE @Fullname");
+                        command.Parameters.AddWithValue("@Fullname", $"%{fullname.Trim()}%");
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(email))
+                    {
+                        conditions.Add("U.Email LIKE @Email");
+                        command.Parameters.AddWithValue("@Email", $"{email.Trim()}%");
+                    }
+
+                    if (active.HasValue)
+                    {
+                        conditions.Add("U.Active = @Active");
+                        command.Parameters.AddWithValue("@Active", active.Value);
+                    }
+
+                    if (conditions.Count > 0)
+                        query += $"\nWHERE {string.Join(" AND ", conditions)}";
+
+                    query += @"
+                        ORDER BY UserID
+                        OFFSET (@PageNumber - 1) * @PageSize ROWS
+                        FETCH NEXT @PageSize ROWS ONLY;";
+
                     command.Parameters.AddWithValue("@PageNumber", pageNumber);
                     command.Parameters.AddWithValue("@PageSize", pageSize);
+
+                    command.CommandText = query;
 
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {

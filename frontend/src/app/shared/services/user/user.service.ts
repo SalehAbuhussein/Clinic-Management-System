@@ -2,7 +2,7 @@ import { inject, Service } from '@angular/core';
 
 import { ApiService } from '@core/services/api/api.service';
 
-import { CreateUserRequest, UpdateUserRequest, User } from './user.types';
+import { CreateUserRequest, UpdateUserRequest, User, UserFilters } from './user.types';
 
 @Service()
 export class UserService {
@@ -11,10 +11,10 @@ export class UserService {
   /**
    * The staff list as reactive state.
    *
-   * @param page Returns the page to show.
+   * @param filters Returns the query parameters.
    * @returns The resource holding the page.
    */
-  getUserResource = (page: () => number) => this.apiService.getPagedResource<User>('/Users', () => ({ page: page() }));
+  getUserResource = (filters: () => UserFilters = () => ({})) => this.apiService.getPagedResource<User>('/Users', filters);
 
   /**
    * Create an account. It starts as Staff whatever the clinic means it to be,

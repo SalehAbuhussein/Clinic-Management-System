@@ -25,3 +25,11 @@ export type UpdateUserRequest = {
   email: string;
   role?: Role;
 };
+
+export type UserFilters = {
+  fullname?: string;
+  email?: string;
+  active?: string;
+  page?: number;
+  perPage?: number;
+};

@@ -35,11 +35,11 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<PagedResult<UserDTO>>> GetUsers([Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
+        public async Task<ActionResult<PagedResult<UserDTO>>> GetUsers(string? fullname, string? email, bool? active, [Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
             perPage = Math.Clamp(perPage, 1, 10);
 
-            PagedResult<clsUser.UserItem> usersPage = await _userRepository.FindUsersAsync(page, perPage);
+            PagedResult<clsUser.UserItem> usersPage = await _userRepository.FindUsersAsync(fullname, email, active, page, perPage);
 
             List<UserDTO> usersList = usersPage.Items
                 .Select(user => new UserDTO
@@ -94,7 +94,7 @@ namespace Clinic_Management_System.Controllers
             clsUser? user = await _userRepository.FindByIdAsync(id);
             if (user == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"User with id {id} not found");
-            
+
             clsUser? existingEmailUser = await _userRepository.FindByEmailAsync(updatedUserDTO.Email);
             bool isEmailTakenByAnotherUser = existingEmailUser != null && existingEmailUser.UserID != id;
             if (isEmailTakenByAnotherUser)

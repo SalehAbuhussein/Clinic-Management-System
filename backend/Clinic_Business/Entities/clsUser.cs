@@ -28,10 +28,10 @@ namespace Clinic_Business.Entities
         }
 
         private clsUser(
-            int? id, 
-            string passwordHash, 
-            string role, 
-            string email, 
+            int? id,
+            string passwordHash,
+            string role,
+            string email,
             bool active,
             string? refreshTokenHash,
             DateTime? refreshTokenExpiresAt,
@@ -55,9 +55,9 @@ namespace Clinic_Business.Entities
             PersonInfo = new clsPerson();
         }
 
-        public static async Task<PagedResult<UserItem>> FindUsersAsync(int pageNumber = 1, int pageSize = 10)
+        public static async Task<PagedResult<UserItem>> FindUsersAsync(string? fullname = null, string? email = null, bool? active = null, int pageNumber = 1, int pageSize = 10)
         {
-            DataTable table = await clsUserDA.FindUsersAsync(pageNumber, pageSize);
+            DataTable table = await clsUserDA.FindUsersAsync(fullname, email, active, pageNumber, pageSize);
 
             List<UserItem> users = table.AsEnumerable().Select(row => new UserItem(
                 row.Field<int>("UserID"),

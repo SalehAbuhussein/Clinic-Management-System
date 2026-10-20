@@ -1,5 +1,8 @@
 import { ActivatedRoute, Router } from '@angular/router';
-import { Component, computed, effect, inject, signal } from '@angular/core';
+
+import { debounceTime } from 'rxjs';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { Component, computed, effect, inject, linkedSignal, signal } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
@@ -14,15 +17,16 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
 import { UserDetailDialogComponent } from './components/user-detail-dialog/user-detail-dialog.component';
 import { UserFormDialogComponent } from './components/user-form-dialog/user-form-dialog.component';
+import { UserFiltersComponent } from './components/user-filters/user-filters.component';
 import { UserRowComponent } from './components/user-row/user-row.component';
 
 import { ApiError } from '@core/auth/types/auth.types';
 import { ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.types';
-import { User } from '@shared/services/user/user.types';
+import { User, UserFilters } from '@shared/services/user/user.types';
 import { UserDetailAction } from './types/users.types';
 
 @Component({
-  imports: [MatButton, MatIcon, MatProgressSpinner, PaginationComponent, UserRowComponent],
+  imports: [MatButton, MatIcon, MatProgressSpinner, PaginationComponent, UserFiltersComponent, UserRowComponent],
   selector: 'app-users',
   styleUrl: './users.component.scss',
   templateUrl: './users.component.html',
@@ -34,9 +38,25 @@ export class UsersComponent {
   snackbar = inject(MatSnackBar);
   userService = inject(UserService);
 
-  page = signal(this.pageFromUrl());
+  filters = signal<UserFilters>({});
 
-  usersResource = this.userService.getUserResource(this.page);
+  /**
+   * The filters, held back until typing pauses. Signals carry no notion of
+   * time, so the delay is an RxJS operator and the value crosses back.
+   */
+  debouncedFilters = toSignal(
+    toObservable(this.filters).pipe(debounceTime(300)),
+    { initialValue: this.filters() },
+  );
+
+  // Resets to the first page on a new search, but takes the URL's page on the
+  // first run so a reload or a shared link lands where it left off.
+  page = linkedSignal<UserFilters, number>({
+    source: this.debouncedFilters,
+    computation: (_, previous) => previous ? 1 : this.pageFromUrl(),
+  });
+
+  usersResource = this.userService.getUserResource(() => ({ ...this.debouncedFilters(), page: this.page() }));
 
   users = computed(() => this.usersResource.value().items);
   total = computed(() => this.usersResource.value().total);
