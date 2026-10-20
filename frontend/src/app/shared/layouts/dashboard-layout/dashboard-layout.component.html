@@ -28,7 +28,7 @@
           routerLink="/dashboard"
           routerLinkActive
           #appointments="routerLinkActive"
-          [routerLinkActiveOptions]="{ exact: true }"
+          [routerLinkActiveOptions]="{ paths: 'exact', queryParams: 'ignored', fragment: 'ignored', matrixParams: 'ignored' }"
           [activated]="appointments.isActive">
           <mat-icon class="dashboard-side__icon" matListItemIcon>today</mat-icon>
           <span class="dashboard-side__label" matListItemTitle>Appointments</span>
