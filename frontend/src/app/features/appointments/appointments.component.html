@@ -1,7 +1,5 @@
 <header class="appointments__header">
-  <div class="appointments__heading">
-    <h1 class="appointments__title">{{ rangeLabel() }}</h1>
-  </div>
+  <h1 class="appointments__title">{{ rangeLabel() }}</h1>
 
   <div class="appointments__controls">
     <app-date-range-picker [(from)]="from" [(to)]="to" />
