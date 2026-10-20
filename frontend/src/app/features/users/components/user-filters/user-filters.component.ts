@@ -29,11 +29,11 @@ export class UserFiltersComponent {
 
   text = signal('');
 
-  active = signal<boolean | null>(null);
+  active = signal('all');
 
   label = computed(() => this.field() === 'email' ? 'Email' : 'Name');
 
-  hasValue = computed(() => this.field() === 'active' ? this.active() !== null : !!this.text());
+  hasValue = computed(() => this.field() === 'active' ? this.active() !== 'all' : !!this.text());
 
   /**
    * Switch fields and drop whatever was already there, so a name left in the
@@ -44,7 +44,7 @@ export class UserFiltersComponent {
   selectField(field: UserFilterField): void {
     this.field.set(field);
     this.text.set('');
-    this.active.set(null);
+    this.active.set('all');
     this.filters.set({});
   }
 
@@ -60,14 +60,15 @@ export class UserFiltersComponent {
   }
 
   /**
-   * Filter by status. The value goes out as a string because a false would be
-   * dropped on its way to the query string.
+   * Filter by status.
    *
-   * @param value Active, inactive, or null for all.
+   * @param value `true`, `false`, or `all` for no filter. Strings rather than
+   * booleans, so Material has something to mark as chosen and a false survives
+   * the trip to the query string.
    */
-  setActive(value: boolean | null): void {
+  setActive(value: string): void {
     this.active.set(value);
-    this.filters.set(value === null ? {} : { active: String(value) });
+    this.filters.set(value === 'all' ? {} : { active: value });
   }
 
   /** Empty the filter, keeping the chosen field. */

@@ -1,6 +1,6 @@
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { debounceTime } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Component, computed, effect, inject, linkedSignal, signal } from '@angular/core';
 import { MatButton } from '@angular/material/button';
@@ -43,9 +43,17 @@ export class UsersComponent {
   /**
    * The filters, held back until typing pauses. Signals carry no notion of
    * time, so the delay is an RxJS operator and the value crosses back.
+   *
+   * Signals compare by reference, so every keystroke and every change of the
+   * field dropdown hands over a fresh object. Comparing the contents stops a
+   * dropdown change on an empty box from refetching a list that would come
+   * back identical.
    */
   debouncedFilters = toSignal(
-    toObservable(this.filters).pipe(debounceTime(300)),
+    toObservable(this.filters).pipe(
+      debounceTime(300),
+      distinctUntilChanged((one, other) => JSON.stringify(one) === JSON.stringify(other)),
+    ),
     { initialValue: this.filters() },
   );
 

@@ -14,9 +14,9 @@
       <mat-label>Status</mat-label>
 
       <mat-select [ngModel]="active()" (ngModelChange)="setActive($event)">
-        <mat-option [value]="null">All</mat-option>
-        <mat-option [value]="true">Active</mat-option>
-        <mat-option [value]="false">Inactive</mat-option>
+        <mat-option value="all">All</mat-option>
+        <mat-option value="true">Active</mat-option>
+        <mat-option value="false">Inactive</mat-option>
       </mat-select>
     </mat-form-field>
   } @else {
