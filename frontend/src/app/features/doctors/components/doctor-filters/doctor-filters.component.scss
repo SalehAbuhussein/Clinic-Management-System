@@ -1,0 +1,22 @@
+.doctor-filters {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.doctor-filters__field {
+  inline-size: 170px;
+}
+
+.doctor-filters__value {
+  inline-size: 260px;
+}
+
+@media (width < 600px) {
+  .doctor-filters__field,
+  .doctor-filters__value {
+    inline-size: 100%;
+  }
+}

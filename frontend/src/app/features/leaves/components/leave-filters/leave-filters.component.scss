@@ -1,0 +1,17 @@
+.leave-filters {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.leave-filters__value {
+  inline-size: 200px;
+}
+
+@media (width < 600px) {
+  .leave-filters__value {
+    inline-size: 100%;
+  }
+}

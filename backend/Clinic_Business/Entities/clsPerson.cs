@@ -26,7 +26,7 @@ namespace Clinic_Business.Entities
             get
             {
                 return string.Join(" ", new[] { Firstname, Midname, Thirdname, Lastname }.Where(item => !string.IsNullOrEmpty(item)));
-            } 
+            }
         }
         public string? ProfileImage { get; set; }
 
@@ -59,9 +59,9 @@ namespace Clinic_Business.Entities
             ProfileImage = profileImage;
         }
 
-        public static async Task<PagedResult<clsPerson>> FindAllAsync(int pageNumber = 1, int pageSize = 10)
+        public static async Task<PagedResult<clsPerson>> FindAllAsync(string? fullname = null, string? nationalNo = null, string? phone = null, int pageNumber = 1, int pageSize = 10)
         {
-            DataTable dt = await clsPersonDA.FindAllAsync(pageNumber, pageSize);
+            DataTable dt = await clsPersonDA.FindAllAsync(fullname, nationalNo, phone, pageNumber, pageSize);
 
             List<clsPerson> people = dt.AsEnumerable().Select(MapPerson).ToList();
 

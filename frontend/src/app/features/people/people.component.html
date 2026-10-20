@@ -2,6 +2,8 @@
   <h1 class="people__title">People</h1>
 </header>
 
+<app-person-filters [(filters)]="filters" />
+
 @if (peopleResource.isLoading()) {
   <p class="people__state" role="status">
     <mat-progress-spinner diameter="20" mode="indeterminate" />

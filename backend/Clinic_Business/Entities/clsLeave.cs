@@ -76,11 +76,12 @@ namespace Clinic_Business.Entities
             int? userId,
             DateTimeOffset? from,
             DateTimeOffset? to,
+            byte? status = null,
             int pageNumber = 1,
             int pageSize = 10
         )
         {
-            DataTable table = await clsLeaveDA.FindAllAsync(userId, from, to, pageNumber, pageSize);
+            DataTable table = await clsLeaveDA.FindAllAsync(userId, from, to, status, pageNumber, pageSize);
 
             List<LeaveItem> leaves = table.AsEnumerable().Select(row => new LeaveItem(
                 row.Field<int>("LeaveID"),

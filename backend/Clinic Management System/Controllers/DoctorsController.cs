@@ -26,14 +26,14 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<PagedResult<DoctorDTO>>> GetDoctors(string? fullname, string? specialization, [Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
+        public async Task<ActionResult<PagedResult<DoctorDTO>>> GetDoctors(string? fullname, string? specialization, bool? active, [Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
             perPage = Math.Clamp(perPage, 1, 10);
 
             fullname = fullname?.Trim().Replace("%", "").Replace("_", "").Replace("[", "");
             specialization = specialization?.Trim().Replace("%", "").Replace("_", "").Replace("[", "");
 
-            PagedResult<clsDoctor.DoctorItem> doctorsPage = await _doctorRepository.FindAllAsync(fullname, specialization, page, perPage);
+            PagedResult<clsDoctor.DoctorItem> doctorsPage = await _doctorRepository.FindAllAsync(fullname, specialization, active, page, perPage);
 
             List<DoctorDTO> doctorsList = doctorsPage.Items
                 .Select(doctor => new DoctorDTO
@@ -159,7 +159,7 @@ namespace Clinic_Management_System.Controllers
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Doctor with id {id} not found");
 
-            clsPerson? person = doctor.UserInfo?.PersonInfo; 
+            clsPerson? person = doctor.UserInfo?.PersonInfo;
             if (person == null)
                 return Problem(statusCode: StatusCodes.Status500InternalServerError,
                     detail: $"Doctor {id} is missing its linked person record.");

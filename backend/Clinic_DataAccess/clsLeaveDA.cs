@@ -16,6 +16,7 @@ namespace Clinic_DataAccess
             int? userId,
             DateTimeOffset? from,
             DateTimeOffset? to,
+            byte? status = null,
             int pageNumber = 1,
             int pageSize = 10
         )
@@ -54,6 +55,12 @@ namespace Clinic_DataAccess
                     {
                         conditions.Add("L.StartAt < @To");
                         command.Parameters.AddWithValue("@To", to.Value);
+                    }
+
+                    if (status.HasValue)
+                    {
+                        conditions.Add("L.Status = @Status");
+                        command.Parameters.AddWithValue("@Status", status.Value);
                     }
 
                     if (conditions.Count > 0)
@@ -284,9 +291,9 @@ namespace Clinic_DataAccess
                 await connection.OpenAsync();
 
                 string query = @"SELECT TOP 1 true=1 FROM Leaves L
-                    WHERE L.UserID = @UserID 
-                        AND L.StartAt < @EndAt 
-                        AND L.EndAt > @StartAt 
+                    WHERE L.UserID = @UserID
+                        AND L.StartAt < @EndAt
+                        AND L.EndAt > @StartAt
                         AND L.Status != 2";
 
                 using (SqlCommand command = new SqlCommand(query, connection))

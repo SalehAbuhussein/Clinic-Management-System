@@ -12,6 +12,9 @@ export type Person = {
 };
 
 export type PersonFilters = {
+  fullname?: string;
+  nationalNo?: string;
+  phone?: string;
   page?: number;
   perPage?: number;
 };

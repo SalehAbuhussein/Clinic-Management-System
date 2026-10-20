@@ -1,0 +1,25 @@
+<div class="person-filters">
+  <mat-form-field class="person-filters__field" subscriptSizing="dynamic">
+    <mat-label>Filter by</mat-label>
+
+    <mat-select [ngModel]="field()" (ngModelChange)="selectField($event)">
+      <mat-option value="fullname">Name</mat-option>
+      <mat-option value="nationalNo">National number</mat-option>
+      <mat-option value="phone">Phone</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field class="person-filters__value" subscriptSizing="dynamic">
+    <mat-label>{{ label() }}</mat-label>
+
+    <mat-icon matPrefix>search</mat-icon>
+
+    <input matInput type="text" autocomplete="off" [ngModel]="text()" (ngModelChange)="setText($event)">
+  </mat-form-field>
+
+  @if (hasValue()) {
+    <button matIconButton type="button" aria-label="Clear filter" (click)="clear()">
+      <mat-icon>close</mat-icon>
+    </button>
+  }
+</div>

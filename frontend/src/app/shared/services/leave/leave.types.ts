@@ -8,6 +8,7 @@ export type Leave = {
 };
 
 export type LeaveFilters = Partial<{
+  status: string;
   from: string;
   to: string;
   page: number;

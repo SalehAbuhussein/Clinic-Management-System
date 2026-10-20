@@ -1,23 +1,27 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
+import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+
 import { PersonService } from '@shared/services/person/person.service';
 
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
 import { PersonDetailDialogComponent } from './components/person-detail-dialog/person-detail-dialog.component';
+import { PersonFiltersComponent } from './components/person-filters/person-filters.component';
 import { PersonFormDialogComponent } from './components/person-form-dialog/person-form-dialog.component';
 
 import { ApiError } from '@core/auth/types/auth.types';
-import { Person } from '@shared/services/person/person.types';
+import { Person, PersonFilters } from '@shared/services/person/person.types';
 import { PersonDetailAction } from './types/people.types';
 
 @Component({
-  imports: [MatButton, MatIcon, MatProgressSpinner, PaginationComponent],
+  imports: [PersonFiltersComponent, MatButton, MatIcon, MatProgressSpinner, PaginationComponent],
   selector: 'app-people',
   styleUrl: './people.component.scss',
   templateUrl: './people.component.html',
@@ -27,9 +31,27 @@ export class PeopleComponent {
   personService = inject(PersonService);
   snackbar = inject(MatSnackBar);
 
-  page = signal(1);
+  filters = signal<PersonFilters>({});
 
-  peopleResource = this.personService.getPersonResource(() => ({ page: this.page() }));
+  /**
+   * The filters, held back until typing pauses. Comparing the contents stops a
+   * change of the field dropdown on an empty box from refetching a list that
+   * would come back identical.
+   */
+  debouncedFilters = toSignal(
+    toObservable(this.filters).pipe(
+      debounceTime(300),
+      distinctUntilChanged((one, other) => JSON.stringify(one) === JSON.stringify(other)),
+    ),
+    { initialValue: this.filters() },
+  );
+
+  page = linkedSignal<PersonFilters, number>({
+    source: this.debouncedFilters,
+    computation: () => 1,
+  });
+
+  peopleResource = this.personService.getPersonResource(() => ({ ...this.debouncedFilters(), page: this.page() }));
 
   people = computed(() => this.peopleResource.value().items);
   total = computed(() => this.peopleResource.value().total);

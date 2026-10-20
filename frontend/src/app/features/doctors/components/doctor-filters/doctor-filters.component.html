@@ -1,0 +1,37 @@
+<div class="doctor-filters">
+  <mat-form-field class="doctor-filters__field" subscriptSizing="dynamic">
+    <mat-label>Filter by</mat-label>
+
+    <mat-select [ngModel]="field()" (ngModelChange)="selectField($event)">
+      <mat-option value="fullname">Name</mat-option>
+      <mat-option value="specialization">Specialization</mat-option>
+      <mat-option value="active">Status</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  @if (field() === 'active') {
+    <mat-form-field class="doctor-filters__value" subscriptSizing="dynamic">
+      <mat-label>Status</mat-label>
+
+      <mat-select [ngModel]="active()" (ngModelChange)="setActive($event)">
+        <mat-option value="all">All</mat-option>
+        <mat-option value="true">Active</mat-option>
+        <mat-option value="false">Inactive</mat-option>
+      </mat-select>
+    </mat-form-field>
+  } @else {
+    <mat-form-field class="doctor-filters__value" subscriptSizing="dynamic">
+      <mat-label>{{ label() }}</mat-label>
+
+      <mat-icon matPrefix>search</mat-icon>
+
+      <input matInput type="text" autocomplete="off" [ngModel]="text()" (ngModelChange)="setText($event)">
+    </mat-form-field>
+  }
+
+  @if (hasValue()) {
+    <button matIconButton type="button" aria-label="Clear filter" (click)="clear()">
+      <mat-icon>close</mat-icon>
+    </button>
+  }
+</div>

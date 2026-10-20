@@ -1,5 +1,7 @@
 export type PersonDetailAction = 'edit';
 
+export type PersonFilterField = 'fullname' | 'nationalNo' | 'phone';
+
 export type PersonFormData = {
   firstname: string;
   midname: string;

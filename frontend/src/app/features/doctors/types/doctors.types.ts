@@ -1,9 +1,6 @@
-/**
- * The form behind the dialog. One shape for both modes: editing simply leaves
- * the national number, email and password untouched, because the API fixes
- * those at creation.
- */
 export type DoctorDetailAction = 'edit';
+
+export type DoctorFilterField = 'fullname' | 'specialization' | 'active';
 
 export type DoctorFormData = {
   firstname: string;

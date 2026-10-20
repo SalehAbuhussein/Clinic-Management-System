@@ -1,23 +1,27 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
+import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+
 import { DoctorService } from '@shared/services/doctor/doctor.service';
 
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { DoctorDetailDialogComponent } from './components/doctor-detail-dialog/doctor-detail-dialog.component';
+import { DoctorFiltersComponent } from './components/doctor-filters/doctor-filters.component';
 import { DoctorFormDialogComponent } from './components/doctor-form-dialog/doctor-form-dialog.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
 
 import { ApiError } from '@core/auth/types/auth.types';
-import { Doctor } from '@shared/services/doctor/doctor.types';
+import { Doctor, DoctorFilters } from '@shared/services/doctor/doctor.types';
 import { DoctorDetailAction } from './types/doctors.types';
 
 @Component({
-  imports: [MatButton, MatIcon, MatProgressSpinner, PaginationComponent],
+  imports: [DoctorFiltersComponent, MatButton, MatIcon, MatProgressSpinner, PaginationComponent],
   selector: 'app-doctors',
   styleUrl: './doctors.component.scss',
   templateUrl: './doctors.component.html',
@@ -27,9 +31,27 @@ export class DoctorsComponent {
   doctorService = inject(DoctorService);
   snackbar = inject(MatSnackBar);
 
-  page = signal(1);
+  filters = signal<DoctorFilters>({});
 
-  doctorsResource = this.doctorService.getDoctorResource(() => ({ page: this.page() }));
+  /**
+   * The filters, held back until typing pauses. Comparing the contents stops a
+   * change of the field dropdown on an empty box from refetching a list that
+   * would come back identical.
+   */
+  debouncedFilters = toSignal(
+    toObservable(this.filters).pipe(
+      debounceTime(300),
+      distinctUntilChanged((one, other) => JSON.stringify(one) === JSON.stringify(other)),
+    ),
+    { initialValue: this.filters() },
+  );
+
+  page = linkedSignal<DoctorFilters, number>({
+    source: this.debouncedFilters,
+    computation: () => 1,
+  });
+
+  doctorsResource = this.doctorService.getDoctorResource(() => ({ ...this.debouncedFilters(), page: this.page() }));
 
   doctors = computed(() => this.doctorsResource.value().items);
   total = computed(() => this.doctorsResource.value().total);

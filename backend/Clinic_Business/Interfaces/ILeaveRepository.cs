@@ -15,6 +15,7 @@ namespace Clinic_Business.Interfaces
             int? userId,
             DateTimeOffset? from,
             DateTimeOffset? to,
+            byte? status = null,
             int pageNumber = 1,
             int pageSize = 10);
         Task<clsLeave?> FindAsync(int id);

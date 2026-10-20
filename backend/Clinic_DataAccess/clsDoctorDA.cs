@@ -10,7 +10,7 @@ namespace Clinic_DataAccess
 {
     public class clsDoctorDA
     {
-        public static async Task<DataTable> FindAllAsync(string? fullname = null, string? specialization = null, int pageNumber = 1, int pageSize = 10)
+        public static async Task<DataTable> FindAllAsync(string? fullname = null, string? specialization = null, bool? active = null, int pageNumber = 1, int pageSize = 10)
         {
             DataTable dt = new DataTable();
 
@@ -48,6 +48,18 @@ namespace Clinic_DataAccess
                     {
                         conditions.Add("D.Specialization LIKE @Specialization");
                         command.Parameters.AddWithValue("@Specialization", $"%{specialization.Trim()}%");
+                    }
+
+                    if (active.HasValue)
+                    {
+                        conditions.Add("U.Active = @Active");
+                        command.Parameters.AddWithValue("@Active", active.Value);
+                    }
+
+                    if (active.HasValue)
+                    {
+                        conditions.Add("U.Active = @Active");
+                        command.Parameters.AddWithValue("@Active", active.Value);
                     }
 
                     if (conditions.Count > 0)
@@ -136,7 +148,7 @@ namespace Clinic_DataAccess
             string medicalSchool,
             ushort graduationYear,
             int createdBy,
-            
+
             string firstname,
             string midname,
             string? thirdname,
@@ -196,7 +208,7 @@ namespace Clinic_DataAccess
                     command.Parameters.Add(userIDOutput);
 
                     await command.ExecuteNonQueryAsync();
-                        
+
                     doctorID = (int)doctorIDOutput.Value;
                     personID = (int)personIDOutput.Value;
                     userID = (int)userIDOutput.Value;

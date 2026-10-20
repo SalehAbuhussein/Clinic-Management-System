@@ -1,0 +1,12 @@
+<div class="leave-filters">
+  <mat-form-field class="leave-filters__value" subscriptSizing="dynamic">
+    <mat-label>Status</mat-label>
+
+    <mat-select [ngModel]="status()" (ngModelChange)="setStatus($event)">
+      <mat-option value="all">All</mat-option>
+      <mat-option value="0">Pending</mat-option>
+      <mat-option value="1">Approved</mat-option>
+      <mat-option value="2">Rejected</mat-option>
+    </mat-select>
+  </mat-form-field>
+</div>

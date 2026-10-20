@@ -78,9 +78,9 @@ namespace Clinic_Business.Entities
             int PersonID,
             bool Active);
 
-        public static async Task<PagedResult<DoctorItem>> FindAllDoctorsAsync(string? fullname = null, string? specialization = null, int pageNumber = 1, int pageSize = 10)
+        public static async Task<PagedResult<DoctorItem>> FindAllDoctorsAsync(string? fullname = null, string? specialization = null, bool? active = null, int pageNumber = 1, int pageSize = 10)
         {
-            DataTable table = await clsDoctorDA.FindAllAsync(fullname, specialization, pageNumber, pageSize);
+            DataTable table = await clsDoctorDA.FindAllAsync(fullname, specialization, active, pageNumber, pageSize);
 
             List<DoctorItem> doctors = table.AsEnumerable().Select(row => new DoctorItem(
                 row.Field<int>("DoctorID"),
@@ -172,9 +172,9 @@ namespace Clinic_Business.Entities
         private async Task<bool> _CreateDoctorAsync()
         {
             (int? doctorId, int? personId, int? userId) = await clsDoctorDA.CreateAsync(
-                Specialization, 
-                MedicalSchool, 
-                GraduationYear, 
+                Specialization,
+                MedicalSchool,
+                GraduationYear,
                 CreatedBy,
                 UserInfo.PersonInfo.Firstname,
                 UserInfo.PersonInfo.Midname,
@@ -201,8 +201,8 @@ namespace Clinic_Business.Entities
             return clsDoctorDA.UpdateAsync(
                 DoctorID,
                 UserInfo.PersonID,
-                Specialization, 
-                MedicalSchool, 
+                Specialization,
+                MedicalSchool,
                 GraduationYear,
                 UserInfo.PersonInfo.Firstname,
                 UserInfo.PersonInfo.Midname,

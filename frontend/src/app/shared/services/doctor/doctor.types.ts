@@ -3,6 +3,7 @@ import { PagedResult } from '@core/types/api.types';
 export type DoctorFilters = {
   fullname?: string;
   specialization?: string;
+  active?: string;
   page?: number;
   perPage?: number;
 };

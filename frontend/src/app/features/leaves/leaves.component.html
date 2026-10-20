@@ -12,6 +12,8 @@
     }
   </header>
 
+<app-leave-filters [(filters)]="filters" />
+
   @if (leavesResource.isLoading()) {
     <p class="leaves-state" role="status">
       <mat-progress-spinner diameter="20" mode="indeterminate" />

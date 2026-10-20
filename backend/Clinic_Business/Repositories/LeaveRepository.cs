@@ -11,9 +11,9 @@ namespace Clinic_Business.Repositories
 {
     public class LeaveRepository : ILeaveRepository
     {
-        public async Task<PagedResult<clsLeave.LeaveItem>> FindAllLeavesAsync(int? userId, DateTimeOffset? from, DateTimeOffset? to, int pageNumber = 1, int pageSize = 10)
+        public async Task<PagedResult<clsLeave.LeaveItem>> FindAllLeavesAsync(int? userId, DateTimeOffset? from, DateTimeOffset? to, byte? status = null, int pageNumber = 1, int pageSize = 10)
         {
-            return await clsLeave.FindAllLeavesAsync(userId, from, to, pageNumber, pageSize);
+            return await clsLeave.FindAllLeavesAsync(userId, from, to, status, pageNumber, pageSize);
         }
 
         public async Task<clsLeave?> FindAsync(int id)

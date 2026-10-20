@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
@@ -8,10 +8,14 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { Observable } from 'rxjs';
 
 import { AuthService } from '@core/auth/service/auth.service';
+import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+
 import { LeaveService } from '@shared/services/leave/leave.service';
 
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { LeaveDetailDialogComponent } from './components/leave-detail-dialog/leave-detail-dialog.component';
+import { LeaveFiltersComponent } from './components/leave-filters/leave-filters.component';
 import { LeavesListComponent } from './components/leaves-list/leaves-list.component';
 import { ExportButtonComponent } from '@shared/components/export-button/export-button.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
@@ -19,11 +23,11 @@ import { RequestLeaveDialogComponent } from './components/request-leave-dialog/r
 
 import { ApiError } from '@core/auth/types/auth.types';
 import { ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.types';
-import { Leave } from '@shared/services/leave/leave.types';
+import { Leave, LeaveFilters } from '@shared/services/leave/leave.types';
 import { LeaveDetailAction } from './types/leaves.types';
 
 @Component({
-  imports: [
+  imports: [LeaveFiltersComponent, 
     ExportButtonComponent,
     LeavesListComponent,
     MatButton,
@@ -41,9 +45,27 @@ export class LeavesComponent {
   leaveService = inject(LeaveService);
   snackbar = inject(MatSnackBar);
 
-  page = signal(1);
+  filters = signal<LeaveFilters>({});
 
-  leavesResource = this.leaveService.getLeavesResource(() => ({ page: this.page() }));
+  /**
+   * The filters, held back until typing pauses. Comparing the contents stops a
+   * change of the field dropdown on an empty box from refetching a list that
+   * would come back identical.
+   */
+  debouncedFilters = toSignal(
+    toObservable(this.filters).pipe(
+      debounceTime(300),
+      distinctUntilChanged((one, other) => JSON.stringify(one) === JSON.stringify(other)),
+    ),
+    { initialValue: this.filters() },
+  );
+
+  page = linkedSignal<LeaveFilters, number>({
+    source: this.debouncedFilters,
+    computation: () => 1,
+  });
+
+  leavesResource = this.leaveService.getLeavesResource(() => ({ ...this.debouncedFilters(), page: this.page() }));
 
   leaves = computed(() => this.leavesResource.value().items);
   total = computed(() => this.leavesResource.value().total);

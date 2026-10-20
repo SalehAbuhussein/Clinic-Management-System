@@ -32,6 +32,7 @@ namespace Clinic_Management_System.Controllers
         public async Task<ActionResult<PagedResult<LeaveDTO>>> GetLeaves(
             DateTimeOffset? from,
             DateTimeOffset? to,
+            byte? status,
             [Range(1, int.MaxValue)] int page = 1,
             [Range(1, 10)] int perPage = 10)
         {
@@ -39,7 +40,7 @@ namespace Clinic_Management_System.Controllers
             string role = User.FindFirstValue(ClaimTypes.Role)!;
             int? scopedUserId = role == "Admin" ? null : userId;
 
-            PagedResult<LeaveItem> leavesPage = await _leaveRepository.FindAllLeavesAsync(scopedUserId, from, to, page, perPage);
+            PagedResult<LeaveItem> leavesPage = await _leaveRepository.FindAllLeavesAsync(scopedUserId, from, to, status, page, perPage);
             List<LeaveDTO> itemsDTO = leavesPage.Items.Select(item => new LeaveDTO
             {
                 Id = item.Id,
@@ -65,7 +66,7 @@ namespace Clinic_Management_System.Controllers
             string role = User.FindFirstValue(ClaimTypes.Role)!;
             int? scopedUserId = role == "Admin" ? null : userId;
 
-            PagedResult<LeaveItem> leavesPage = await _leaveRepository.FindAllLeavesAsync(scopedUserId, from, to, 1, ExcelFile.MaxRows + 1);
+            PagedResult<LeaveItem> leavesPage = await _leaveRepository.FindAllLeavesAsync(scopedUserId, from, to, null, 1, ExcelFile.MaxRows + 1);
 
             if (leavesPage.Items.Count > ExcelFile.MaxRows)
                 return Problem(statusCode: StatusCodes.Status400BadRequest, detail: $"That range holds more than {ExcelFile.MaxRows:N0} leave requests. Narrow it and try again.");
