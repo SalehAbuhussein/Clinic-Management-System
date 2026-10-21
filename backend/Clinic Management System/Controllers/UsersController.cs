@@ -89,10 +89,15 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public async Task<ActionResult> UpdateUser([Range(1, int.MaxValue)] int id, UpdateUserDTO updatedUserDTO)
+        public async Task<ActionResult> UpdateUser(
+            [Range(1, int.MaxValue)] int id,
+            UpdateUserDTO updatedUserDTO,
+            [FromServices] IAuthorizationService authorizationService
+        )
         {
             clsUser? user = await _userRepository.FindByIdAsync(id);
-            if (user == null)
+
+            if (user == null || !(await authorizationService.AuthorizeAsync(User, user, "ManageAccount")).Succeeded)
                 return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"User with id {id} not found");
 
             clsUser? existingEmailUser = await _userRepository.FindByEmailAsync(updatedUserDTO.Email);
@@ -138,16 +143,20 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public async Task<ActionResult> DeactivateUser([Range(1, int.MaxValue)] int id)
+        public async Task<ActionResult> DeactivateUser(
+            [Range(1, int.MaxValue)] int id,
+            [FromServices] IAuthorizationService authorizationService
+        )
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
+            clsUser? user = await _userRepository.FindByIdAsync(id);
+            var authorization = await authorizationService.AuthorizeAsync(User, user, "ManageAccount");
+            if (user == null || !authorization.Succeeded)
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"User with id {id} not found");
+
             if (userId == id)
                 return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "You cannot deactivate your own account.");
-
-            clsUser? user = await _userRepository.FindByIdAsync(id);
-            if (user == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"User with id {id} not found");
 
             if (await user.Deactivate())
             {
@@ -168,10 +177,13 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public async Task<ActionResult> Activate([Range(1, int.MaxValue)] int id)
+        public async Task<ActionResult> Activate(
+            [Range(1, int.MaxValue)] int id,
+            [FromServices] IAuthorizationService authorizationService
+        )
         {
             clsUser? user = await _userRepository.FindByIdAsync(id);
-            if (user == null)
+            if (user == null || !(await authorizationService.AuthorizeAsync(User, user, "ManageAccount")).Succeeded)
                 return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"User with id {id} not found");
 
             if (await user.Activate())
