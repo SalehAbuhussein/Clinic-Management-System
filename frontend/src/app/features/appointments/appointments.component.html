@@ -8,6 +8,7 @@
 </header>
 
 @if (appointmentsResource.isLoading()) {
+  <p class="appointments__state" role="status">Loading appointments…</p>
   <app-appointment-card-shimmer />
 } @else if (appointmentsResource.error(); as error) {
   <app-appointments-list-error-state [message]="error.message" (retry)="appointmentsResource.reload()" />

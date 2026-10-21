@@ -35,5 +35,8 @@ export const roleGuard: CanActivateFn = (route) => {
     return true;
   }
 
-  return router.createUrlTree([role === 'Doctor' ? '/dashboard/visits' : '/dashboard']);
+  return router.createUrlTree(
+    [role === 'Doctor' ? '/dashboard/visits' : '/dashboard'],
+    { queryParams: { denied: route.routeConfig?.path } },
+  );
 };

@@ -3,7 +3,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatFabButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatListItem, MatListItemIcon, MatListItemTitle, MatNavList } from '@angular/material/list';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { ActivatedRoute, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 import { AuthService } from '@core/auth/service/auth.service';
 
@@ -20,6 +21,16 @@ export class DashboardLayoutComponent {
   authService = inject(AuthService);
   dialog = inject(MatDialog);
   router = inject(Router);
+  route = inject(ActivatedRoute);
+  snackbar = inject(MatSnackBar);
+
+  constructor() {
+    const denied = this.route.snapshot.queryParamMap.get('denied');
+
+    if (denied) {
+      this.snackbar.open(`Your role cannot open ${denied}.`, 'Dismiss', { duration: 6000 });
+    }
+  }
 
   /**
    * Logout and Navigate user to login page

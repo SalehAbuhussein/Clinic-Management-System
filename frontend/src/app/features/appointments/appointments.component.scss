@@ -23,3 +23,14 @@
   gap: 12px;
 }
 
+.appointments__state {
+  align-items: center;
+  color: var(--mat-sys-on-surface-variant);
+  display: flex;
+  font: var(--mat-sys-body-medium);
+  gap: 12px;
+  justify-content: center;
+  margin: 0;
+  padding: 32px 16px;
+  text-align: center;
+}

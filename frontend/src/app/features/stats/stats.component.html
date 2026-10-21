@@ -60,9 +60,9 @@
     <p class="stats__caption">{{ rangeLabel() }}</p>
 
     @if (hasAppointments()) {
-      <div class="chart" role="img" aria-label="Appointments per day over the last two weeks">
+      <div class="chart" role="list" [attr.aria-label]="'Appointments per day, ' + rangeLabel()">
         @for (day of chart(); track day.index) {
-          <div class="chart__column" [title]="day.label">
+          <div class="chart__column" role="listitem" [attr.aria-label]="day.label" [title]="day.label">
             @if (day.isBusiest) {
               <span class="chart__peak">{{ day.total }}</span>
             }

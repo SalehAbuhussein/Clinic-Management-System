@@ -22,6 +22,11 @@
   &:hover {
     background-color: var(--mat-sys-surface-container-low);
   }
+
+  &:focus-visible {
+    outline-offset: 2px;
+    outline: 3px solid var(--mat-sys-primary);
+  }
 }
 
 .leave-card__avatar {
