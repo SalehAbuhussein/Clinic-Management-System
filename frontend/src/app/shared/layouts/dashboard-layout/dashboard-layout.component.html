@@ -129,15 +129,15 @@
     </mat-nav-list>
 
     <mat-nav-list class="dashboard-side__nav dashboard-side__footer">
-      <a href="" class="dashboard-side__link" mat-list-item (click)="openProfileDialog($event)">
+      <button class="dashboard-side__link" type="button" mat-list-item (click)="openProfileDialog($event)">
         <mat-icon class="dashboard-side__icon" matListItemIcon>account_circle</mat-icon>
         <span class="dashboard-side__label" matListItemTitle>Profile</span>
-      </a>
+      </button>
 
-      <a class="dashboard-side__link" mat-list-item (click)="logout()">
+      <button class="dashboard-side__link" type="button" mat-list-item (click)="logout()">
         <mat-icon class="dashboard-side__icon" matListItemIcon>logout</mat-icon>
         <span class="dashboard-side__label" matListItemTitle>Sign out</span>
-      </a>
+      </button>
     </mat-nav-list>
   </nav>
 

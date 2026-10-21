@@ -56,12 +56,6 @@ namespace Clinic_DataAccess
                         command.Parameters.AddWithValue("@Active", active.Value);
                     }
 
-                    if (active.HasValue)
-                    {
-                        conditions.Add("U.Active = @Active");
-                        command.Parameters.AddWithValue("@Active", active.Value);
-                    }
-
                     if (conditions.Count > 0)
                         query += $"\nWHERE {string.Join(" AND ", conditions)}";
 

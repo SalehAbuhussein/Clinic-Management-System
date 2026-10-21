@@ -29,6 +29,8 @@
       <mat-progress-spinner diameter="20" mode="indeterminate" />
       Searching…
     </mat-option>
+  } @else if (patientsResource.error()) {
+    <mat-option class="selector__status" disabled>Could not search patients. Try again.</mat-option>
   } @else if (hasNoResults()) {
     <mat-option class="selector__status" disabled>No patient matches that name.</mat-option>
   } @else {

@@ -1,3 +1,5 @@
+import { isMidnight, lastDayOf } from '@core/utils/day.utils';
+
 import { Component, computed, inject, input, output } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
@@ -74,24 +76,16 @@ export class LeaveCardComponent {
     const from = new Date(this.item().from);
     const to = new Date(this.item().to);
 
-    if (!this.isMidnight(from) || !this.isMidnight(to)) {
+    if (!isMidnight(from) || !isMidnight(to)) {
       return `${this.asDate(from)}, ${this.asTime(from)} to ${this.asTime(to)}`;
     }
 
-    const lastDay = new Date(to);
-
-    lastDay.setDate(lastDay.getDate() - 1);
+    const lastDay = lastDayOf(to);
 
     return this.asDate(from) === this.asDate(lastDay)
       ? this.asDate(from)
       : `${this.asDate(from)} to ${this.asDate(lastDay)}`;
   });
-
-  /**
-   * @param date Any moment.
-   * @returns Whether it sits on local midnight, which marks a whole-day leave.
-   */
-  isMidnight = (date: Date): boolean => date.getHours() === 0 && date.getMinutes() === 0;
 
   /**
    * @param date Any moment.

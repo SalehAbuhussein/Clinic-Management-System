@@ -17,6 +17,8 @@
       <mat-progress-spinner diameter="20" mode="indeterminate" />
       Loading medicines…
     </mat-option>
+  } @else if (medicinesResource.error()) {
+    <mat-option class="medicine__status" disabled>Could not search medicines. Try again.</mat-option>
   } @else if (hasNoResults()) {
     <mat-option class="medicine__status" disabled>No medicine matches that name.</mat-option>
   } @else {

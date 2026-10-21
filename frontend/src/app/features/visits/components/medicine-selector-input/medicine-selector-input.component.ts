@@ -48,7 +48,9 @@ export class MedicineSelectorInputComponent {
 
   medicines = computed(() => this.medicinesResource.value().items);
 
-  hasNoResults = computed(() => !this.medicinesResource.isLoading() && this.medicines().length === 0);
+  hasNoResults = computed(() => !this.medicinesResource.isLoading()
+    && !this.medicinesResource.error()
+    && this.medicines().length === 0);
 
   /**
    * What the input shows once a medicine is chosen. Without it the field would

@@ -12,8 +12,11 @@ export class AuthService {
   apiService = inject(ApiService);
   localStorage = inject(LocalStorageService);
 
-  role = signal<Role | null>(null);
-  userId = signal<number | null>(null);
+  _role = signal<Role | null>(null);
+  _userId = signal<number | null>(null);
+
+  readonly role = this._role.asReadonly();
+  readonly userId = this._userId.asReadonly();
 
   inFlightRefresh$: Observable<TokenResponse | null> | null = null;
 
@@ -32,8 +35,8 @@ export class AuthService {
   readToken(): void {
     const claims = this.decodeToken();
 
-    this.role.set((claims?.['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] as Role) ?? null);
-    this.userId.set(Number(claims?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']) || null);
+    this._role.set((claims?.['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] as Role) ?? null);
+    this._userId.set(Number(claims?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']) || null);
   }
 
   /**

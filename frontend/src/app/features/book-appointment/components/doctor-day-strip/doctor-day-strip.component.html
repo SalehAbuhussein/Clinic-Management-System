@@ -44,6 +44,10 @@
   <p class="strip__clash" aria-live="polite">
     @if (isDisabled()) {
       Choose a doctor to see their day.
+    } @else if (schedulesResource.isLoading()) {
+      Loading this doctor's day…
+    } @else if (scheduleFailed()) {
+      Could not load this doctor's day, so a clash cannot be ruled out. Try again.
     } @else if (clash()) {
       Already booked in that slot.
     }

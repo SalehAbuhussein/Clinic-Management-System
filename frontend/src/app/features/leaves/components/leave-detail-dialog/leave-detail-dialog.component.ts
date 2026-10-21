@@ -7,6 +7,7 @@ import { MatIcon } from '@angular/material/icon';
 import { AuthService } from '@core/auth/service/auth.service';
 
 import { Leave } from '@shared/services/leave/leave.types';
+import { isMidnight, lastDayOf } from '@core/utils/day.utils';
 
 @Component({
   imports: [DatePipe, MatButton, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle, MatIcon],
@@ -18,6 +19,17 @@ export class LeaveDetailDialogComponent {
   authService = inject(AuthService);
 
   leave = inject<Leave>(MAT_DIALOG_DATA);
+
+  readonly wholeDays = isMidnight(new Date(this.leave.from)) && isMidnight(new Date(this.leave.to));
+
+  readonly from = new Date(this.leave.from);
+
+  /**
+   * The stored end is midnight of the day after, so a whole-day leave has to
+   * step back one day to name the last day it actually covers. A part-day
+   * leave keeps its real end, which is a time on the same day.
+   */
+  readonly to = this.wholeDays ? lastDayOf(new Date(this.leave.to)) : new Date(this.leave.to);
 
   readonly isPending = this.leave.status === 0;
 

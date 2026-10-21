@@ -127,6 +127,16 @@ export class DoctorDayStripComponent {
   /** True until a doctor is chosen, or on a day the clinic shuts. */
   isDisabled = computed(() => !this.doctorId() || this.isClosed());
 
+  /** The schedule request failed, so nothing is known about this doctor's day. */
+  scheduleFailed = computed(() => !!this.schedulesResource.error());
+
+  /**
+   * Whether the strip can be trusted. An empty strip means "no clashes" only
+   * once the schedule has actually arrived; while it is loading or after it has
+   * failed, an empty strip means "unknown", and booking has to wait.
+   */
+  scheduleUnknown = computed(() => this.schedulesResource.isLoading() || this.scheduleFailed());
+
   /**
    * The doctor's booked slots in minutes, without the one being rescheduled:
    * an appointment must not clash with itself.

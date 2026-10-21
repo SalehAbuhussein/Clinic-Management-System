@@ -8,10 +8,10 @@
 
   <dl class="leave-detail__facts">
     <dt>From</dt>
-    <dd>{{ leave.from | date: 'EEEE d MMMM y' }}</dd>
+    <dd>{{ from | date: wholeDays ? 'EEEE d MMMM y' : 'EEEE d MMMM y, HH:mm' }}</dd>
 
     <dt>To</dt>
-    <dd>{{ leave.to | date: 'EEEE d MMMM y' }}</dd>
+    <dd>{{ to | date: wholeDays ? 'EEEE d MMMM y' : 'EEEE d MMMM y, HH:mm' }}</dd>
 
     @if (leave.reason) {
       <dt>Reason</dt>

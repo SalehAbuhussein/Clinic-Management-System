@@ -32,3 +32,24 @@ export const rangeBetween = (from: Date, to: Date) => ({
   from: dayRange(from).from,
   to: dayRange(to).to,
 });
+
+/**
+ * Whether a moment sits on local midnight, which is how a whole-day range is
+ * stored.
+ *
+ * @param moment Any moment.
+ * @returns True when the clock reads 00:00.
+ */
+export const isMidnight = (moment: Date) => moment.getHours() === 0 && moment.getMinutes() === 0;
+
+/**
+ * The last day a half-open range covers.
+ *
+ * `dayRange` and `rangeBetween` both end at midnight of the day after, so
+ * showing that value to someone reads as one day too many.
+ *
+ * @param exclusiveEnd The range's end.
+ * @returns The day before it.
+ */
+export const lastDayOf = (exclusiveEnd: Date) =>
+  new Date(exclusiveEnd.getFullYear(), exclusiveEnd.getMonth(), exclusiveEnd.getDate() - 1);

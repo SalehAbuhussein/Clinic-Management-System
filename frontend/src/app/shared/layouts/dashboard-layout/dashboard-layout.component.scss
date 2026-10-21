@@ -40,6 +40,16 @@ $rail-max-width: 840px;
   margin-top: auto;
 }
 
+button.dashboard-side__link {
+  background: none;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  inline-size: 100%;
+  text-align: start;
+}
+
 .dashboard-side__link[aria-current='page'] {
   @include mat.list-overrides((
     list-item-label-text-color: var(--mat-sys-on-secondary-container),
