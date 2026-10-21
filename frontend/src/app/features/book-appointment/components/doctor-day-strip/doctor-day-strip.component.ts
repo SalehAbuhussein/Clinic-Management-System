@@ -152,12 +152,9 @@ export class DoctorDayStripComponent {
    * gives a wrong answer if they arrive unsorted.
    */
   busySlots = computed<BusySlot[]>(() => {
-    if (!this.schedulesResource.hasValue()) {
-      return [];
-    }
-
     return this.schedulesResource
       .value()
+      .items
       .filter((schedule) => schedule.appointmentID !== this.excludeAppointmentId())
       .map((schedule) => ({
         startMinutes: this.minutesFromDate(new Date(schedule.startAt)),

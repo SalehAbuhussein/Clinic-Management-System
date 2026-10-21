@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
@@ -168,7 +168,7 @@ namespace Clinic_DataAccess
             return dt.Rows.Count > 0 ? dt.Rows[0] : null;
         }
 
-        public static async Task<DataTable> FindDoctorSchedules(int doctorId, DateTimeOffset from, DateTimeOffset to)
+        public static async Task<DataTable> FindDoctorSchedules(int doctorId, DateTimeOffset from, DateTimeOffset to, int pageNumber, int pageSize)
         {
             DataTable dt = new DataTable();
 
@@ -180,12 +180,17 @@ namespace Clinic_DataAccess
                 await connection.OpenAsync();
 
                 string query = @"SELECT
-                    A.AppointmentID, A.DoctorID, A.PatientID, A.StartAt, A.EndAt, A.Status
+                    A.AppointmentID, A.DoctorID, A.PatientID, A.StartAt, A.EndAt, A.Status,
+
+                    COUNT(*) OVER() AS TotalCount
                 FROM Appointments A
                 WHERE A.DoctorID = @DoctorID
                 AND A.StartAt >= @StartAt
                 AND A.EndAt < @EndAt
-                AND A.Status NOT IN (1, 2, 3)";
+                AND A.Status NOT IN (1, 2, 3)
+                ORDER BY A.StartAt
+                OFFSET (@PageNumber - 1) * @PageSize ROWS
+                FETCH NEXT @PageSize ROWS ONLY;";
 
                 using (SqlCommand command = new SqlCommand())
                 {
@@ -193,6 +198,8 @@ namespace Clinic_DataAccess
                     command.Parameters.AddWithValue("@DoctorID", doctorId);
                     command.Parameters.AddWithValue("@StartAt", from);
                     command.Parameters.AddWithValue("@EndAt", to);
+                    command.Parameters.AddWithValue("@PageNumber", pageNumber);
+                    command.Parameters.AddWithValue("@PageSize", pageSize);
 
                     command.CommandText = query;
 

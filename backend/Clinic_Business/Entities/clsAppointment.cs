@@ -1,4 +1,4 @@
-using Clinic_Business.Common;
+﻿using Clinic_Business.Common;
 using Clinic_DataAccess;
 using System.Data;
 using System.Linq;
@@ -95,11 +95,11 @@ namespace Clinic_Business.Entities
 
         public record DoctorSchedule(int AppointmentID, int DoctorID, int PatientID, DateTimeOffset StartAt, DateTimeOffset EndAt, byte Status);
 
-        public static async Task<List<DoctorSchedule>> FindDoctorSchedulesAsync(int doctorId, DateTimeOffset from, DateTimeOffset to)
+        public static async Task<PagedResult<DoctorSchedule>> FindDoctorSchedulesAsync(int doctorId, DateTimeOffset from, DateTimeOffset to, int pageNumber, int pageSize)
         {
-            DataTable table = await clsAppointmentDA.FindDoctorSchedules(doctorId, from, to);
+            DataTable table = await clsAppointmentDA.FindDoctorSchedules(doctorId, from, to, pageNumber, pageSize);
 
-            return table.AsEnumerable().Select(row => new DoctorSchedule(
+            List<DoctorSchedule> schedules = table.AsEnumerable().Select(row => new DoctorSchedule(
                 row.Field<int>("AppointmentID"),
                 row.Field<int>("DoctorID"),
                 row.Field<int>("PatientID"),
@@ -107,6 +107,10 @@ namespace Clinic_Business.Entities
                 row.Field<DateTimeOffset>("EndAt"),
                 row.Field<byte>("Status")
             )).ToList();
+
+            int total = table.Rows.Count == 0 ? 0 : table.Rows[0].Field<int>("TotalCount");
+
+            return new PagedResult<DoctorSchedule>(schedules, pageNumber, pageSize, total);
         }
 
         public static async Task<clsAppointment?> FindAsync(int id)

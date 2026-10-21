@@ -1,4 +1,4 @@
-using Clinic_Business.Entities;
+﻿using Clinic_Business.Entities;
 using Clinic_Business.Common;
 using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Appointments;
@@ -316,17 +316,23 @@ namespace Clinic_Management_System.Controllers
         [Authorize(Roles = "Admin,Staff")]
         [HttpGet("doctor/{doctorId}/schedules", Name = "GetDoctorAppointmentSchedules")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<List<AppointmentScheduleDTO>>> GetDoctorAppointmentSchedules(
+        public async Task<ActionResult<PagedResult<AppointmentScheduleDTO>>> GetDoctorAppointmentSchedules(
             [Range(1, int.MaxValue)] int doctorId,
             DateTimeOffset from,
-            DateTimeOffset to
+            DateTimeOffset to,
+            [Range(1, int.MaxValue)] int page = 1,
+            [Range(1, 100)] int perPage = 100
         )
         {
-            List<clsAppointment.DoctorSchedule> doctorSchedules = await clsAppointment.FindDoctorSchedulesAsync(doctorId, from, to);
+            if (from > to)
+                return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "The start of the range must be on or before its end.");
 
-            List<AppointmentScheduleDTO> schedulesList = doctorSchedules
+            PagedResult<clsAppointment.DoctorSchedule> schedulesPage = await clsAppointment.FindDoctorSchedulesAsync(doctorId, from, to, page, perPage);
+
+            List<AppointmentScheduleDTO> schedulesList = schedulesPage.Items
                 .Select(schedule => new AppointmentScheduleDTO
                 {
                     AppointmentID = schedule.AppointmentID,
@@ -337,7 +343,7 @@ namespace Clinic_Management_System.Controllers
                     Status = schedule.Status
                 }).ToList();
 
-            return Ok(schedulesList);
+            return Ok(new PagedResult<AppointmentScheduleDTO>(schedulesList, schedulesPage.Page, schedulesPage.PerPage, schedulesPage.Total));
         }
 
         [Authorize(Roles = "Admin,Staff")]

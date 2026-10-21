@@ -6,7 +6,7 @@ import { ApiService } from '@core/services/api/api.service';
 
 import { dayRange, rangeBetween } from '@core/utils/day.utils';
 
-import { AppointmentCard, AppointmentFilters, CreateAppointmentRequest, CreateDoctorAppoinmentResponse, GetDoctorSchedulesResponse, RescheduleAppointmentRequest } from './appointment.types';
+import { AppointmentCard, AppointmentFilters, AppointmentSchedule, CreateAppointmentRequest, CreateDoctorAppoinmentResponse, RescheduleAppointmentRequest } from './appointment.types';
 
 @Service()
 export class AppointmentService {
@@ -51,7 +51,7 @@ export class AppointmentService {
    * @returns The resource holding that doctor's booked slots.
    */
   getDoctorSchedulesResource = (doctorId: () => number | null, day: () => Date | null) =>
-    this.apiService.getResource<GetDoctorSchedulesResponse>(
+    this.apiService.getPagedResource<AppointmentSchedule>(
       () => (doctorId() && day() ? `/Appointments/doctor/${doctorId()}/schedules` : null),
       () => dayRange(day()!),
     );

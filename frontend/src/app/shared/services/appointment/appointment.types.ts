@@ -1,5 +1,3 @@
-import { PagedResult } from '@core/types/api.types';
-
 /** 0 Scheduled, 1 Attended, 2 No-show, 3 Cancelled, as the API stores them. */
 export type AppointmentStatus = 0 | 1 | 2 | 3;
 
@@ -25,8 +23,6 @@ export type AppointmentCard = {
   notes: string | null;
 };
 
-export type GetAppointmentsResponse = PagedResult<AppointmentCard>;
-
 export type AppointmentSchedule = {
   appointmentID: number;
   doctorID: number;
@@ -35,8 +31,6 @@ export type AppointmentSchedule = {
   endAt: string;
   status: AppointmentStatus;
 };
-
-export type GetDoctorSchedulesResponse = AppointmentSchedule[];
 
 export type CreateAppointmentRequest = {
   doctorId: number;
