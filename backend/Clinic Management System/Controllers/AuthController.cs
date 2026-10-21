@@ -1,4 +1,4 @@
-using Clinic_Business.Entities;
+﻿using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Auth;
 using Clinic_Management_System.Options;
@@ -91,10 +91,10 @@ namespace Clinic_Management_System.Controllers
             // Step 6: Create the JWT token.
             // The token includes issuer, audience, claims, expiration, and signature.
             var token = new JwtSecurityToken(
-                issuer: "ClinicApi",
-                audience: "ClinicApiUsers",
+                issuer: _jwt.Issuer,
+                audience: _jwt.Audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(30),
+                expires: DateTime.UtcNow.AddMinutes(_jwt.AccessTokenMinutes),
                 signingCredentials: creds
             );
 
@@ -109,7 +109,7 @@ namespace Clinic_Management_System.Controllers
             // Step 9: Store refresh token securely (hash + expiry + not revoked).
             // We store the HASH only (never store the raw refresh token)
             user.RefreshTokenHash = BCrypt.Net.BCrypt.HashPassword(refreshToken);
-            user.RefreshTokenExpiresAt = DateTime.UtcNow.AddDays(7);
+            user.RefreshTokenExpiresAt = DateTime.UtcNow.AddDays(_jwt.RefreshTokenDays);
             user.RefreshTokenRevokedAt = null;
 
             if (await user.Update())
@@ -186,11 +186,10 @@ namespace Clinic_Management_System.Controllers
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var jwt = new JwtSecurityToken(
-                issuer: "ClinicApi",
-                audience: "ClinicApiUsers",
+                issuer: _jwt.Issuer,
+                audience: _jwt.Audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(30),
-                //expires: DateTime.Now.AddSeconds(10),
+                expires: DateTime.UtcNow.AddMinutes(_jwt.AccessTokenMinutes),
                 signingCredentials: creds
             );
 
@@ -199,7 +198,7 @@ namespace Clinic_Management_System.Controllers
             // Rotation: replace refresh token
             var newRefreshToken = GenerateRefreshToken();
             user.RefreshTokenHash = BCrypt.Net.BCrypt.HashPassword(newRefreshToken);
-            user.RefreshTokenExpiresAt = DateTime.UtcNow.AddDays(7);
+            user.RefreshTokenExpiresAt = DateTime.UtcNow.AddDays(_jwt.RefreshTokenDays);
             user.RefreshTokenRevokedAt = null;
 
             if (await user.Update())
