@@ -1,59 +1,26 @@
 # Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.1.8.
+The Angular 22 client for the Clinic Management System. See the
+[root README](../README.md) for what the app does and how to run both halves together.
 
-## Development server
-
-To start a local development server, run:
-
-```bash
-ng serve
+```
+npm install
+npm start      # http://localhost:4200, proxies /api to https://localhost:7180
+npm run build
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+`proxy.conf.json` is what makes `/api` same-origin in development. Without it the
+browser hides `Content-Disposition` from script and Excel exports lose their filename.
 
-## Code scaffolding
+## How it is put together
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+- `core/` holds the API service, the auth service and the two interceptors. One attaches
+  the bearer token and retries once through a shared refresh; the other flattens every
+  failure into an `ApiError`.
+- `shared/` holds services, the dashboard layout and the components screens reuse:
+  pagination, the export button, the date range picker, the confirm dialog.
+- `features/` is one folder per screen, each with its own `components/` and `types/`,
+  lazily loaded by its own routes file.
 
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+State is signals throughout. Lists use `httpResource` through `getPagedResource`, so a
+screen declares its filters and the request follows. Forms use Angular's signal forms.

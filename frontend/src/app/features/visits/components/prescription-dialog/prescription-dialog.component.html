@@ -67,7 +67,7 @@
 <div class="prescription__actions" matDialogActions>
   <button matButton type="button" matDialogClose [disabled]="isSaving()">Cancel</button>
 
-  <button matButton="filled" type="button" [disabled]="isLoading() || !canSave() || isSaving()" (click)="savePrescription()">
+  <button matButton="filled" type="button" [disabled]="isLoading() || loadFailed() || !canSave() || isSaving()" (click)="savePrescription()">
     @if (isSaving()) {
       <mat-progress-spinner class="prescription__spinner" diameter="18" mode="indeterminate" />
     }

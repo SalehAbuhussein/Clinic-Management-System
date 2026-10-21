@@ -58,7 +58,7 @@
 <div class="book__actions" matDialogActions>
   <button matButton type="button" matDialogClose [disabled]="isSaving()">Cancel</button>
 
-  <button matButton="filled" type="button" [disabled]="!canBook() || isSaving() || doctorDay.clash() || doctorDay.isClosed() || doctorDay.scheduleUnknown()" (click)="bookAppointment()">
+  <button matButton="filled" type="button" [disabled]="!canBook() || isSaving() || doctorDay.clash() || doctorDay.isClosed() || doctorDay.scheduleUnknown() || doctorDay.hoursUnknown()" (click)="bookAppointment()">
     @if (isSaving()) {
       <mat-progress-spinner class="book__spinner" diameter="18" mode="indeterminate" />
     }

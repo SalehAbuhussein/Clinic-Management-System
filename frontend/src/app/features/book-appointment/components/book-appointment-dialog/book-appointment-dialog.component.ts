@@ -128,7 +128,13 @@ export class BookAppointmentDialogComponent implements OnInit {
    */
   createAppointment = (body: CreateAppointmentRequest): void => {
     this.appointmentService.createAppointment(body).subscribe({
-      next: (response) => this.finish(response!.id, this.patient()!.fullname ?? '', body.startAt, 'booked'),
+      next: (booked) => booked
+        ? this.finish(booked.id, this.patient()?.fullname ?? '', body.startAt, 'booked')
+        : this.fail({
+            status: 0,
+            message: 'The booking was saved but the server returned nothing. Refresh to check it.',
+            traceId: null,
+          }),
       error: this.fail,
     });
   }

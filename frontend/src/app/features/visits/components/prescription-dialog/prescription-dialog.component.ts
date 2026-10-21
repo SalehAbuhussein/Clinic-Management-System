@@ -61,6 +61,8 @@ export class PrescriptionDialogComponent implements OnInit {
   /** Whether the visit already had a prescription, which decides POST or PUT. */
   existed = signal(false);
 
+  loadFailed = signal(false);
+
   lines = signal<PrescriptionLine[]>([]);
 
   isLoading = signal(true);
@@ -118,6 +120,7 @@ export class PrescriptionDialogComponent implements OnInit {
       },
       error: (error: ApiError) => {
         this.isLoading.set(false);
+        this.loadFailed.set(true);
         this.error.set(error.message);
       },
     });

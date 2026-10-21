@@ -42,7 +42,9 @@
   </div>
 
   <p class="strip__clash" aria-live="polite">
-    @if (isDisabled()) {
+    @if (hoursUnknown()) {
+      Could not load the clinic's opening hours, so this day may be closed. Try again.
+    } @else if (isDisabled()) {
       Choose a doctor to see their day.
     } @else if (schedulesResource.isLoading()) {
       Loading this doctor's day…

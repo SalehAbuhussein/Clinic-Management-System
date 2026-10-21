@@ -1,4 +1,4 @@
-import { booleanAttribute, ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
+import { booleanAttribute, ChangeDetectionStrategy, Component, DestroyRef, inject, input, signal } from '@angular/core';
 import { HttpResponse } from '@angular/common/http';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
@@ -6,6 +6,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Params } from '@angular/router';
+
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ApiService } from '@core/services/api/api.service';
 
@@ -22,6 +24,7 @@ import { ApiError } from '@core/auth/types/auth.types';
 })
 export class ExportButtonComponent {
   apiService = inject(ApiService);
+  destroyRef = inject(DestroyRef);
   dialog = inject(MatDialog);
   snackbar = inject(MatSnackBar);
 
@@ -72,7 +75,7 @@ export class ExportButtonComponent {
   _download(params: Params): void {
     this.isExporting.set(true);
 
-    this.apiService.download(this.path(), params).subscribe({
+    this.apiService.download(this.path(), params).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         this.isExporting.set(false);
 
@@ -103,8 +106,9 @@ export class ExportButtonComponent {
   /**
    * Hand a blob to the browser as a download.
    *
-   * The object URL is revoked straight after the click. Without that, every
-   * export holds its file in memory for as long as the tab is open.
+   * Two things browsers are fussy about: a detached anchor does nothing in
+   * some of them, and revoking the URL in the same tick cancels the save.
+   * Never revoking it leaks the file for the life of the tab.
    */
   _save(blob: Blob, fileName: string): void {
     const url = URL.createObjectURL(blob);
@@ -112,8 +116,12 @@ export class ExportButtonComponent {
 
     anchor.href = url;
     anchor.download = fileName;
-    anchor.click();
+    anchor.style.display = 'none';
 
-    URL.revokeObjectURL(url);
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+
+    setTimeout(() => URL.revokeObjectURL(url));
   }
 }

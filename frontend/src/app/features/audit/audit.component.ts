@@ -6,6 +6,8 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 import { AuditService } from '@shared/services/audit/audit.service';
 
+import { dayRange } from '@core/utils/day.utils';
+
 import { ExportButtonComponent } from '@shared/components/export-button/export-button.component';
 import { AuditDetailDialogComponent } from './components/audit-detail-dialog/audit-detail-dialog.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
@@ -52,10 +54,12 @@ export class AuditComponent {
       return undefined;
     }
 
-    const start = new Date();
-    start.setDate(start.getDate() - Number(preset));
+    const daysCovered = Number(preset);
+    const firstDay = new Date();
 
-    return start.toISOString();
+    firstDay.setDate(firstDay.getDate() - (daysCovered - 1));
+
+    return dayRange(firstDay).from;
   });
 
   exportFilters = computed(() => ({ from: this.from() }));

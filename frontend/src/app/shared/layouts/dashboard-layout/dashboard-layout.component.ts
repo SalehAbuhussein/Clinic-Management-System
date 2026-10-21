@@ -30,7 +30,8 @@ export class DashboardLayoutComponent {
   }
 
   /**
-   * Open Booking dialog flow
+   * Opens the booking dialog. Any list showing appointments watches
+   * AppointmentService.lastBookedId, so it refreshes itself from here.
    */
   openBookingDialog = () => {
     this.dialog.open(BookAppointmentDialogComponent, { width: '560px' });

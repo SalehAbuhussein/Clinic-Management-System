@@ -79,6 +79,14 @@ export class AppointmentsComponent {
   appointments = computed(() => this.appointmentsResource.hasValue() ? this.appointmentsResource.value().items : []);
 
   constructor() {
+    // A booking made from the sidebar never reaches this screen's own dialog
+    // handler, so the service's last-booked id is what tells it to refetch.
+    effect(() => {
+      if (this.appointmentService.lastBookedId()) {
+        this.appointmentsResource.reload();
+      }
+    });
+
     effect(() => {
       this.router.navigate([], {
         queryParams: { from: this.asParam(this.from()), to: this.asParam(this.to()), page: this.page() },
@@ -115,21 +123,11 @@ export class AppointmentsComponent {
 
 
   /**
-   * Open the booking dialog and show the new appointment.
-   *
-   * The dialog confirms the booking itself; this screen owns the one thing the
-   * dialog cannot do, which is refresh the day behind it.
+   * Open the booking dialog. The constructor's effect refreshes the list once
+   * a booking lands, so there is nothing to do when it closes.
    */
   openBookingDialog = () => {
-    this.dialog.open(BookAppointmentDialogComponent, { width: '560px' })
-    .afterClosed()
-    .subscribe((booked: BookedAppointment | undefined) => {
-      if (!booked) {
-        return;
-      }
-
-      this.appointmentsResource.reload();
-    });
+    this.dialog.open(BookAppointmentDialogComponent, { width: '560px' });
   }
 
   /**

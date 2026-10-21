@@ -1,4 +1,6 @@
-import { inject, Service } from '@angular/core';
+import { tap } from 'rxjs';
+
+import { inject, Service, signal } from '@angular/core';
 
 import { ApiService } from '@core/services/api/api.service';
 
@@ -9,6 +11,13 @@ import { AppointmentFilters, CreateAppointmentRequest, CreateDoctorAppoinmentRes
 @Service()
 export class AppointmentService {
   apiService = inject(ApiService);
+
+  /**
+   * The id of the last appointment booked, which a screen can watch to refetch.
+   * The sidebar can book from anywhere, so the list behind it has no other way
+   * to hear about it.
+   */
+  lastBookedId = signal(0);
 
   /**
    * Get Appointment List
@@ -58,7 +67,9 @@ export class AppointmentService {
    * @param body
    * @returns
    */
-  createAppointment = (body: CreateAppointmentRequest) => this.apiService.post<CreateDoctorAppoinmentResponse>("/Appointments", body);
+  createAppointment = (body: CreateAppointmentRequest) =>
+    this.apiService.post<CreateDoctorAppoinmentResponse>("/Appointments", body)
+      .pipe(tap((booked) => booked && this.lastBookedId.set(booked.id)));
 
   /**
    * Record that the patient came. One way: the API has no route back to

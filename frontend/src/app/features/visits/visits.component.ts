@@ -10,6 +10,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { formatDate } from '@angular/common';
 
 import { Observable } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { VisitService } from '@shared/services/visit/visit.service';
 
@@ -96,7 +97,7 @@ export class VisitsComponent {
       return;
     }
 
-    this.visitService.getVisit(id).subscribe({
+    this.visitService.getVisit(id).pipe(takeUntilDestroyed()).subscribe({
       next: (visit) => {
         this.from.set(new Date(visit.checkinTime));
         this.to.set(new Date(visit.checkinTime));

@@ -127,6 +127,12 @@ export class DoctorDayStripComponent {
   /** True until a doctor is chosen, or on a day the clinic shuts. */
   isDisabled = computed(() => !this.doctorId() || this.isClosed());
 
+  /**
+   * The clinic's opening days never loaded, so a closed day is indistinguishable
+   * from an open one and the strip is drawing its 08:00 to 16:00 fallback.
+   */
+  hoursUnknown = computed(() => this.workingDaysService.hasFailed());
+
   /** The schedule request failed, so nothing is known about this doctor's day. */
   scheduleFailed = computed(() => !!this.schedulesResource.error());
 
@@ -168,6 +174,9 @@ export class DoctorDayStripComponent {
   /** How far into the block the current drag started, in minutes. */
   grabOffsetMinutes = 0;
 
+  /** The doctor and day the suggestion was last made for, so it happens once each. */
+  suggestedFor = '';
+
   constructor() {
     // A new doctor or a new day means a new set of gaps, so the suggestion moves
     // to the first that fits. The duration is read untracked: changing a chip
@@ -182,6 +191,14 @@ export class DoctorDayStripComponent {
       if (!this.doctorId() || this.excludeAppointmentId()) {
         return;
       }
+
+      const doctorAndDay = `${this.doctorId()}_${this.date()?.toDateString()}`;
+
+      if (this.suggestedFor === doctorAndDay) {
+        return;
+      }
+
+      this.suggestedFor = doctorAndDay;
 
       this.time.set(this.toTimeText(untracked(() => this.firstFreeStartMinutes())));
     });

@@ -9,7 +9,7 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 
-import { debounceTime } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs';
 
 import { MedicineService } from '@shared/services/medicine/medicine.service';
 
@@ -35,7 +35,10 @@ export class MedicinesComponent {
 
   search = signal('');
 
-  debouncedSearch = toSignal(toObservable(this.search).pipe(debounceTime(300)), { initialValue: '' });
+  debouncedSearch = toSignal(
+    toObservable(this.search).pipe(debounceTime(300), distinctUntilChanged()),
+    { initialValue: '' },
+  );
 
   page = linkedSignal<string, number>({
     source: this.debouncedSearch,
