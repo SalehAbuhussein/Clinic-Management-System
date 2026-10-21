@@ -16,6 +16,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Diagnostics;
 using System.Globalization;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.RateLimiting;
 
@@ -141,6 +142,25 @@ builder.Services.AddRateLimiter(options =>
 {
     // Always return 429 when blocked
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // Every endpoint, on top of any named policy it also carries. Keyed by user
+    // where there is one, because the risk is a signed-in account looping an
+    // export, not an anonymous flood. Anonymous callers fall back to the IP.
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+    {
+        var caller = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? httpContext.Connection.RemoteIpAddress?.ToString()
+            ?? "unknown";
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: caller,
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 300,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            });
+    });
 
     options.OnRejected = async (context, cancellationToken) =>
     {
