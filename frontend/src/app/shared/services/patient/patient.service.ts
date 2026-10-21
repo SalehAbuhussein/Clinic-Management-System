@@ -17,6 +17,16 @@ export class PatientService {
   getPatientResource = (filters: () => PatientFilters = () => ({})) => this.apiService.getPagedResource<Patient>('/Patients', filters);
 
   /**
+   * Patients matching what the user is typing, for the booking autocomplete.
+   * No term means no request, so opening the list does not pull every patient
+   * on file.
+   *
+   * @param term The search text, already debounced and trimmed.
+   * @returns The resource holding the matches.
+   */
+  searchPatientResource = (term: () => string) => this.apiService.getPagedResource<Patient>(() => (term() ? '/Patients' : null), () => ({ fullname: term() }));
+
+  /**
    * One patient, with the person fields the list does not carry.
    *
    * @param id The patient.

@@ -1,4 +1,4 @@
-import { Component, computed, inject, model, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, model, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatAutocomplete, MatAutocompleteTrigger, MatOption } from '@angular/material/autocomplete';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
@@ -12,6 +12,7 @@ import { MedicineService } from '@shared/services/medicine/medicine.service';
 import { Medicine } from '@shared/services/medicine/medicine.types';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
     MatAutocomplete,
@@ -44,11 +45,12 @@ export class MedicineSelectorInputComponent {
 
   searchTerm = computed(() => this.debouncedTerm().trim());
 
-  medicinesResource = this.medicineService.getMedicineResource(() => ({ name: this.searchTerm() }));
+  medicinesResource = this.medicineService.searchMedicineResource(this.searchTerm);
 
   medicines = computed(() => this.medicinesResource.value().items);
 
-  hasNoResults = computed(() => !this.medicinesResource.isLoading()
+  hasNoResults = computed(() => !!this.searchTerm()
+    && !this.medicinesResource.isLoading()
     && !this.medicinesResource.error()
     && this.medicines().length === 0);
 

@@ -18,6 +18,14 @@ export class DiagnosisService {
   getDiagnosis = (visitId: number) => this.apiService.get<Diagnosis>(`/Visits/${visitId}/diagnosis`);
 
   /**
+   * The same diagnosis as reactive state, for a screen that only reads it.
+   *
+   * @param visitId Returns the visit.
+   * @returns The resource holding the diagnosis.
+   */
+  getDiagnosisResource = (visitId: () => number) => this.apiService.getResource<Diagnosis>(() => `/Visits/${visitId()}/diagnosis`);
+
+  /**
    * Write the visit's first diagnosis. Answers 409 if one already exists.
    *
    * @param visitId The visit.

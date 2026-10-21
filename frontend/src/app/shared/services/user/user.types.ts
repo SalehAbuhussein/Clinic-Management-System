@@ -29,7 +29,7 @@ export type UpdateUserRequest = {
 export type UserFilters = {
   fullname?: string;
   email?: string;
-  active?: string;
+  active?: 'true' | 'false';
   page?: number;
   perPage?: number;
 };

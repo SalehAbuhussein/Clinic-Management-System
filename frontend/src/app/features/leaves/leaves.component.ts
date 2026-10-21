@@ -1,4 +1,5 @@
-import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
@@ -11,6 +12,7 @@ import { AuthService } from '@core/auth/service/auth.service';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 
+import { filtersFromUrl, pageFromUrl, syncUrl } from '@core/utils/url-state.utils';
 import { LeaveService } from '@shared/services/leave/leave.service';
 
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
@@ -27,6 +29,7 @@ import { Leave, LeaveFilters } from '@shared/services/leave/leave.types';
 import { LeaveDetailAction } from './types/leaves.types';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [LeaveFiltersComponent, 
     ExportButtonComponent,
     LeavesListComponent,
@@ -43,9 +46,11 @@ export class LeavesComponent {
   authService = inject(AuthService);
   dialog = inject(MatDialog);
   leaveService = inject(LeaveService);
+  route = inject(ActivatedRoute);
+  router = inject(Router);
   snackbar = inject(MatSnackBar);
 
-  filters = signal<LeaveFilters>({});
+  filters = signal<LeaveFilters>(filtersFromUrl(this.route));
 
   /**
    * The filters, held back until typing pauses. Comparing the contents stops a
@@ -60,9 +65,11 @@ export class LeavesComponent {
     { initialValue: this.filters() },
   );
 
+  // Back to the first page on a new search, but the URL's page on the first
+  // run, so a reload or a shared link lands where it left off.
   page = linkedSignal<LeaveFilters, number>({
     source: this.debouncedFilters,
-    computation: () => 1,
+    computation: (_, previous) => previous ? 1 : pageFromUrl(this.route),
   });
 
   leavesResource = this.leaveService.getLeavesResource(() => ({ ...this.debouncedFilters(), page: this.page() }));
@@ -70,6 +77,10 @@ export class LeavesComponent {
   leaves = computed(() => this.leavesResource.value().items);
   total = computed(() => this.leavesResource.value().total);
   perPage = computed(() => this.leavesResource.value().perPage || 10);
+
+  constructor() {
+    syncUrl(this.router, this.route, () => ({ ...this.filters(), page: this.page() }));
+  }
 
   /**
    * Show everything on a leave, and act on whatever the dialog closes with.

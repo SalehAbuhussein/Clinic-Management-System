@@ -1,4 +1,5 @@
-import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
@@ -8,6 +9,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 
+import { filtersFromUrl, pageFromUrl, syncUrl } from '@core/utils/url-state.utils';
 import { PersonService } from '@shared/services/person/person.service';
 
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
@@ -21,6 +23,7 @@ import { Person, PersonFilters } from '@shared/services/person/person.types';
 import { PersonDetailAction } from './types/people.types';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [PersonFiltersComponent, MatButton, MatIcon, MatProgressSpinner, PaginationComponent],
   selector: 'app-people',
   styleUrl: './people.component.scss',
@@ -29,9 +32,11 @@ import { PersonDetailAction } from './types/people.types';
 export class PeopleComponent {
   dialog = inject(MatDialog);
   personService = inject(PersonService);
+  route = inject(ActivatedRoute);
+  router = inject(Router);
   snackbar = inject(MatSnackBar);
 
-  filters = signal<PersonFilters>({});
+  filters = signal<PersonFilters>(filtersFromUrl(this.route));
 
   /**
    * The filters, held back until typing pauses. Comparing the contents stops a
@@ -46,9 +51,11 @@ export class PeopleComponent {
     { initialValue: this.filters() },
   );
 
+  // Back to the first page on a new search, but the URL's page on the first
+  // run, so a reload or a shared link lands where it left off.
   page = linkedSignal<PersonFilters, number>({
     source: this.debouncedFilters,
-    computation: () => 1,
+    computation: (_, previous) => previous ? 1 : pageFromUrl(this.route),
   });
 
   peopleResource = this.personService.getPersonResource(() => ({ ...this.debouncedFilters(), page: this.page() }));
@@ -56,6 +63,10 @@ export class PeopleComponent {
   people = computed(() => this.peopleResource.value().items);
   total = computed(() => this.peopleResource.value().total);
   perPage = computed(() => this.peopleResource.value().perPage || 10);
+
+  constructor() {
+    syncUrl(this.router, this.route, () => ({ ...this.filters(), page: this.page() }));
+  }
 
   /**
    * Correct someone's details. The API refuses another admin's.

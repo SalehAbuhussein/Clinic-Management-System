@@ -18,6 +18,16 @@ export class MedicineService {
   getMedicineResource = (filters: () => MedicineFilters = () => ({})) => this.apiService.getPagedResource<Medicine>('/Medicines', filters);
 
   /**
+   * Medicines matching what the user is typing, for the prescription
+   * autocomplete. No term means no request, so opening the list does not pull
+   * the whole catalogue.
+   *
+   * @param term The search text, already debounced and trimmed.
+   * @returns The resource holding the matches.
+   */
+  searchMedicineResource = (term: () => string) => this.apiService.getPagedResource<Medicine>(() => (term() ? '/Medicines' : null), () => ({ name: term() }));
+
+  /**
    * Add a medicine so it can be prescribed.
    *
    * @param body The RxCUI, the names, the form and the strength.

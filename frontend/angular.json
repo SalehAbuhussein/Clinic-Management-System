@@ -11,6 +11,7 @@
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
+          "changeDetection": "OnPush",
           "style": "scss",
           "type": "component"
         },
@@ -94,9 +95,6 @@
           "options": {
             "proxyConfig": "proxy.conf.json"
           }
-        },
-        "test": {
-          "builder": "@angular/build:unit-test"
         }
       }
     }

@@ -66,7 +66,7 @@ export class UserFiltersComponent {
    * booleans, so Material has something to mark as chosen and a false survives
    * the trip to the query string.
    */
-  setActive(value: string): void {
+  setActive(value: 'true' | 'false' | 'all'): void {
     this.active.set(value);
     this.filters.set(value === 'all' ? {} : { active: value });
   }

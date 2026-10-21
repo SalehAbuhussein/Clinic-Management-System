@@ -2,7 +2,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { Component, computed, effect, inject, linkedSignal, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal, signal } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
@@ -11,6 +11,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { Observable } from 'rxjs';
 
+import { filtersFromUrl, pageFromUrl, syncUrl } from '@core/utils/url-state.utils';
 import { UserService } from '@shared/services/user/user.service';
 
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
@@ -26,6 +27,7 @@ import { User, UserFilters } from '@shared/services/user/user.types';
 import { UserDetailAction } from './types/users.types';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MatButton, MatIcon, MatProgressSpinner, PaginationComponent, UserFiltersComponent, UserRowComponent],
   selector: 'app-users',
   styleUrl: './users.component.scss',
@@ -38,7 +40,7 @@ export class UsersComponent {
   snackbar = inject(MatSnackBar);
   userService = inject(UserService);
 
-  filters = signal<UserFilters>({});
+  filters = signal<UserFilters>(filtersFromUrl(this.route));
 
   /**
    * The filters, held back until typing pauses. Signals carry no notion of
@@ -61,7 +63,7 @@ export class UsersComponent {
   // first run so a reload or a shared link lands where it left off.
   page = linkedSignal<UserFilters, number>({
     source: this.debouncedFilters,
-    computation: (_, previous) => previous ? 1 : this.pageFromUrl(),
+    computation: (_, previous) => previous ? 1 : pageFromUrl(this.route),
   });
 
   usersResource = this.userService.getUserResource(() => ({ ...this.debouncedFilters(), page: this.page() }));
@@ -71,22 +73,7 @@ export class UsersComponent {
   perPage = computed(() => this.usersResource.value().perPage || 10);
 
   constructor() {
-    effect(() => {
-      this.router.navigate([], {
-        queryParams: { page: this.page() },
-        relativeTo: this.route,
-        replaceUrl: true,
-      });
-    });
-  }
-
-  /**
-   * @returns The page from the URL, or the first one.
-   */
-  pageFromUrl(): number {
-    const page = Number(this.route.snapshot.queryParamMap.get('page'));
-
-    return Number.isInteger(page) && page > 0 ? page : 1;
+    syncUrl(this.router, this.route, () => ({ ...this.filters(), page: this.page() }));
   }
 
   /**

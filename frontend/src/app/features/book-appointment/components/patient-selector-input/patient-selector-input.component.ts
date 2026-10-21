@@ -1,4 +1,4 @@
-import { Component, computed, inject, model, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, model, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatAutocomplete, MatAutocompleteTrigger, MatOption } from '@angular/material/autocomplete';
 import { MatFormField, MatHint, MatLabel, MatPrefix, MatSuffix } from '@angular/material/form-field';
@@ -14,6 +14,7 @@ import { PatientService } from '@shared/services/patient/patient.service';
 import { Patient } from '@shared/services/patient/patient.types';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
     MatAutocomplete,
@@ -59,7 +60,7 @@ export class PatientSelectorInputComponent {
     && !this.patientsResource.isLoading()
     && !this.patientsResource.error()
     && this.patients().length === 0);
-  patientsResource = this.patientService.getPatientResource(() => ({ fullname: this.searchTerm() }));
+  patientsResource = this.patientService.searchPatientResource(this.searchTerm);
 
   /**
    * What the input shows once a patient is chosen. Without it the field would

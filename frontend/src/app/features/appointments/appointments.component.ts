@@ -1,8 +1,5 @@
 import { ActivatedRoute, Router } from '@angular/router';
-import { Component, computed, effect, inject, linkedSignal, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { MatButton, MatIconButton } from '@angular/material/button';
-import { MatDatepickerModule } from '@angular/material/datepicker';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, linkedSignal, signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { formatDate } from '@angular/common';
@@ -31,6 +28,7 @@ import { rangeBetween } from '@core/utils/day.utils';
 import { BookedAppointment } from '@features/book-appointment/types/book-appointment.types';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     AppointmentCardShimmerComponent,
     AppointmentsListComponent,
@@ -65,8 +63,8 @@ export class AppointmentsComponent {
     source: this.rangeKey,
     computation: (_, previous) => previous ? 1 : this.pageFromUrl(),
   });
-  total = computed(() => this.appointmentsResource.hasValue() ? this.appointmentsResource.value().total : 0);
-  perPage = computed(() => this.appointmentsResource.hasValue() ? this.appointmentsResource.value().perPage : 10);
+  total = computed(() => this.appointmentsResource.value()?.total);
+  perPage = computed(() => this.appointmentsResource.value()?.perPage || 10);
 
   /**
    * What the export covers: the day on screen, and nothing about paging. It
@@ -76,7 +74,7 @@ export class AppointmentsComponent {
   exportFilters = computed(() => rangeBetween(this.from(), this.to()));
 
   appointmentsResource = this.appointmentService.getAppointmentsInRangeResource(this.from, this.to, this.page);
-  appointments = computed(() => this.appointmentsResource.hasValue() ? this.appointmentsResource.value().items : []);
+  appointments = computed(() => this.appointmentsResource.value()?.items);
 
   constructor() {
     // A booking made from the sidebar never reaches this screen's own dialog

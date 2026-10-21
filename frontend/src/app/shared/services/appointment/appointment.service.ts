@@ -6,7 +6,7 @@ import { ApiService } from '@core/services/api/api.service';
 
 import { dayRange, rangeBetween } from '@core/utils/day.utils';
 
-import { AppointmentFilters, CreateAppointmentRequest, CreateDoctorAppoinmentResponse, GetAppointmentsResponse, GetDoctorSchedulesResponse, RescheduleAppointmentRequest } from './appointment.types';
+import { AppointmentCard, AppointmentFilters, CreateAppointmentRequest, CreateDoctorAppoinmentResponse, GetDoctorSchedulesResponse, RescheduleAppointmentRequest } from './appointment.types';
 
 @Service()
 export class AppointmentService {
@@ -20,17 +20,12 @@ export class AppointmentService {
   lastBookedId = signal(0);
 
   /**
-   * Get Appointment List
-   */
-  getAppointmentList = () => this.apiService.get<GetAppointmentsResponse>('/Appointments');
-
-  /**
    * Appointments as reactive state, filtered however the caller wants.
    *
    * @param filters Returns the query parameters; defaults to no filter at all.
    * @returns The resource holding the appointment list.
    */
-  getAppointmentResource = (filters: () => AppointmentFilters = () => ({})) => this.apiService.getResource<GetAppointmentsResponse>('/Appointments', filters);
+  getAppointmentResource = (filters: () => AppointmentFilters = () => ({})) => this.apiService.getPagedResource<AppointmentCard>('/Appointments', filters);
 
   /**
    * Appointments across a range of days.
@@ -70,14 +65,6 @@ export class AppointmentService {
   createAppointment = (body: CreateAppointmentRequest) =>
     this.apiService.post<CreateDoctorAppoinmentResponse>("/Appointments", body)
       .pipe(tap((booked) => booked && this.lastBookedId.set(booked.id)));
-
-  /**
-   * Record that the patient came. One way: the API has no route back to
-   * Scheduled, so a mis-click needs an admin.
-   *
-   * @param id The appointment.
-   */
-  attendAppointment = (id: number) => this.apiService.patch(`/Appointments/${id}/attend`);
 
   /**
    * Record that the patient did not come.

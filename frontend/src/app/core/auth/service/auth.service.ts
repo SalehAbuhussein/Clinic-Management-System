@@ -12,6 +12,8 @@ export class AuthService {
   apiService = inject(ApiService);
   localStorage = inject(LocalStorageService);
 
+  readonly ROLES: readonly Role[] = ['Admin', 'Doctor', 'Staff'];
+
   _role = signal<Role | null>(null);
   _userId = signal<number | null>(null);
 
@@ -35,7 +37,9 @@ export class AuthService {
   readToken(): void {
     const claims = this.decodeToken();
 
-    this._role.set((claims?.['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] as Role) ?? null);
+    const claimedRole = claims?.['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+
+    this._role.set(this.ROLES.includes(claimedRole as Role) ? (claimedRole as Role) : null);
     this._userId.set(Number(claims?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']) || null);
   }
 

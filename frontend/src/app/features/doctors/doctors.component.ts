@@ -1,4 +1,5 @@
-import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
@@ -8,6 +9,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 
+import { filtersFromUrl, pageFromUrl, syncUrl } from '@core/utils/url-state.utils';
 import { DoctorService } from '@shared/services/doctor/doctor.service';
 
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
@@ -21,6 +23,7 @@ import { Doctor, DoctorFilters } from '@shared/services/doctor/doctor.types';
 import { DoctorDetailAction } from './types/doctors.types';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DoctorFiltersComponent, MatButton, MatIcon, MatProgressSpinner, PaginationComponent],
   selector: 'app-doctors',
   styleUrl: './doctors.component.scss',
@@ -29,9 +32,11 @@ import { DoctorDetailAction } from './types/doctors.types';
 export class DoctorsComponent {
   dialog = inject(MatDialog);
   doctorService = inject(DoctorService);
+  route = inject(ActivatedRoute);
+  router = inject(Router);
   snackbar = inject(MatSnackBar);
 
-  filters = signal<DoctorFilters>({});
+  filters = signal<DoctorFilters>(filtersFromUrl(this.route));
 
   /**
    * The filters, held back until typing pauses. Comparing the contents stops a
@@ -46,9 +51,11 @@ export class DoctorsComponent {
     { initialValue: this.filters() },
   );
 
+  // Back to the first page on a new search, but the URL's page on the first
+  // run, so a reload or a shared link lands where it left off.
   page = linkedSignal<DoctorFilters, number>({
     source: this.debouncedFilters,
-    computation: () => 1,
+    computation: (_, previous) => previous ? 1 : pageFromUrl(this.route),
   });
 
   doctorsResource = this.doctorService.getDoctorResource(() => ({ ...this.debouncedFilters(), page: this.page() }));
@@ -56,6 +63,10 @@ export class DoctorsComponent {
   doctors = computed(() => this.doctorsResource.value().items);
   total = computed(() => this.doctorsResource.value().total);
   perPage = computed(() => this.doctorsResource.value().perPage || 10);
+
+  constructor() {
+    syncUrl(this.router, this.route, () => ({ ...this.filters(), page: this.page() }));
+  }
 
   /**
    * Remove a doctor. Their appointments and visits still point at the row, so

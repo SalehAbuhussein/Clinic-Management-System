@@ -25,15 +25,6 @@ export class LeaveService {
   createLeave = (body: CreateLeaveRequest) => this.apiService.post<Leave>("/Leaves", body);
 
   /**
-   * Update Leave
-   *
-   * @param id Leave id
-   * @param body
-   * @returns
-   */
-  updateLeave = (id: number, body: UpdateLeaveRequest) => this.apiService.put(`/Leaves/${id}`, body);
-
-  /**
    * Approve Leave
    *
    * @param id Leave id

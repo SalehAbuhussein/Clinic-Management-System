@@ -1,4 +1,5 @@
-import { Component, computed, inject, linkedSignal, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -11,6 +12,7 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 
+import { pageFromUrl, syncUrl } from '@core/utils/url-state.utils';
 import { MedicineService } from '@shared/services/medicine/medicine.service';
 
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
@@ -23,6 +25,7 @@ import { Medicine } from '@shared/services/medicine/medicine.types';
 import { MedicineDetailAction } from './types/medicines.types';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, MatButton, MatFormField, MatIcon, MatInput, MatLabel, MatPrefix, MatProgressSpinner, PaginationComponent],
   selector: 'app-medicines',
   styleUrl: './medicines.component.scss',
@@ -31,18 +34,22 @@ import { MedicineDetailAction } from './types/medicines.types';
 export class MedicinesComponent {
   dialog = inject(MatDialog);
   medicineService = inject(MedicineService);
+  route = inject(ActivatedRoute);
+  router = inject(Router);
   snackbar = inject(MatSnackBar);
 
-  search = signal('');
+  search = signal(this.route.snapshot.queryParamMap.get('name') ?? '');
 
   debouncedSearch = toSignal(
     toObservable(this.search).pipe(debounceTime(300), distinctUntilChanged()),
-    { initialValue: '' },
+    { initialValue: this.search() },
   );
 
+  // Back to the first page on a new search, but the URL's page on the first
+  // run, so a reload or a shared link lands where it left off.
   page = linkedSignal<string, number>({
     source: this.debouncedSearch,
-    computation: () => 1,
+    computation: (_, previous) => previous ? 1 : pageFromUrl(this.route),
   });
 
   medicinesResource = this.medicineService.getMedicineResource(() => ({
@@ -53,6 +60,10 @@ export class MedicinesComponent {
   medicines = computed(() => this.medicinesResource.value().items);
   total = computed(() => this.medicinesResource.value().total);
   perPage = computed(() => this.medicinesResource.value().perPage || 10);
+
+  constructor() {
+    syncUrl(this.router, this.route, () => ({ name: this.debouncedSearch().trim(), page: this.page() }));
+  }
 
   /**
    * Remove a medicine. The API refuses one that any prescription names, and

@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle } from '@angular/material/dialog';
 import { MatButton } from '@angular/material/button';
@@ -10,84 +10,43 @@ import { DiagnosisService } from '@shared/services/diagnosis/diagnosis.service';
 import { PrescriptionService } from '@shared/services/prescription/prescription.service';
 
 import { ApiError } from '@core/auth/types/auth.types';
-import { Diagnosis } from '@shared/services/diagnosis/diagnosis.types';
-import { PrescriptionItem } from '@shared/services/prescription/prescription.types';
 import { Visit } from '@shared/services/visit/visit.types';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DatePipe, MatButton, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle, MatIcon, MatProgressSpinner],
   selector: 'app-visit-detail-dialog',
   styleUrl: './visit-detail-dialog.component.scss',
   templateUrl: './visit-detail-dialog.component.html',
 })
-export class VisitDetailDialogComponent implements OnInit {
+export class VisitDetailDialogComponent {
   authService = inject(AuthService);
   diagnosisService = inject(DiagnosisService);
   prescriptionService = inject(PrescriptionService);
 
   visit = inject<Visit>(MAT_DIALOG_DATA);
 
-  diagnosis = signal<Diagnosis | null>(null);
+  diagnosisResource = this.diagnosisService.getDiagnosisResource(() => this.visit.id);
+  prescriptionResource = this.prescriptionService.getPrescriptionResource(() => this.visit.id);
 
-  isLoadingDiagnosis = signal(true);
-  diagnosisError = signal('');
+  diagnosis = computed(() => this.diagnosisResource.value() ?? null);
+  isLoadingDiagnosis = this.diagnosisResource.isLoading;
 
-  prescription = signal<PrescriptionItem[]>([]);
+  /**
+   * A 404 is the normal state of a visit whose doctor has not written a
+   * diagnosis yet, so it reads as an empty section rather than a failure.
+   */
+  diagnosisError = computed(() => {
+    const failure = this.diagnosisResource.error() as ApiError | undefined;
 
-  isLoadingPrescription = signal(true);
-  prescriptionError = signal('');
+    return failure && failure.status !== 404 ? failure.message : '';
+  });
+
+  prescription = computed(() => this.prescriptionResource.value().items);
+  isLoadingPrescription = this.prescriptionResource.isLoading;
+  prescriptionError = computed(() => (this.prescriptionResource.error() as ApiError | undefined)?.message ?? '');
 
   /** Checking out locks the visit, and the API then refuses every change. */
   isOpen = computed(() => !this.visit.checkoutTime);
 
-  ngOnInit(): void {
-    this.initComponent();
-  }
-
-  /**
-   * Everything the dialog needs before its first render.
-   */
-  initComponent(): void {
-    this.loadDiagnosis();
-    this.loadPrescription();
-  }
-
-  /**
-   * Reads the visit's prescription. An empty array means nobody wrote one,
-   * which the API reports with a 200 rather than a 404.
-   */
-  loadPrescription(): void {
-    this.prescriptionService.getPrescription(this.visit.id).subscribe({
-      next: (found) => {
-        this.prescription.set(found);
-        this.isLoadingPrescription.set(false);
-      },
-      error: (error: ApiError) => {
-        this.isLoadingPrescription.set(false);
-        this.prescriptionError.set(error.message);
-      },
-    });
-  }
-
-  /**
-   * Reads the visit's diagnosis. A 404 means the doctor has not written one,
-   * which is the normal state of a visit that just opened.
-   */
-  loadDiagnosis(): void {
-    this.diagnosisService.getDiagnosis(this.visit.id).subscribe({
-      next: (found) => {
-        this.diagnosis.set(found);
-        this.isLoadingDiagnosis.set(false);
-      },
-      error: (error: ApiError) => {
-        this.isLoadingDiagnosis.set(false);
-
-        if (error.status === 404) {
-          return;
-        }
-
-        this.diagnosisError.set(error.message);
-      },
-    });
-  }
 }

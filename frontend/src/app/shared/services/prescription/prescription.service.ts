@@ -26,6 +26,14 @@ export class PrescriptionService {
     .pipe(map((page) => page.items));
 
   /**
+   * The same prescription as reactive state, for a screen that only reads it.
+   *
+   * @param visitId Returns the visit.
+   * @returns The resource holding the lines.
+   */
+  getPrescriptionResource = (visitId: () => number) => this.apiService.getPagedResource<PrescriptionItem>(() => `/Visits/${visitId()}/prescription`);
+
+  /**
    * Write the visit's first prescription. Answers 409 if one already exists.
    *
    * @param visitId The visit.

@@ -1,14 +1,17 @@
+/** 0 Pending, 1 Approved, 2 Rejected, as the API stores them. */
+export type LeaveStatus = 0 | 1 | 2;
+
 export type Leave = {
   id: number;
   fullname: string;
   from: string;
   to: string;
   reason: string;
-  status: number;
+  status: LeaveStatus;
 };
 
 export type LeaveFilters = Partial<{
-  status: string;
+  status: `${LeaveStatus}`;
   from: string;
   to: string;
   page: number;

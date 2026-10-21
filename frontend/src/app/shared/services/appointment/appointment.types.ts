@@ -1,5 +1,8 @@
 import { PagedResult } from '@core/types/api.types';
 
+/** 0 Scheduled, 1 Attended, 2 No-show, 3 Cancelled, as the API stores them. */
+export type AppointmentStatus = 0 | 1 | 2 | 3;
+
 export type AppointmentFilters = {
   doctorId?: number;
   patientId?: number;
@@ -18,7 +21,7 @@ export type AppointmentCard = {
   visitId: number | null;
   startAt: string;
   endAt: string;
-  status: number;
+  status: AppointmentStatus;
   notes: string | null;
 };
 
@@ -30,7 +33,7 @@ export type AppointmentSchedule = {
   patientID: number;
   startAt: string;
   endAt: string;
-  status: number;
+  status: AppointmentStatus;
 };
 
 export type GetDoctorSchedulesResponse = AppointmentSchedule[];

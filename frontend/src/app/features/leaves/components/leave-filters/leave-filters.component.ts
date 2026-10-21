@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatOption, MatSelect } from '@angular/material/select';
 
-import { LeaveFilters } from '@shared/services/leave/leave.types';
+import { LeaveFilters, LeaveStatus } from '@shared/services/leave/leave.types';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -25,7 +25,7 @@ export class LeaveFiltersComponent {
    *
    * @param value A status code, or `all` for no filter.
    */
-  setStatus(value: string): void {
+  setStatus(value: `${LeaveStatus}` | 'all'): void {
     this.status.set(value);
     this.filters.set(value === 'all' ? {} : { status: value });
   }
