@@ -10,22 +10,24 @@ import { AppointmentService } from '@shared/services/appointment/appointment.ser
 import { VisitService } from '@shared/services/visit/visit.service';
 
 import { AppointmentCardShimmerComponent } from '@shared/components/appointment-card-shimmer/appointment-card-shimmer.component';
-import { DateRangePickerComponent } from '@shared/components/date-range-picker/date-range-picker.component';
+import { AppointmentDetailDialogComponent } from './components/appointment-detail-dialog/appointment-detail-dialog.component';
 import { AppointmentsListComponent } from './components/appointments-list/appointments-list.component';
 import { AppointmentsListEmptyStateComponent } from './components/appointments-list-empty-state/appointments-list-empty-state.component';
 import { AppointmentsListErrorStateComponent } from './components/appointments-list-error-state/appointments-list-error-state.component';
-import { AppointmentDetailDialogComponent } from './components/appointment-detail-dialog/appointment-detail-dialog.component';
 import { BookAppointmentDialogComponent } from '@features/book-appointment/components/book-appointment-dialog/book-appointment-dialog.component';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.types';
+import { DateRangePickerComponent } from '@shared/components/date-range-picker/date-range-picker.component';
 import { ExportButtonComponent } from '@shared/components/export-button/export-button.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
 
 import { ApiError } from '@core/auth/types/auth.types';
 import { AppointmentCard } from '@shared/services/appointment/appointment.types';
 import { AppointmentDetailAction } from './types/appointments.types';
-import { rangeBetween } from '@core/utils/day.utils';
 import { BookedAppointment } from '@features/book-appointment/types/book-appointment.types';
+
+import { pageFromUrl } from '@core/utils/url-state.utils';
+import { rangeBetween } from '@core/utils/day.utils';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -61,7 +63,7 @@ export class AppointmentsComponent {
 
   page = linkedSignal<string, number>({
     source: this.rangeKey,
-    computation: (_, previous) => previous ? 1 : this.pageFromUrl(),
+    computation: (_, previous) => previous ? 1 : pageFromUrl(this.route),
   });
   total = computed(() => this.appointmentsResource.value()?.total);
   perPage = computed(() => this.appointmentsResource.value()?.perPage || 10);
@@ -110,15 +112,6 @@ export class AppointmentsComponent {
   }
 
   asParam = (day: Date) => formatDate(day, 'yyyy-MM-dd', 'en-US');
-  /**
-   * @returns The page from the URL, or the first one.
-   */
-  pageFromUrl(): number {
-    const page = Number(this.route.snapshot.queryParamMap.get('page'));
-
-    return Number.isInteger(page) && page > 0 ? page : 1;
-  }
-
 
   /**
    * Open the booking dialog. The constructor's effect refreshes the list once

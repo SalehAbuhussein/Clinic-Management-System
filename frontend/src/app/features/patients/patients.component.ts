@@ -14,6 +14,7 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { AuthService } from '@core/auth/service/auth.service';
 import { PatientService } from '@shared/services/patient/patient.service';
 
+import { pageFromUrl } from '@core/utils/url-state.utils';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { ExportButtonComponent } from '@shared/components/export-button/export-button.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
@@ -79,11 +80,9 @@ export class PatientsComponent {
    * is built once per actual search rather than once per emission. */
   filters = computed(() => ({ fullname: this.debouncedFullname().trim(), phone: this.debouncedPhone().trim() }));
 
-  // Resets to the first page on a new search, but takes the URL's page on the
-  // first run so a reload or a shared link lands where it left off.
   page = linkedSignal<PatientFilters, number>({
     source: this.filters,
-    computation: (_, previous) => previous ? 1 : this.pageFromUrl(),
+    computation: (_, previous) => previous ? 1 : pageFromUrl(this.route),
   });
 
   patientsResource = this.patientService.getPatientResource(() => ({
@@ -110,15 +109,6 @@ export class PatientsComponent {
         replaceUrl: true,
       });
     });
-  }
-
-  /**
-   * @returns The page from the URL, or the first one.
-   */
-  pageFromUrl(): number {
-    const page = Number(this.route.snapshot.queryParamMap.get('page'));
-
-    return Number.isInteger(page) && page > 0 ? page : 1;
   }
 
   /**

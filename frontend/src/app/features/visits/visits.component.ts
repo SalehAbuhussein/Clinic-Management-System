@@ -12,6 +12,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { VisitService } from '@shared/services/visit/visit.service';
 
 import { rangeBetween } from '@core/utils/day.utils';
+import { pageFromUrl } from '@core/utils/url-state.utils';
 
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { DateRangePickerComponent } from '@shared/components/date-range-picker/date-range-picker.component';
@@ -51,11 +52,9 @@ export class VisitsComponent {
     ? formatDate(this.from(), 'EEEE d MMMM', 'en-US')
     : `${formatDate(this.from(), 'd MMM', 'en-US')} to ${formatDate(this.to(), 'd MMM', 'en-US')}`);
 
-  // Resets to the first page on a new range, but takes the URL's page on the
-  // first run so a reload or a shared link lands where it left off.
   page = linkedSignal<string, number>({
     source: this.rangeKey,
-    computation: (_, previous) => previous ? 1 : this.pageFromUrl(),
+    computation: (_, previous) => previous ? 1 : pageFromUrl(this.route),
   });
 
   exportFilters = computed(() => rangeBetween(this.from(), this.to()));
@@ -103,15 +102,6 @@ export class VisitsComponent {
       },
       error: (error: ApiError) => this.snackbar.open(error.message, 'Dismiss', { duration: 8000 }),
     });
-  }
-
-  /**
-   * @returns The page from the URL, or the first one.
-   */
-  pageFromUrl(): number {
-    const page = Number(this.route.snapshot.queryParamMap.get('page'));
-
-    return Number.isInteger(page) && page > 0 ? page : 1;
   }
 
 
