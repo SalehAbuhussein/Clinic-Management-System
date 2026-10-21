@@ -18,6 +18,8 @@ namespace Clinic_Business.Repositories
         // Exists AND the linked user is active.
         public Task<bool> ExistsAsync(int? id) => clsDoctor.IsDoctorExistAsync(id);
 
+        public Task<bool> IsDoctorOfPatientAsync(int? patientId, int? userId) => clsDoctor.IsDoctorOfPatientAsync(patientId, userId);
+
         public Task<bool> IsDoctorOfVisitAsync(int? visitId, int? userId)
             => clsDoctor.IsDoctorOfVisitAsync(visitId, userId);
     }

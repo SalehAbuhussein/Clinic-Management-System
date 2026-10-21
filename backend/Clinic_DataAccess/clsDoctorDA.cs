@@ -1,4 +1,4 @@
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -297,6 +297,31 @@ namespace Clinic_DataAccess
                     int result = (int)returnValue.Value;
 
                     return result == 1;
+                }
+            }
+        }
+
+        public static async Task<bool> IsDoctorOfPatientAsync(int? patientId, int? userId)
+        {
+            if (!patientId.HasValue || !userId.HasValue)
+                return false;
+
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                await connection.OpenAsync();
+
+                string query = @"SELECT 1
+                FROM Appointments A
+                INNER JOIN Doctors D ON D.DoctorID = A.DoctorID
+                WHERE A.PatientID = @PatientID AND D.UserID = @UserID";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@PatientID", patientId);
+                    command.Parameters.AddWithValue("@UserID", userId);
+
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
+                        return reader.HasRows;
                 }
             }
         }

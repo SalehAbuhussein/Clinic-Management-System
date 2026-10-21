@@ -1,8 +1,9 @@
-using Clinic_Business.Interfaces;
+﻿using Clinic_Business.Interfaces;
 using Clinic_Business.Repositories;
 using Clinic_DataAccess;
 using Clinic_Management_System.Authorization.Appointment;
 using Clinic_Management_System.Authorization.Leave;
+using Clinic_Management_System.Authorization.Patient;
 using Clinic_Management_System.Authorization.People;
 using Clinic_Management_System.Authorization.Users;
 using Clinic_Management_System.Authorization.VisitRecord;
@@ -99,6 +100,8 @@ builder.Services.AddAuthorization(options =>
         policy => policy.Requirements.Add(new UpdateLeaveRequirement()));
     options.AddPolicy("ManageAccount",
         policy => policy.Requirements.Add(new ManageAccountRequirement()));
+    options.AddPolicy("ViewPatient",
+        policy => policy.Requirements.Add(new ViewPatientRequirement()));
 });
 builder.Services.AddScoped<IAuthorizationHandler, PersonOwnerOrAuthorizedHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, CanDoctorViewAppointmentHandler>();
@@ -107,6 +110,7 @@ builder.Services.AddScoped<IAuthorizationHandler, ViewVisitRecordHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, ViewLeaveHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, UpdateLeaveHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, ManageAccountHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, ViewPatientHandler>();
 builder.Services.AddScoped<IStatsRepository, StatsRepository>();
 builder.Services.AddScoped<ILeaveRepository, LeaveRepository>();
 builder.Services.AddScoped<IAuditRepository, AuditRepository>();

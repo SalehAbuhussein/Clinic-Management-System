@@ -85,10 +85,14 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<PatientDTO>> GetPatientByID([Range(1, int.MaxValue)] int id)
+        public async Task<ActionResult<PatientDTO>> GetPatientByID(
+            [Range(1, int.MaxValue)] int id,
+            [FromServices] IAuthorizationService authorizationService
+        )
         {
             clsPatient? patient = await _patientRepository.FindByIdAsync(id);
-            if (patient == null)
+            var authorization = await authorizationService.AuthorizeAsync(User, id, "ViewPatient");
+            if (patient == null || !authorization.Succeeded)
                 return Problem(statusCode: StatusCodes.Status404NotFound,
                     detail: $"Patient with id {id} not found");
 

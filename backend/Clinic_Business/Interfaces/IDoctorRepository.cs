@@ -10,6 +10,7 @@ namespace Clinic_Business.Interfaces
         Task<PagedResult<clsDoctor.DoctorItem>> FindAllAsync(string? fullname = null, string? specialization = null, bool? active = null, int pageNumber = 1, int pageSize = 10);
         Task<bool> DeleteAsync(int? id);
         Task<bool> ExistsAsync(int? id);
+        Task<bool> IsDoctorOfPatientAsync(int? patientId, int? userId);
         Task<bool> IsDoctorOfVisitAsync(int? visitId, int? userId);
     }
 }

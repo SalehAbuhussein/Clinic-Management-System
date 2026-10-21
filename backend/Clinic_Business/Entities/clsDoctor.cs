@@ -164,6 +164,11 @@ namespace Clinic_Business.Entities
             return doctor != null && doctor.UserInfo.Active;
         }
 
+        public static Task<bool> IsDoctorOfPatientAsync(int? patientId, int? userId)
+        {
+            return clsDoctorDA.IsDoctorOfPatientAsync(patientId, userId);
+        }
+
         public static Task<bool> IsDoctorOfVisitAsync(int? visitId, int? userId)
         {
             return clsDoctorDA.IsDoctorOfVisitAsync(visitId, userId);
