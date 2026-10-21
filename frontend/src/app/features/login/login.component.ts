@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnDestroy, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -19,6 +19,7 @@ import { LoginBannerTone, LoginError } from './types/login.types';
 import { ApiError, LoginRequestBody } from '@core/auth/types/auth.types';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormField,
     LoginBackdropComponent,

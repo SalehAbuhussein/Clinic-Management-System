@@ -1,4 +1,4 @@
-import { Component, computed, effect, ElementRef, inject, input, model, untracked, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, input, model, untracked, viewChild } from '@angular/core';
 import { formatDate } from '@angular/common';
 
 import { AppointmentService } from '@shared/services/appointment/appointment.service';
@@ -22,6 +22,7 @@ type BusySlot = { startMinutes: number; endMinutes: number };
  * back, and keeps only the drag offset of its own.
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-doctor-day-strip',
   styleUrl: './doctor-day-strip.component.scss',
   templateUrl: './doctor-day-strip.component.html',

@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
 import { MatError, MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
@@ -17,6 +17,7 @@ import { Medicine } from '@shared/services/medicine/medicine.types';
 import { MedicineFormData } from '@features/medicines/types/medicines.types';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormField,
     MatButton,

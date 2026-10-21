@@ -1,8 +1,9 @@
-import { Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 
 import { Patient } from '@shared/services/patient/patient.types';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-patient-row',
   styleUrl: './patient-row.component.scss',
   templateUrl: './patient-row.component.html',

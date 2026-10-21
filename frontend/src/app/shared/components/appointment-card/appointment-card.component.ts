@@ -1,10 +1,11 @@
-import { Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
 
 import { AppointmentCard } from '@shared/services/appointment/appointment.types';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DatePipe, MatIcon],
   selector: 'app-appointment-card',
   styleUrl: './appointment-card.component.scss',

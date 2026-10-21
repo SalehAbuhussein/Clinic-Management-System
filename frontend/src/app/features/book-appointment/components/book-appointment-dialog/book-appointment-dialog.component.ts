@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { formatDate } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogContent, MatDialogTitle, MatDialogActions, MatDialogClose, MatDialogRef } from '@angular/material/dialog';
@@ -23,6 +23,7 @@ import { Doctor } from '@shared/services/doctor/doctor.types';
 import { Patient } from '@shared/services/patient/patient.types';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     DateInputComponent,
     DoctorDayStripComponent,

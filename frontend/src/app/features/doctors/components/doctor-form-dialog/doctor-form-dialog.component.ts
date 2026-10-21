@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { formatDate } from '@angular/common';
 import { MatButton } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -20,6 +20,7 @@ import { Doctor } from '@shared/services/doctor/doctor.types';
 import { DoctorFormData } from '../../types/doctors.types';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormField,
     MatButton,

@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -9,10 +9,10 @@ import { formatDate } from '@angular/common';
 
 import { StatsService } from '@shared/services/stats/stats.service';
 
-/** The ranges worth one click. `custom` reveals the date range field instead. */
-export type StatsPreset = '7' | '14' | '30' | 'custom';
+import { StatsPreset } from './types/stats.types';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
     MatButtonToggle,

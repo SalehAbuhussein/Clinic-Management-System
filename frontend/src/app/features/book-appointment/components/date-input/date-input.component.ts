@@ -1,4 +1,4 @@
-import { Component, inject, model } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, model } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormField, MatLabel, MatSuffix } from '@angular/material/form-field';
@@ -7,6 +7,7 @@ import { MatInput } from '@angular/material/input';
 import { WorkingDaysService } from '@shared/services/working-days/working-days.service';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, MatDatepickerModule, MatFormField, MatInput, MatLabel, MatSuffix],
   selector: 'app-date-input',
   styleUrl: './date-input.component.scss',

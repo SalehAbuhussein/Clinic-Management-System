@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle } from '@angular/material/dialog';
 import { MatButton } from '@angular/material/button';
@@ -10,6 +10,7 @@ import { Leave } from '@shared/services/leave/leave.types';
 import { isMidnight, lastDayOf } from '@core/utils/day.utils';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DatePipe, MatButton, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle, MatIcon],
   selector: 'app-leave-detail-dialog',
   styleUrl: './leave-detail-dialog.component.scss',

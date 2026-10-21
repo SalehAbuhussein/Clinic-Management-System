@@ -1,8 +1,5 @@
 import { ActivatedRoute, Router } from '@angular/router';
-import { Component, computed, effect, inject, linkedSignal, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { MatButton, MatIconButton } from '@angular/material/button';
-import { MatDatepickerModule } from '@angular/material/datepicker';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, linkedSignal, signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
@@ -32,6 +29,7 @@ import { Visit } from '@shared/services/visit/visit.types';
 import { VisitDetailAction } from './types/visits.types';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DateRangePickerComponent, ExportButtonComponent, MatIcon, MatProgressSpinner, PaginationComponent, VisitRowComponent],
   selector: 'app-visits',
   styleUrl: './visits.component.scss',

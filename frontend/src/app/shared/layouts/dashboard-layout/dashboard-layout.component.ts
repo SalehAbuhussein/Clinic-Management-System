@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFabButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
@@ -12,6 +12,7 @@ import { BookAppointmentDialogComponent } from '@features/book-appointment/compo
 import { ProfileDialogComponent } from '@features/profile/components/profile-dialog/profile-dialog.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, RouterLinkActive, RouterOutlet, MatFabButton, MatIcon, MatNavList, MatListItem, MatListItemIcon, MatListItemTitle],
   selector: 'app-dashboard-layout',
   styleUrl: './dashboard-layout.component.scss',

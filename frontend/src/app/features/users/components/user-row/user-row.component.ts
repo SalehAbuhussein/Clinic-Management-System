@@ -1,9 +1,10 @@
-import { Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { MatIcon } from '@angular/material/icon';
 
 import { User } from '@shared/services/user/user.types';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MatIcon],
   selector: 'app-user-row',
   styleUrl: './user-row.component.scss',

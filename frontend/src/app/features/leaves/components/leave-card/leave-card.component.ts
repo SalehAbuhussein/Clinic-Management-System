@@ -1,6 +1,6 @@
 import { isMidnight, lastDayOf } from '@core/utils/day.utils';
 
-import { Component, computed, inject, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { formatDate } from '@angular/common';
@@ -10,6 +10,7 @@ import { AuthService } from '@core/auth/service/auth.service';
 import { Leave } from '@shared/services/leave/leave.types';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MatButton, MatIcon],
   selector: 'app-leave-card',
   styleUrl: './leave-card.component.scss',

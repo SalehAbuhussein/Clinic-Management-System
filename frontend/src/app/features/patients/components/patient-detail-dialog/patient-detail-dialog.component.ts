@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
 import { MatButton } from '@angular/material/button';
@@ -16,6 +16,7 @@ import { ApiError } from '@core/auth/types/auth.types';
 import { Patient } from '@shared/services/patient/patient.types';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DatePipe, MatButton, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle, MatIcon, MatProgressSpinner, PaginationComponent],
   selector: 'app-patient-detail-dialog',
   styleUrl: './patient-detail-dialog.component.scss',

@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle } from '@angular/material/dialog';
 import { MatButton } from '@angular/material/button';
 
@@ -11,6 +11,7 @@ import { ConfirmDialogData } from './confirm-dialog.types';
  * treat dismiss, Escape and the backdrop as one case.
  */
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MatButton, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle],
   selector: 'app-confirm-dialog',
   styleUrl: './confirm-dialog.component.scss',

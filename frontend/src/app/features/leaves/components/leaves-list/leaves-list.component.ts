@@ -1,10 +1,11 @@
-import { Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
 import { LeaveCardComponent } from '../leave-card/leave-card.component';
 
 import { Leave } from '@shared/services/leave/leave.types';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [LeaveCardComponent],
   selector: 'app-leaves-list',
   styleUrl: './leaves-list.component.scss',

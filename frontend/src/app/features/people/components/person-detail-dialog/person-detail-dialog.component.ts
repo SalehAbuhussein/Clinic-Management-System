@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle } from '@angular/material/dialog';
 import { MatButton } from '@angular/material/button';
@@ -6,6 +6,7 @@ import { MatButton } from '@angular/material/button';
 import { Person } from '@shared/services/person/person.types';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DatePipe, MatButton, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle],
   selector: 'app-person-detail-dialog',
   styleUrl: './person-detail-dialog.component.scss',

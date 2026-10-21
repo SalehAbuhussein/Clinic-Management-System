@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle } from '@angular/material/dialog';
 import { MatButton } from '@angular/material/button';
@@ -9,6 +9,7 @@ import { AuthService } from '@core/auth/service/auth.service';
 import { AppointmentCard } from '@shared/services/appointment/appointment.types';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DatePipe, MatButton, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle, MatIcon],
   selector: 'app-appointment-detail-dialog',
   styleUrl: './appointment-detail-dialog.component.scss',
