@@ -275,7 +275,7 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"SELECT true=1 FROM Leaves WHERE LeaveID = @LeaveID;";
+                string query = @"SELECT TOP 1 1 FROM Leaves WHERE LeaveID = @LeaveID;";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {

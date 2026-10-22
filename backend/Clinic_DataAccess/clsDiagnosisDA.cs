@@ -107,7 +107,7 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"SELECT true=1
+                string query = @"SELECT TOP 1 1
                 FROM [ClinicManagementSystem].[dbo].[Diagnoses]
                 WHERE VisitID = @VisitID";
 

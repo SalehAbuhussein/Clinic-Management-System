@@ -297,7 +297,7 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"SELECT true=1
+                string query = @"SELECT TOP 1 1
                 FROM [ClinicManagementSystem].[dbo].[Appointments]
                 WHERE AppointmentID = @AppointmentID";
 
@@ -326,7 +326,7 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"SELECT true=1
+                string query = @"SELECT TOP 1 1
                 FROM [ClinicManagementSystem].[dbo].[Appointments]
                 WHERE AppointmentID = @AppointmentID AND Status = 0";
 
@@ -355,7 +355,7 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"SELECT true=1
+                string query = @"SELECT TOP 1 1
                 FROM [ClinicManagementSystem].[dbo].[Appointments]
                 WHERE AppointmentID = @AppointmentID AND Status = 1";
 
@@ -384,7 +384,7 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"SELECT true=1
+                string query = @"SELECT TOP 1 1
                 FROM [ClinicManagementSystem].[dbo].[Appointments]
                 WHERE AppointmentID = @AppointmentID AND Status = 3";
 
@@ -540,7 +540,7 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"SELECT true=1
+                string query = @"SELECT TOP 1 1
                 FROM Appointments A
                 WHERE A.DoctorID = @DoctorID
                 AND A.StartAt < @EndAt
@@ -572,7 +572,7 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"SELECT true=1
+                string query = @"SELECT TOP 1 1
                 FROM Appointments A
                 WHERE A.PatientID = @PatientID
                 AND A.StartAt < @EndAt

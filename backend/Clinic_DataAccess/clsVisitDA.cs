@@ -244,7 +244,7 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"SELECT true=1 FROM [dbo].[Visits] WHERE AppointmentID = @AppointmentID";
+                string query = @"SELECT TOP 1 1 FROM [dbo].[Visits] WHERE AppointmentID = @AppointmentID";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
@@ -271,7 +271,7 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"SELECT true=1 FROM Visits WHERE VisitID = @VisitID AND IsLocked = 1 AND CheckoutTime IS NOT NULL";
+                string query = @"SELECT TOP 1 1 FROM Visits WHERE VisitID = @VisitID AND IsLocked = 1 AND CheckoutTime IS NOT NULL";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {

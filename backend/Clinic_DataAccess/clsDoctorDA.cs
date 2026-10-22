@@ -351,7 +351,7 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"SELECT 1
+                string query = @"SELECT TOP 1 1
                 FROM Appointments A
                 INNER JOIN Doctors D ON D.DoctorID = A.DoctorID
                 WHERE A.PatientID = @PatientID AND D.UserID = @UserID";
@@ -376,7 +376,7 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"SELECT 1
+                string query = @"SELECT TOP 1 1
                 FROM Visits V
                 INNER JOIN Appointments A ON A.AppointmentID = V.AppointmentID
                 INNER JOIN Doctors D ON D.DoctorID = A.DoctorID
