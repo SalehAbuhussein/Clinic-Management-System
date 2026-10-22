@@ -9,6 +9,8 @@ namespace Clinic_Management_System.Export
     {
         public const int MaxRows = 10_000;
 
+        public const string SpreadsheetContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
         public static FileContentResult Build<T>(
             string sheetName, 
             IReadOnlyList<ExcelColumn<T>> columns, 
@@ -34,7 +36,7 @@ namespace Clinic_Management_System.Export
             using MemoryStream stream = new MemoryStream();
             workbook.SaveAs(stream);
 
-            return new FileContentResult(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            return new FileContentResult(stream.ToArray(), SpreadsheetContentType)
             {
                 FileDownloadName = $"{sheetName}-{DateTime.Now:yyyy-MM-dd}.xlsx"
             };

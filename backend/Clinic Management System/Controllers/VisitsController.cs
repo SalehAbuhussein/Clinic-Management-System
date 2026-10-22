@@ -80,7 +80,7 @@ namespace Clinic_Management_System.Controllers
 
         [Authorize(Roles = "Admin,Staff,Doctor")]
         [HttpGet("export", Name = "ExportVisits")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType<FileContentResult>(StatusCodes.Status200OK, ExcelFile.SpreadsheetContentType)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]

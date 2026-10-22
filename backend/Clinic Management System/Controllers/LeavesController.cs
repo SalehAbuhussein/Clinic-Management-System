@@ -56,7 +56,7 @@ namespace Clinic_Management_System.Controllers
 
         [Authorize]
         [HttpGet("export", Name = "ExportLeaves")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType<FileContentResult>(StatusCodes.Status200OK, ExcelFile.SpreadsheetContentType)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult> ExportLeaves(DateTimeOffset? from, DateTimeOffset? to)
