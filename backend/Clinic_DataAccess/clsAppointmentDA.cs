@@ -260,7 +260,7 @@ namespace Clinic_DataAccess
                 AND A.StartAt >= @StartAt
                 AND A.EndAt < @EndAt
                 AND A.Status NOT IN (1, 2, 3)
-                ORDER BY A.StartAt
+                ORDER BY A.StartAt, A.AppointmentID
                 OFFSET (@PageNumber - 1) * @PageSize ROWS
                 FETCH NEXT @PageSize ROWS ONLY;";
 

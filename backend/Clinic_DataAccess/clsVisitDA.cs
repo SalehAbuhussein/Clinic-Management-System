@@ -110,7 +110,7 @@ namespace Clinic_DataAccess
                     query += _VisitFilters(command, doctorId, patientId, from, to);
 
                     query += @"
-                        ORDER BY V.CheckinTime DESC
+                        ORDER BY V.CheckinTime DESC, V.VisitID DESC
                         OFFSET (@PageNumber - 1) * @PageSize ROWS
                         FETCH NEXT @PageSize ROWS ONLY;";
 

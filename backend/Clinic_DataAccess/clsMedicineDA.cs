@@ -35,7 +35,7 @@ namespace Clinic_DataAccess
                     }
 
                     query += @"
-                        ORDER BY Genericname
+                        ORDER BY Genericname, MedicineID
                         OFFSET (@PageNumber - 1) * @PageSize ROWS
                         FETCH NEXT @PageSize ROWS ONLY;";
 
