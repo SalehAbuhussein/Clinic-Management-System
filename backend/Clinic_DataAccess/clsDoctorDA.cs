@@ -125,14 +125,13 @@ namespace Clinic_DataAccess
         }
 
         /// <summary>
-        /// A doctor with its user and person, in one round trip. Columns are named rather
-        /// than SELECT *: Doctors and Users both have UserID, Users and People both have
-        /// PersonID, and ADO.NET would silently rename the duplicates to UserID1/PersonID1.
-        /// </summary>
-        /// <summary>
         /// A doctor with its user and person, in one round trip. Find and FindByUserID
-        /// differ only in their WHERE, so they share this query. The column name is a
-        /// compile-time literal from the two callers below, never from a request.
+        /// differ only in their WHERE, so they share this query, and the column name is a
+        /// compile-time literal from those two callers rather than anything from a request.
+        ///
+        /// Columns are named rather than SELECT *: Doctors and Users both have UserID,
+        /// Users and People both have PersonID, and ADO.NET would silently rename the
+        /// duplicates to UserID1/PersonID1.
         /// </summary>
         private static async Task<DataRow?> _FindByAsync(string whereColumn, object value)
         {
