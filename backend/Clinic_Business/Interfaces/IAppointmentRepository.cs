@@ -6,7 +6,7 @@ namespace Clinic_Business.Interfaces
     public interface IAppointmentRepository
     {
         Task<clsAppointment?> FindByIdAsync(int id);
-        Task<int> GetTotalCountAsync(int? doctorId = null, int? patientId = null, DateTimeOffset? from = null, DateTimeOffset? to = null);
+        Task<int> GetTotalCountAsync(int? doctorId = null, int? patientId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, CancellationToken cancellationToken = default);
 
         Task<PagedResult<clsAppointment>> FindAllAsync(
             int? doctorId,
@@ -14,7 +14,9 @@ namespace Clinic_Business.Interfaces
             DateTimeOffset? from,
             DateTimeOffset? to,
             int pageNumber = 1,
-            int pageSize = 10);
+            int pageSize = 10,
+            CancellationToken cancellationToken = default
+        );
         Task<bool> ExistsAsync(int? id);
         Task<bool> DeleteAsync(int id);
         Task<bool> IsCancelledAsync(int? id);

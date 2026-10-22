@@ -72,7 +72,7 @@ namespace Clinic_Business.Entities
             };
         }
 
-        public static Task<int> GetTotalCountAsync(int? userId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, byte? status = null) => clsLeaveDA.GetTotalCount(userId, from, to, status);
+        public static Task<int> GetTotalCountAsync(int? userId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, byte? status = null, CancellationToken cancellationToken = default) => clsLeaveDA.GetTotalCount(userId, from, to, status, cancellationToken);
 
         public static async Task<PagedResult<LeaveItem>> FindAllLeavesAsync(
             int? userId,
@@ -80,10 +80,11 @@ namespace Clinic_Business.Entities
             DateTimeOffset? to,
             byte? status = null,
             int pageNumber = 1,
-            int pageSize = 10
+            int pageSize = 10,
+            CancellationToken cancellationToken = default
         )
         {
-            DataTable table = await clsLeaveDA.FindAllAsync(userId, from, to, status, pageNumber, pageSize);
+            DataTable table = await clsLeaveDA.FindAllAsync(userId, from, to, status, pageNumber, pageSize, cancellationToken);
 
             List<LeaveItem> leaves = table.AsEnumerable().Select(row => new LeaveItem(
                 row.Field<int>("LeaveID"),
@@ -99,7 +100,7 @@ namespace Clinic_Business.Entities
             if (table.Rows.Count > 0)
                 total = table.Rows[0].Field<int>("TotalCount");
             else if (pageNumber > 1)
-                total = await clsLeaveDA.GetTotalCount(userId, from, to, status);
+                total = await clsLeaveDA.GetTotalCount(userId, from, to, status, cancellationToken);
 
             return new PagedResult<LeaveItem>(leaves, pageNumber, pageSize, total);
         }

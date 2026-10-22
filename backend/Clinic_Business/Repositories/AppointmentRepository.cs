@@ -8,7 +8,7 @@ namespace Clinic_Business.Repositories
     {
         public Task<clsAppointment?> FindByIdAsync(int id) => clsAppointment.FindAsync(id);
 
-        public Task<int> GetTotalCountAsync(int? doctorId = null, int? patientId = null, DateTimeOffset? from = null, DateTimeOffset? to = null) => clsAppointment.GetTotalCountAsync(doctorId, patientId, from, to);
+        public Task<int> GetTotalCountAsync(int? doctorId = null, int? patientId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, CancellationToken cancellationToken = default) => clsAppointment.GetTotalCountAsync(doctorId, patientId, from, to, cancellationToken);
 
         public Task<PagedResult<clsAppointment>> FindAllAsync(
             int? doctorId,
@@ -16,8 +16,10 @@ namespace Clinic_Business.Repositories
             DateTimeOffset? from,
             DateTimeOffset? to,
             int pageNumber = 1,
-            int pageSize = 10)
-            => clsAppointment.FindAllAsync(doctorId, patientId, from, to, pageNumber, pageSize);
+            int pageSize = 10,
+            CancellationToken cancellationToken = default
+        )
+            => clsAppointment.FindAllAsync(doctorId, patientId, from, to, pageNumber, pageSize, cancellationToken);
 
         public Task<bool> ExistsAsync(int? id) => clsAppointment.IsExistByIDAsync(id);
 

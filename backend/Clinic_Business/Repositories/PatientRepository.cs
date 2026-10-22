@@ -16,11 +16,11 @@ namespace Clinic_Business.Repositories
             return clsPatient.FindPatientByNationalNoAsync(nationalNo);
         }
 
-        public Task<int> GetTotalCountAsync(string? fullname = null, string? phone = null, DateTimeOffset? from = null, DateTimeOffset? to = null) => clsPatient.GetTotalCountAsync(fullname, phone, from, to);
+        public Task<int> GetTotalCountAsync(string? fullname = null, string? phone = null, DateTimeOffset? from = null, DateTimeOffset? to = null, CancellationToken cancellationToken = default) => clsPatient.GetTotalCountAsync(fullname, phone, from, to, cancellationToken);
 
-        public Task<PagedResult<clsPatient.PatientItem>> FindAllAsync(string? fullname = null, string? phone = null, DateTimeOffset? from = null, DateTimeOffset? to = null, int pageNumber = 1, int pageSize = 10)
+        public Task<PagedResult<clsPatient.PatientItem>> FindAllAsync(string? fullname = null, string? phone = null, DateTimeOffset? from = null, DateTimeOffset? to = null, int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default)
         {
-            return clsPatient.FindPatientsAsync(fullname, phone, from, to, pageNumber, pageSize);
+            return clsPatient.FindPatientsAsync(fullname, phone, from, to, pageNumber, pageSize, cancellationToken);
         }
 
         public Task<bool> DeleteAsync(int? id)

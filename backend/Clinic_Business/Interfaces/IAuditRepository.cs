@@ -10,9 +10,9 @@ namespace Clinic_Business.Interfaces
 {
     public interface IAuditRepository
     {
-        Task<int> GetTotalCountAsync(DateTimeOffset? from = null, DateTimeOffset? to = null);
+        Task<int> GetTotalCountAsync(DateTimeOffset? from = null, DateTimeOffset? to = null, CancellationToken cancellationToken = default);
 
-        Task<PagedResult<clsAuditEntry.AuditEntryItem>> FindAllAsync(DateTimeOffset? from, DateTimeOffset? to, int pageNumber = 1, int pageSize = 10);
+        Task<PagedResult<clsAuditEntry.AuditEntryItem>> FindAllAsync(DateTimeOffset? from, DateTimeOffset? to, int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default);
         Task<bool> CreateAsync(int? actorUserId, string action, string? targetType = null, int? targetId = null, string? detail = null);
     }
 }

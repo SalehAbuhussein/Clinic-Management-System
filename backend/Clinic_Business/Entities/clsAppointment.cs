@@ -77,7 +77,7 @@ namespace Clinic_Business.Entities
             CreatedBy = createdBy;
         }
 
-        public static Task<int> GetTotalCountAsync(int? doctorId = null, int? patientId = null, DateTimeOffset? from = null, DateTimeOffset? to = null) => clsAppointmentDA.GetTotalCount(doctorId, patientId, from, to);
+        public static Task<int> GetTotalCountAsync(int? doctorId = null, int? patientId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, CancellationToken cancellationToken = default) => clsAppointmentDA.GetTotalCount(doctorId, patientId, from, to, cancellationToken);
 
         public static async Task<PagedResult<clsAppointment>> FindAllAsync(
             int? doctorId,
@@ -85,9 +85,11 @@ namespace Clinic_Business.Entities
             DateTimeOffset? from,
             DateTimeOffset? to,
             int pageNumber = 1,
-            int pageSize = 10)
+            int pageSize = 10,
+            CancellationToken cancellationToken = default
+        )
         {
-            DataTable table = await clsAppointmentDA.FindAllAsync(doctorId, patientId, from, to, pageNumber, pageSize);
+            DataTable table = await clsAppointmentDA.FindAllAsync(doctorId, patientId, from, to, pageNumber, pageSize, cancellationToken);
 
             List<clsAppointment> appointments = table.AsEnumerable().Select(MapAppointment).ToList();
             int total = 0;
@@ -95,7 +97,7 @@ namespace Clinic_Business.Entities
             if (table.Rows.Count > 0)
                 total = table.Rows[0].Field<int>("TotalCount");
             else if (pageNumber > 1)
-                total = await clsAppointmentDA.GetTotalCount(doctorId, patientId, from, to);
+                total = await clsAppointmentDA.GetTotalCount(doctorId, patientId, from, to, cancellationToken);
 
             return new PagedResult<clsAppointment>(appointments, pageNumber, pageSize, total);
         }

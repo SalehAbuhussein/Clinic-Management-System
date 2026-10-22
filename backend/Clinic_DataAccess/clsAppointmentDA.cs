@@ -60,11 +60,11 @@ namespace Clinic_DataAccess
         /// COUNT(*) OVER() has no row to ride on. This answers it directly.
         /// </summary>
         /// <returns>The number of matching appointments.</returns>
-        public static async Task<int> GetTotalCount(int? doctorId = null, int? patientId = null, DateTimeOffset? from = null, DateTimeOffset? to = null)
+        public static async Task<int> GetTotalCount(int? doctorId = null, int? patientId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, CancellationToken cancellationToken = default)
         {
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                await connection.OpenAsync();
+                await connection.OpenAsync(cancellationToken);
 
                 using (SqlCommand command = new SqlCommand())
                 {
@@ -74,7 +74,7 @@ namespace Clinic_DataAccess
 
                     command.CommandText = query + _AppointmentFilters(command, doctorId, patientId, from, to);
 
-                    return Convert.ToInt32(await command.ExecuteScalarAsync());
+                    return Convert.ToInt32(await command.ExecuteScalarAsync(cancellationToken));
                 }
             }
         }
@@ -119,14 +119,15 @@ namespace Clinic_DataAccess
             DateTimeOffset? from,
             DateTimeOffset? to,
             int pageNumber = 1,
-            int pageSize = 10
+            int pageSize = 10,
+            CancellationToken cancellationToken = default
         )
         {
             DataTable dt = new DataTable();
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                await connection.OpenAsync();
+                await connection.OpenAsync(cancellationToken);
 
                 string query = @"SELECT
                     A.AppointmentID, A.DoctorID, A.PatientID, A.StartAt, A.EndAt,
@@ -171,7 +172,7 @@ namespace Clinic_DataAccess
 
                     command.CommandText = query;
 
-                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync(cancellationToken))
                     {
                         if (reader.HasRows)
                         {

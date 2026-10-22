@@ -55,10 +55,10 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult> ExportPatients(string? fullname, string? phone, DateTimeOffset? from, DateTimeOffset? to)
         {
-            if (await _patientRepository.GetTotalCountAsync(fullname, phone, from, to) > ExcelFile.MaxRows)
+            if (await _patientRepository.GetTotalCountAsync(fullname, phone, from, to, HttpContext.RequestAborted) > ExcelFile.MaxRows)
                 return Problem(statusCode: StatusCodes.Status400BadRequest, detail: $"That search matches more than {ExcelFile.MaxRows:N0} patients. Narrow it and try again.");
 
-            PagedResult<clsPatient.PatientItem> patientsPage = await _patientRepository.FindAllAsync(fullname, phone, from, to, 1, ExcelFile.MaxRows);
+            PagedResult<clsPatient.PatientItem> patientsPage = await _patientRepository.FindAllAsync(fullname, phone, from, to, 1, ExcelFile.MaxRows, HttpContext.RequestAborted);
 
             return ExcelFile.Build("Patients", ExportColumns, patientsPage.Items);
         }

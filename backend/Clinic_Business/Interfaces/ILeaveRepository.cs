@@ -11,7 +11,7 @@ namespace Clinic_Business.Interfaces
 {
     public interface ILeaveRepository
     {
-        Task<int> GetTotalCountAsync(int? userId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, byte? status = null);
+        Task<int> GetTotalCountAsync(int? userId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, byte? status = null, CancellationToken cancellationToken = default);
 
         Task<PagedResult<LeaveItem>> FindAllLeavesAsync(
             int? userId,
@@ -19,7 +19,9 @@ namespace Clinic_Business.Interfaces
             DateTimeOffset? to,
             byte? status = null,
             int pageNumber = 1,
-            int pageSize = 10);
+            int pageSize = 10,
+            CancellationToken cancellationToken = default
+        );
         Task<clsLeave?> FindAsync(int id);
         Task<bool> HasDoctorLeaveAsync(int? doctorId, DateTimeOffset startAt, DateTimeOffset endAt);
         Task<bool> HasUserLeaveAsync(int? userId, DateTimeOffset startAt, DateTimeOffset endAt);

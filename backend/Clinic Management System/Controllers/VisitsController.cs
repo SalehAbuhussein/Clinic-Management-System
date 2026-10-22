@@ -100,10 +100,10 @@ namespace Clinic_Management_System.Controllers
                 doctorId = doctor.DoctorID;
             }
 
-            if (await _visitRepository.GetTotalCountAsync(doctorId, patientId, from, to) > ExcelFile.MaxRows)
+            if (await _visitRepository.GetTotalCountAsync(doctorId, patientId, from, to, HttpContext.RequestAborted) > ExcelFile.MaxRows)
                 return Problem(statusCode: StatusCodes.Status400BadRequest, detail: $"That range holds more than {ExcelFile.MaxRows:N0} visits. Narrow it and try again.");
 
-            PagedResult<clsVisit.VisitItem> visitsPage = await _visitRepository.FindAllAsync(doctorId, patientId, from, to, 1, ExcelFile.MaxRows);
+            PagedResult<clsVisit.VisitItem> visitsPage = await _visitRepository.FindAllAsync(doctorId, patientId, from, to, 1, ExcelFile.MaxRows, HttpContext.RequestAborted);
 
             return ExcelFile.Build("Visits", ExportColumns, visitsPage.Items);
         }

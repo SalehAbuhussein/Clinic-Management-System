@@ -59,11 +59,11 @@ namespace Clinic_DataAccess
         /// COUNT(*) OVER() has no row to ride on. This answers it directly.
         /// </summary>
         /// <returns>The number of matching rows.</returns>
-        public static async Task<int> GetTotalCount(string? fullname = null, string? phone = null, DateTimeOffset? from = null, DateTimeOffset? to = null)
+        public static async Task<int> GetTotalCount(string? fullname = null, string? phone = null, DateTimeOffset? from = null, DateTimeOffset? to = null, CancellationToken cancellationToken = default)
         {
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                await connection.OpenAsync();
+                await connection.OpenAsync(cancellationToken);
 
                 using (SqlCommand command = new SqlCommand())
                 {
@@ -75,18 +75,18 @@ namespace Clinic_DataAccess
 
                     command.CommandText = query + _PatientFilters(command, fullname, phone, from, to);
 
-                    return Convert.ToInt32(await command.ExecuteScalarAsync());
+                    return Convert.ToInt32(await command.ExecuteScalarAsync(cancellationToken));
                 }
             }
         }
 
-        public static async Task<DataTable> FindAllAsync(string? fullname = null, string? phone = null, DateTimeOffset? from = null, DateTimeOffset? to = null, int pageNumber = 1, int pageSize = 10)
+        public static async Task<DataTable> FindAllAsync(string? fullname = null, string? phone = null, DateTimeOffset? from = null, DateTimeOffset? to = null, int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default)
         {
             DataTable dt = new DataTable();
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                await connection.OpenAsync();
+                await connection.OpenAsync(cancellationToken);
 
                 string query = @"SELECT
                     COUNT(*) OVER() AS TotalCount,
@@ -117,7 +117,7 @@ namespace Clinic_DataAccess
 
                     command.CommandText = query;
 
-                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync(cancellationToken))
                     {
                         if (reader.HasRows)
                         {

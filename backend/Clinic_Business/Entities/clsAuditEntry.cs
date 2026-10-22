@@ -22,16 +22,17 @@ namespace Clinic_Business.Entities
             string Detail
         );
 
-        public static Task<int> GetTotalCountAsync(DateTimeOffset? from = null, DateTimeOffset? to = null) => clsAuditEntryDA.GetTotalCount(from, to);
+        public static Task<int> GetTotalCountAsync(DateTimeOffset? from = null, DateTimeOffset? to = null, CancellationToken cancellationToken = default) => clsAuditEntryDA.GetTotalCount(from, to, cancellationToken);
 
         public static async Task<PagedResult<AuditEntryItem>> FindAllAsync(
             DateTimeOffset? from,
             DateTimeOffset? to,
             int pageNumber = 1,
-            int pageSize = 10
+            int pageSize = 10,
+            CancellationToken cancellationToken = default
         )
         {
-            DataTable dt = await clsAuditEntryDA.FindAllAsync(from, to, pageNumber, pageSize);
+            DataTable dt = await clsAuditEntryDA.FindAllAsync(from, to, pageNumber, pageSize, cancellationToken);
 
             List<AuditEntryItem> entries = dt.AsEnumerable().Select(row => new AuditEntryItem(
                 row.Field<int>("AuditEntryID"),
@@ -49,7 +50,7 @@ namespace Clinic_Business.Entities
             if (dt.Rows.Count > 0)
                 total = dt.Rows[0].Field<int>("TotalCount");
             else if (pageNumber > 1)
-                total = await clsAuditEntryDA.GetTotalCount(from, to);
+                total = await clsAuditEntryDA.GetTotalCount(from, to, cancellationToken);
 
             return new PagedResult<AuditEntryItem>(entries, pageNumber, pageSize, total);
         }
