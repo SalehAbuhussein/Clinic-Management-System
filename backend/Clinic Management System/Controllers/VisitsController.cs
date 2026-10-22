@@ -1,9 +1,10 @@
-using Clinic_Business.Common;
+﻿using Clinic_Business.Common;
 using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Visits;
 using Clinic_Management_System.Export;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
@@ -18,17 +19,20 @@ namespace Clinic_Management_System.Controllers
         private readonly IVisitRepository _visitRepository;
         private readonly IDiagnosisRepository _diagnosisRepository;
         private readonly IDoctorRepository _doctorRepository;
+        private readonly ILogger<VisitsController> _logger;
 
         public VisitsController(
             IAppointmentRepository appointmentRepository,
             IVisitRepository visitRepository,
             IDiagnosisRepository diagnosisRepository,
-            IDoctorRepository doctorRepository)
+            IDoctorRepository doctorRepository,
+            ILogger<VisitsController> logger)
         {
             _appointmentRepository = appointmentRepository;
             _visitRepository = visitRepository;
             _diagnosisRepository = diagnosisRepository;
             _doctorRepository = doctorRepository;
+            _logger = logger;
         }
 
         [Authorize(Roles = "Admin,Staff,Doctor")]
@@ -155,40 +159,46 @@ namespace Clinic_Management_System.Controllers
         public async Task<ActionResult<VisitDTO>> AddVisit(CreateVisitDTO visitDTO)
         {
             if (await _visitRepository.ExistsByAppointmentIdAsync(visitDTO.AppointmentID))
-                return Problem(statusCode: StatusCodes.Status409Conflict,
-                    detail: $"Appointment {visitDTO.AppointmentID} already has a visit.");
+                return Problem(statusCode: StatusCodes.Status409Conflict, detail: $"Appointment {visitDTO.AppointmentID} already has a visit.");
 
             if (!await _appointmentRepository.ExistsAsync(visitDTO.AppointmentID))
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Appointment with id {visitDTO.AppointmentID} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Appointment with id {visitDTO.AppointmentID} not found");
 
             if (await _appointmentRepository.IsCancelledAsync(visitDTO.AppointmentID))
-                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                    detail: "The appointment has been cancelled, so no visit can be created for it.");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The appointment has been cancelled, so no visit can be created for it.");
 
             DateTimeOffset checkinTime = visitDTO.CheckinTime ?? DateTimeOffset.Now;
 
             if (checkinTime > DateTimeOffset.UtcNow)
-                return Problem(statusCode: StatusCodes.Status400BadRequest,
-                    detail: "Checkin time cannot be in the future.");
+                return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "Checkin time cannot be in the future.");
 
             clsVisit newVisit = new clsVisit();
             newVisit.AppointmentID = visitDTO.AppointmentID;
             newVisit.CheckinTime = checkinTime;
             newVisit.Notes = visitDTO.Notes;
 
-            if (await newVisit.SaveAsync())
-                return CreatedAtRoute("GetVisitByID", new { id = newVisit.VisitID }, new VisitDTO
-                {
-                    Id = newVisit.VisitID,
-                    AppointmentID = newVisit.AppointmentID,
-                    CheckinTime = newVisit.CheckinTime,
-                    CheckoutTime = newVisit.CheckoutTime,
-                    Notes = newVisit.Notes,
-                });
+            try
+            {
+                if (await newVisit.SaveAsync())
+                    return CreatedAtRoute("GetVisitByID", new { id = newVisit.VisitID }, new VisitDTO
+                    {
+                        Id = newVisit.VisitID,
+                        AppointmentID = newVisit.AppointmentID,
+                        CheckinTime = newVisit.CheckinTime,
+                        CheckoutTime = newVisit.CheckoutTime,
+                        Notes = newVisit.Notes,
+                    });
+            }
+            catch (SqlException exception) when (exception.Number is 2627 or 2601)
+            {
+                _logger.LogWarning(exception,
+                    "Check-in raced past the guard for appointment {AppointmentID}; the unique index refused it",
+                    visitDTO.AppointmentID);
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The visit could not be saved.");
+                return Problem(statusCode: StatusCodes.Status409Conflict, detail: "Something went wrong. Please try again.");
+            }
+
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The visit could not be saved.");
         }
 
         [Authorize(Roles = "Admin,Staff")]

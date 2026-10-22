@@ -3,6 +3,7 @@ using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Prescriptions;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using static Clinic_Business.Entities.clsPrescriptionItem;
@@ -18,15 +19,18 @@ namespace Clinic_Management_System.Controllers
         private readonly IVisitRepository _visitRepository;
         private readonly IPrescriptionItemRepository _prescriptionItemRepository;
         private readonly IMedicineRepository _medicineRepository;
+        private readonly ILogger<PrescriptionsController> _logger;
 
         public PrescriptionsController(
             IVisitRepository visitRepository,
             IPrescriptionItemRepository prescriptionItemRepository,
-            IMedicineRepository medicineRepository)
+            IMedicineRepository medicineRepository,
+            ILogger<PrescriptionsController> logger)
         {
             _visitRepository = visitRepository;
             _prescriptionItemRepository = prescriptionItemRepository;
             _medicineRepository = medicineRepository;
+            _logger = logger;
         }
 
         [Authorize]
@@ -111,11 +115,21 @@ namespace Clinic_Management_System.Controllers
 
             var items = request.Items.Select(item => (visitId, item.MedicineID, item.Dosage, item.Frequency, item.Duration)).ToList();
 
-            if (await _prescriptionItemRepository.CreateManyAsync(items))
-                return CreatedAtRoute("GetVisitPrescriptionItems", new { visitId }, null);
+            try
+            {
+                if (await _prescriptionItemRepository.CreateManyAsync(items))
+                    return CreatedAtRoute("GetVisitPrescriptionItems", new { visitId }, null);
+            }
+            catch (SqlException exception) when (exception.Number is 2627 or 2601)
+            {
+                _logger.LogWarning(exception,
+                    "Prescription raced past the guard for visit {VisitId}; the unique index refused it",
+                    visitId);
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The prescription could not be saved.");
+                return Problem(statusCode: StatusCodes.Status409Conflict, detail: "Something went wrong. Please try again.");
+            }
+
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The prescription could not be saved.");
         }
 
         [Authorize]
