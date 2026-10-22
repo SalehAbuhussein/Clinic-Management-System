@@ -1,4 +1,5 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using Clinic_DataAccess.Common;
+using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -30,7 +31,7 @@ namespace Clinic_DataAccess
                     if (!string.IsNullOrWhiteSpace(name))
                     {
                         query += "\nWHERE Genericname LIKE @Name OR Brandname LIKE @Name";
-                        command.Parameters.AddWithValue("@Name", $"%{name.Trim()}%");
+                        command.Parameters.AddWithValue("@Name", clsLikePattern.Contains(name));
                     }
 
                     query += @"

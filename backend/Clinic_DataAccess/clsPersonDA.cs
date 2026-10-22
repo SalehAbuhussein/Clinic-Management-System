@@ -1,4 +1,5 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using Clinic_DataAccess.Common;
+using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -42,19 +43,19 @@ namespace Clinic_DataAccess
                     if (!string.IsNullOrWhiteSpace(fullname))
                     {
                         conditions.Add("CONCAT_WS(' ', Firstname, Midname, Thirdname, Lastname) LIKE @Fullname");
-                        command.Parameters.AddWithValue("@Fullname", $"%{fullname.Trim()}%");
+                        command.Parameters.AddWithValue("@Fullname", clsLikePattern.Contains(fullname));
                     }
 
                     if (!string.IsNullOrWhiteSpace(nationalNo))
                     {
                         conditions.Add("NationalNo LIKE @NationalNo");
-                        command.Parameters.AddWithValue("@NationalNo", $"{nationalNo.Trim()}%");
+                        command.Parameters.AddWithValue("@NationalNo", clsLikePattern.StartsWith(nationalNo));
                     }
 
                     if (!string.IsNullOrWhiteSpace(phone))
                     {
                         conditions.Add("Phone LIKE @Phone");
-                        command.Parameters.AddWithValue("@Phone", $"{phone.Trim()}%");
+                        command.Parameters.AddWithValue("@Phone", clsLikePattern.StartsWith(phone));
                     }
 
                     if (conditions.Count > 0)

@@ -1,3 +1,4 @@
+﻿using Clinic_DataAccess.Common;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.SqlClient;
 using System;
@@ -39,13 +40,13 @@ namespace Clinic_DataAccess
                     if (!string.IsNullOrWhiteSpace(fullname))
                     {
                         conditions.Add("CONCAT_WS(' ', P.Firstname, P.Midname, P.Thirdname, P.Lastname) LIKE @Fullname");
-                        command.Parameters.AddWithValue("@Fullname", $"%{fullname.Trim()}%");
+                        command.Parameters.AddWithValue("@Fullname", clsLikePattern.Contains(fullname));
                     }
 
                     if (!string.IsNullOrWhiteSpace(email))
                     {
                         conditions.Add("U.Email LIKE @Email");
-                        command.Parameters.AddWithValue("@Email", $"{email.Trim()}%");
+                        command.Parameters.AddWithValue("@Email", clsLikePattern.StartsWith(email));
                     }
 
                     if (active.HasValue)

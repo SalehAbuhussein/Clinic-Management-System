@@ -1,3 +1,4 @@
+﻿using Clinic_DataAccess.Common;
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
@@ -40,7 +41,7 @@ namespace Clinic_DataAccess
                     if (!string.IsNullOrWhiteSpace(fullname))
                     {
                         conditions.Add("CONCAT_WS(' ', P.Firstname, P.Midname, P.Thirdname, P.Lastname) LIKE @Fullname");
-                        command.Parameters.AddWithValue("@Fullname", $"%{fullname.Trim()}%");
+                        command.Parameters.AddWithValue("@Fullname", clsLikePattern.Contains(fullname));
                     }
 
                     if (!string.IsNullOrWhiteSpace(phone))
@@ -48,7 +49,7 @@ namespace Clinic_DataAccess
                         // Anchored at the start: nobody searches a phone number from the
                         // middle, and a leading wildcard would rule out an index seek.
                         conditions.Add("P.Phone LIKE @Phone");
-                        command.Parameters.AddWithValue("@Phone", $"{phone.Trim()}%");
+                        command.Parameters.AddWithValue("@Phone", clsLikePattern.StartsWith(phone));
                     }
 
                     if (from.HasValue)
