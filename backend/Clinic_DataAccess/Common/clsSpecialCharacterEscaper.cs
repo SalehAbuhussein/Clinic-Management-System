@@ -8,7 +8,7 @@
     /// into a name box matched every row. Wrapping each one in brackets makes
     /// T-SQL read it as the character it is, which needs no ESCAPE clause.
     /// </summary>
-    public class clsLikePattern
+    public class clsSpecialCharacterEscaper
     {
         /// <summary>
         /// Rows holding the text anywhere. A leading % rules out an index seek,

@@ -26,13 +26,13 @@ namespace Clinic_DataAccess
             if (!string.IsNullOrWhiteSpace(fullname))
             {
                 conditions.Add("CONCAT_WS(' ', P.Firstname, P.Midname, P.Thirdname, P.Lastname) LIKE @Fullname");
-                command.Parameters.AddWithValue("@Fullname", clsLikePattern.Contains(fullname));
+                command.Parameters.AddWithValue("@Fullname", clsSpecialCharacterEscaper.Contains(fullname));
             }
 
             if (!string.IsNullOrWhiteSpace(specialization))
             {
                 conditions.Add("D.Specialization LIKE @Specialization");
-                command.Parameters.AddWithValue("@Specialization", clsLikePattern.Contains(specialization));
+                command.Parameters.AddWithValue("@Specialization", clsSpecialCharacterEscaper.Contains(specialization));
             }
 
             if (active.HasValue)

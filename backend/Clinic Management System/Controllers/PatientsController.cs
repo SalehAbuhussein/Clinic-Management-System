@@ -1,4 +1,4 @@
-using Clinic_Business.Common;
+﻿using Clinic_Business.Common;
 using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Patients;
@@ -31,9 +31,6 @@ namespace Clinic_Management_System.Controllers
         {
             perPage = Math.Clamp(perPage, 1, 10);
 
-            fullname = fullname?.Trim().Replace("%", "").Replace("_", "").Replace("[", "");
-            phone = phone?.Trim().Replace("%", "").Replace("_", "").Replace("[", "");
-
             PagedResult<clsPatient.PatientItem> patientsPage = await _patientRepository.FindAllAsync(fullname, phone, null, null, page, perPage);
 
             List<PatientDTO> patientsList = patientsPage.Items
@@ -58,9 +55,6 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult> ExportPatients(string? fullname, string? phone, DateTimeOffset? from, DateTimeOffset? to)
         {
-            fullname = fullname?.Trim().Replace("%", "").Replace("_", "").Replace("[", "");
-            phone = phone?.Trim().Replace("%", "").Replace("_", "").Replace("[", "");
-
             PagedResult<clsPatient.PatientItem> patientsPage = await _patientRepository.FindAllAsync(fullname, phone, from, to, 1, ExcelFile.MaxRows + 1);
 
             if (patientsPage.Items.Count > ExcelFile.MaxRows)
@@ -93,8 +87,7 @@ namespace Clinic_Management_System.Controllers
             clsPatient? patient = await _patientRepository.FindByIdAsync(id);
             var authorization = await authorizationService.AuthorizeAsync(User, id, "ViewPatient");
             if (patient == null || !authorization.Succeeded)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Patient with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Patient with id {id} not found");
 
             PatientDTO patientDTO = new PatientDTO
             {
@@ -127,8 +120,7 @@ namespace Clinic_Management_System.Controllers
         public async Task<ActionResult<PatientDTO>> AddPatient(CreatePatientDTO patientDTO)
         {
             if (await _patientRepository.FindByNationalNoAsync(patientDTO.NationalNo) != null)
-                return Problem(statusCode: StatusCodes.Status409Conflict,
-                    detail: "A patient with this national number already exists.");
+                return Problem(statusCode: StatusCodes.Status409Conflict, detail: "A patient with this national number already exists.");
 
             clsPatient newPatient = new clsPatient();
             newPatient.EmergencyContactNumber = patientDTO.EmergencyContactNumber;
@@ -155,8 +147,7 @@ namespace Clinic_Management_System.Controllers
                 return CreatedAtRoute("GetPatientByID", new { id = newPatient.PatientID }, newPatientDTO);
             }
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The patient could not be saved. Check the name, phone, national number and date of birth.");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The patient could not be saved. Check the name, phone, national number and date of birth.");
         }
 
         [Authorize(Roles = "Admin,Staff")]
@@ -172,8 +163,7 @@ namespace Clinic_Management_System.Controllers
             clsPatient? patient = await _patientRepository.FindByIdAsync(id);
 
             if (patient == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Patient with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Patient with id {id} not found");
 
             patient.EmergencyContactNumber = updatedPatient.EmergencyContactNumber;
             patient.EmergencyContactName = updatedPatient.EmergencyContactName;
@@ -188,8 +178,7 @@ namespace Clinic_Management_System.Controllers
             if (await patient.SaveAsync())
                 return NoContent();
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The patient could not be saved. Check the name, phone, national number and date of birth.");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The patient could not be saved. Check the name, phone, national number and date of birth.");
         }
 
         [Authorize(Roles = "Admin")]
@@ -204,14 +193,12 @@ namespace Clinic_Management_System.Controllers
         {
             clsPatient? patient = await _patientRepository.FindByIdAsync(id);
             if (patient == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Patient with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Patient with id {id} not found");
 
             if (await _patientRepository.DeleteAsync(id))
                 return NoContent();
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The patient could not be deleted.");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The patient could not be deleted.");
         }
     }
 }

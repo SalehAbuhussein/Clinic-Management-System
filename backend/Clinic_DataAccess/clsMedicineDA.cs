@@ -31,7 +31,7 @@ namespace Clinic_DataAccess
                     if (!string.IsNullOrWhiteSpace(name))
                     {
                         query += "\nWHERE Genericname LIKE @Name OR Brandname LIKE @Name";
-                        command.Parameters.AddWithValue("@Name", clsLikePattern.Contains(name));
+                        command.Parameters.AddWithValue("@Name", clsSpecialCharacterEscaper.Contains(name));
                     }
 
                     query += @"

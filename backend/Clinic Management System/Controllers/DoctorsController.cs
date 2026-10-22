@@ -1,4 +1,4 @@
-using Clinic_Business.Common;
+﻿using Clinic_Business.Common;
 using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Doctors;
@@ -29,9 +29,6 @@ namespace Clinic_Management_System.Controllers
         public async Task<ActionResult<PagedResult<DoctorDTO>>> GetDoctors(string? fullname, string? specialization, bool? active, [Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
             perPage = Math.Clamp(perPage, 1, 10);
-
-            fullname = fullname?.Trim().Replace("%", "").Replace("_", "").Replace("[", "");
-            specialization = specialization?.Trim().Replace("%", "").Replace("_", "").Replace("[", "");
 
             PagedResult<clsDoctor.DoctorItem> doctorsPage = await _doctorRepository.FindAllAsync(fullname, specialization, active, page, perPage);
 

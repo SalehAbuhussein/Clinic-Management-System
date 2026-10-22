@@ -28,19 +28,19 @@ namespace Clinic_DataAccess
             if (!string.IsNullOrWhiteSpace(fullname))
             {
                 conditions.Add("CONCAT_WS(' ', Firstname, Midname, Thirdname, Lastname) LIKE @Fullname");
-                command.Parameters.AddWithValue("@Fullname", clsLikePattern.Contains(fullname));
+                command.Parameters.AddWithValue("@Fullname", clsSpecialCharacterEscaper.Contains(fullname));
             }
 
             if (!string.IsNullOrWhiteSpace(nationalNo))
             {
                 conditions.Add("NationalNo LIKE @NationalNo");
-                command.Parameters.AddWithValue("@NationalNo", clsLikePattern.StartsWith(nationalNo));
+                command.Parameters.AddWithValue("@NationalNo", clsSpecialCharacterEscaper.StartsWith(nationalNo));
             }
 
             if (!string.IsNullOrWhiteSpace(phone))
             {
                 conditions.Add("Phone LIKE @Phone");
-                command.Parameters.AddWithValue("@Phone", clsLikePattern.StartsWith(phone));
+                command.Parameters.AddWithValue("@Phone", clsSpecialCharacterEscaper.StartsWith(phone));
             }
 
             return conditions.Count == 0 ? string.Empty : $"\nWHERE {string.Join(" AND ", conditions)}";

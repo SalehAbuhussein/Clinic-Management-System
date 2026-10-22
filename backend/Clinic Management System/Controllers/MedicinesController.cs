@@ -31,8 +31,6 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<PagedResult<MedicineDTO>>> GetMedicines(string? name, [Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
-            name = name?.Trim().Replace("%", "").Replace("_", "").Replace("[", "");
-
             PagedResult<clsMedicine> medicinesPage = await _medicineRepository.FindAllAsync(name, page, perPage);
 
             List<MedicineDTO> medicinesList = medicinesPage.Items
@@ -72,7 +70,6 @@ namespace Clinic_Management_System.Controllers
                 Strength = medicine.Strength,
                 RxCUI = medicine.RxCUI,
             };
-
 
             return Ok(medicineDTO);
         }
