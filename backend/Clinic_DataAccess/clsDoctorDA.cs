@@ -216,13 +216,14 @@ namespace Clinic_DataAccess
                     // Person Info
                     command.Parameters.AddWithValue("@Firstname", firstname);
                     command.Parameters.AddWithValue("@Midname", midname);
-                    command.Parameters.AddWithValue("@Thirdname", thirdname);
+                    command.Parameters.AddWithValue("@Thirdname", (object?)thirdname ?? DBNull.Value);
                     command.Parameters.AddWithValue("@Lastname", lastname);
                     command.Parameters.AddWithValue("@NationalNo", nationalNo);
                     command.Parameters.AddWithValue("@Phone", phone);
-                    command.Parameters.AddWithValue("@Gender", gender);
+                    if (gender.HasValue)
+                        command.Parameters.AddWithValue("@Gender", gender.Value);
                     command.Parameters.AddWithValue("@DateOfBirth", dateOfBirth);
-                    command.Parameters.AddWithValue("@ProfileImage", profileImage);
+                    command.Parameters.AddWithValue("@ProfileImage", (object?)profileImage ?? DBNull.Value);
 
 
                     // Doctor Info
@@ -270,7 +271,7 @@ namespace Clinic_DataAccess
             string? profileImage
         )
         {
-            if (!id.HasValue)
+            if (!id.HasValue || !personId.HasValue)
                 return false;
 
             bool hasUpdated = false;
@@ -284,13 +285,14 @@ namespace Clinic_DataAccess
                     command.CommandType = CommandType.StoredProcedure;
 
                     // Person Info
-                    command.Parameters.AddWithValue("@PersonID", personId);
+                    command.Parameters.AddWithValue("@PersonID", (object?)personId ?? DBNull.Value);
                     command.Parameters.AddWithValue("@Firstname", firstname);
                     command.Parameters.AddWithValue("@Midname", midname);
-                    command.Parameters.AddWithValue("@Thirdname", thirdname);
+                    command.Parameters.AddWithValue("@Thirdname", (object?)thirdname ?? DBNull.Value);
                     command.Parameters.AddWithValue("@Lastname", lastname);
                     command.Parameters.AddWithValue("@Phone", phone);
-                    command.Parameters.AddWithValue("@Gender", gender);
+                    if (gender.HasValue)
+                        command.Parameters.AddWithValue("@Gender", gender.Value);
                     command.Parameters.AddWithValue("@DateOfBirth", dateOfBirth);
                     command.Parameters.AddWithValue("@ProfileImage", string.IsNullOrEmpty(profileImage) ? DBNull.Value : profileImage);
 

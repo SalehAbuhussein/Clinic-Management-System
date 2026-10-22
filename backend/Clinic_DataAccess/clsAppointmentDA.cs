@@ -375,7 +375,7 @@ namespace Clinic_DataAccess
 
         public static async Task<bool> IsAppointmentCancelledAsync(int? id)
         {
-            if (id == int.MinValue)
+            if (!id.HasValue)
                 return false;
 
             bool isFound = false;
@@ -412,6 +412,9 @@ namespace Clinic_DataAccess
             int createdBy
         )
         {
+            if (!doctorID.HasValue)
+                return null;
+
             int? id = null;
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
@@ -467,7 +470,7 @@ namespace Clinic_DataAccess
             string? notes
         )
         {
-            if (!id.HasValue)
+            if (!id.HasValue ||!doctorID.HasValue)
                 return false;
 
             int rowsAffected = 0;

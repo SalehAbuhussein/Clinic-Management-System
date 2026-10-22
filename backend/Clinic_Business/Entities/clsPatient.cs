@@ -159,8 +159,6 @@ namespace Clinic_Business.Entities
             PatientID = await clsPatientDA.CreateAsync(
                 EmergencyContactNumber,
                 EmergencyContactName,
-                CreatedAt,
-                UpdatedAt,
                 CreatedBy,
                 Firstname,
                 Midname,

@@ -181,8 +181,6 @@ namespace Clinic_DataAccess
         public static async Task<int?> CreateAsync(
             string? emergencyContactNumber,
             string? emergencyContactName,
-            DateTime createdAt,
-            DateTime updatedAt,
             int createdBy,
             string firstname,
             string midname,
@@ -208,11 +206,12 @@ namespace Clinic_DataAccess
                     // Person Info
                     command.Parameters.AddWithValue("@Firstname", firstname);
                     command.Parameters.AddWithValue("@Midname", midname);
-                    command.Parameters.AddWithValue("@Thirdname", thirdname);
+                    command.Parameters.AddWithValue("@Thirdname", (object?)thirdname ?? DBNull.Value);
                     command.Parameters.AddWithValue("@Lastname", lastname);
                     command.Parameters.AddWithValue("@NationalNo", nationalNo);
                     command.Parameters.AddWithValue("@Phone", phone);
-                    command.Parameters.AddWithValue("@Gender", gender);
+                    if (gender.HasValue)
+                        command.Parameters.AddWithValue("@Gender", gender.Value);
                     command.Parameters.AddWithValue("@DateOfBirth", dateOfBirth);
                     command.Parameters.AddWithValue("@ProfileImage", string.IsNullOrEmpty(profileImage) ? DBNull.Value : profileImage);
 
@@ -265,16 +264,17 @@ namespace Clinic_DataAccess
                     // Person Info
                     command.Parameters.AddWithValue("@Firstname", firstname);
                     command.Parameters.AddWithValue("@Midname", midname);
-                    command.Parameters.AddWithValue("@Thirdname", thirdname);
+                    command.Parameters.AddWithValue("@Thirdname", (object?)thirdname ?? DBNull.Value);
                     command.Parameters.AddWithValue("@Lastname", lastname);
                     command.Parameters.AddWithValue("@Phone", phone);
-                    command.Parameters.AddWithValue("@Gender", gender);
+                    if (gender.HasValue)
+                        command.Parameters.AddWithValue("@Gender", gender.Value);
                     command.Parameters.AddWithValue("@DateOfBirth", dateOfBirth);
                     command.Parameters.AddWithValue("@ProfileImage", string.IsNullOrEmpty(profileImage) ? DBNull.Value : profileImage);
 
                     // Doctor Info
                     command.Parameters.AddWithValue("@PatientID", id);
-                    command.Parameters.AddWithValue("@PersonID", personID);
+                    command.Parameters.AddWithValue("@PersonID", (object?)personID ?? DBNull.Value);
                     command.Parameters.AddWithValue("@EmergencyContactNumber", string.IsNullOrEmpty(emergencyContactNumber) ? DBNull.Value : emergencyContactNumber);
                     command.Parameters.AddWithValue("@EmergencyContactName", string.IsNullOrEmpty(emergencyContactName) ? DBNull.Value : emergencyContactName);
 

@@ -167,8 +167,8 @@ namespace Clinic_DataAccess
 
         public static async Task<int?> CreateAsync(
             int? userId,
-            DateTimeOffset? from,
-            DateTimeOffset? to,
+            DateTimeOffset from,
+            DateTimeOffset to,
             string reason
         )
         {

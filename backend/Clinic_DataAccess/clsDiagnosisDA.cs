@@ -12,7 +12,6 @@ namespace Clinic_DataAccess
 {
     public class clsDiagnosisDA
     {
-        /// <summary>Returns the row; ref parameters cannot cross an await (CS1988).</summary>
         public static async Task<DataRow?> FindAsync(int? id)
         {
             if (!id.HasValue)
@@ -128,6 +127,9 @@ namespace Clinic_DataAccess
 
         public static async Task<int?> CreateAsync(int? visitID, string diagnosis, string? notes)
         {
+            if (!visitID.HasValue)
+                return null;
+
             int? id = null;
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))

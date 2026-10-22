@@ -202,20 +202,18 @@ namespace Clinic_DataAccess
                     // User Info
                     command.Parameters.AddWithValue("@Email", email);
                     command.Parameters.AddWithValue("@PasswordHash", passwordHash);
-                    //command.Parameters.AddWithValue("@RefreshTokenHash", string.IsNullOrEmpty(refreshTokenHash) ? DBNull.Value : refreshTokenHash);
-                    //command.Parameters.AddWithValue("@RefreshTokenExpiresAt", refreshTokenExpiresAt == null ? DBNull.Value : refreshTokenExpiresAt);
-                    //command.Parameters.AddWithValue("@RefreshTokenRevokedAt", refreshTokenRevokedAt == null ? DBNull.Value : refreshTokenRevokedAt);
 
                     // Person Info
                     command.Parameters.AddWithValue("@Firstname", firstname);
                     command.Parameters.AddWithValue("@Midname", midname);
-                    command.Parameters.AddWithValue("@Thirdname", thirdname);
+                    command.Parameters.AddWithValue("@Thirdname", (object?)thirdname ?? DBNull.Value);
                     command.Parameters.AddWithValue("@Lastname", lastname);
                     command.Parameters.AddWithValue("@NationalNo", nationalNo);
                     command.Parameters.AddWithValue("@Phone", phone);
-                    command.Parameters.AddWithValue("@Gender", gender);
+                    if (gender.HasValue)
+                        command.Parameters.AddWithValue("@Gender", gender.Value);
                     command.Parameters.AddWithValue("@DateOfBirth", dateOfBirth);
-                    command.Parameters.AddWithValue("@ProfileImage", profileImage);
+                    command.Parameters.AddWithValue("@ProfileImage", (object?)profileImage ?? DBNull.Value);
 
                     SqlParameter userId = new SqlParameter("@UserID", SqlDbType.Int);
                     userId.Direction = ParameterDirection.Output;
@@ -242,7 +240,7 @@ namespace Clinic_DataAccess
             DateTime? refreshTokenRevokedAt
         )
         {
-            if (!id.HasValue)
+            if (!id.HasValue || !personID.HasValue)
                 return false;
 
             int rowsAffected = 0;
