@@ -8,6 +8,8 @@ namespace Clinic_Business.Repositories
     {
         public Task<clsAppointment?> FindByIdAsync(int id) => clsAppointment.FindAsync(id);
 
+        public Task<int> GetTotalCountAsync(int? doctorId = null, int? patientId = null, DateTimeOffset? from = null, DateTimeOffset? to = null) => clsAppointment.GetTotalCountAsync(doctorId, patientId, from, to);
+
         public Task<PagedResult<clsAppointment>> FindAllAsync(
             int? doctorId,
             int? patientId,

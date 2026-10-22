@@ -133,10 +133,10 @@ namespace Clinic_Management_System.Controllers
             if (from.HasValue && to.HasValue && from > to)
                 return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "The start of the range must be on or before its end.");
 
-            PagedResult<clsAppointment> appointmentsPage = await _appointmentRepository.FindAllAsync(doctorId, patientId, from, to, 1, ExcelFile.MaxRows + 1);
-
-            if (appointmentsPage.Items.Count > ExcelFile.MaxRows)
+            if (await _appointmentRepository.GetTotalCountAsync(doctorId, patientId, from, to) > ExcelFile.MaxRows)
                 return Problem(statusCode: StatusCodes.Status400BadRequest, detail: $"That range hold more than {ExcelFile.MaxRows:N0} appointments. Narrow it and try again.");
+
+            PagedResult<clsAppointment> appointmentsPage = await _appointmentRepository.FindAllAsync(doctorId, patientId, from, to, 1, ExcelFile.MaxRows);
 
             return ExcelFile.Build("Appointments", ExportColumns, appointmentsPage.Items);
         }

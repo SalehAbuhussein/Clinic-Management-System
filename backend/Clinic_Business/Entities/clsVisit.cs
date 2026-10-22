@@ -58,6 +58,8 @@ namespace Clinic_Business.Entities
 
         public record VisitItem(int Id, int AppointmentID, string? PatientName, string? DoctorName, DateTimeOffset AppointmentStartAt, DateTimeOffset CheckinTime, DateTimeOffset? CheckoutTime, string? Notes);
 
+        public static Task<int> GetTotalCountAsync(int? doctorId = null, int? patientId = null, DateTimeOffset? from = null, DateTimeOffset? to = null) => clsVisitDA.GetTotalCount(doctorId, patientId, from, to);
+
         public static async Task<PagedResult<VisitItem>> FindAllAsync(int? doctorId = null, int? patientId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, int pageNumber = 1, int pageSize = 10)
         {
             DataTable table = await clsVisitDA.FindAllAsync(doctorId, patientId, from, to, pageNumber, pageSize);

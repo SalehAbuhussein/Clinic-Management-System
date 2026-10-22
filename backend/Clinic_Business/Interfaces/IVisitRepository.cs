@@ -7,6 +7,8 @@ namespace Clinic_Business.Interfaces
     {
         Task<clsVisit?> FindByIdAsync(int? id);
         Task<clsVisit?> FindByAppointmentIdAsync(int? id);
+        Task<int> GetTotalCountAsync(int? doctorId = null, int? patientId = null, DateTimeOffset? from = null, DateTimeOffset? to = null);
+
         Task<PagedResult<clsVisit.VisitItem>> FindAllAsync(int? doctorId = null, int? patientId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, int pageNumber = 1, int pageSize = 10);
         Task<bool> ExistsByAppointmentIdAsync(int id);
         Task<bool> DeleteAsync(int? id);

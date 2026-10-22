@@ -11,6 +11,8 @@ namespace Clinic_Business.Interfaces
 {
     public interface ILeaveRepository
     {
+        Task<int> GetTotalCountAsync(int? userId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, byte? status = null);
+
         Task<PagedResult<LeaveItem>> FindAllLeavesAsync(
             int? userId,
             DateTimeOffset? from,

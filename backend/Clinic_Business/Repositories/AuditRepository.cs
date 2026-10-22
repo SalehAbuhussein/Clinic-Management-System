@@ -11,6 +11,8 @@ namespace Clinic_Business.Repositories
 {
     public class AuditRepository : IAuditRepository
     {
+        public Task<int> GetTotalCountAsync(DateTimeOffset? from = null, DateTimeOffset? to = null) => clsAuditEntry.GetTotalCountAsync(from, to);
+
         public Task<PagedResult<clsAuditEntry.AuditEntryItem>> FindAllAsync(DateTimeOffset? from, DateTimeOffset? to, int pageNumber = 1, int pageSize = 10) => clsAuditEntry.FindAllAsync(from, to, pageNumber, pageSize);
         public Task<bool> CreateAsync(int? actorUserId, string action, string? targetType = null, int? targetId = null, string? detail = null) => clsAuditEntry.CreateAsync(actorUserId, action, targetType, targetId, detail);
     }

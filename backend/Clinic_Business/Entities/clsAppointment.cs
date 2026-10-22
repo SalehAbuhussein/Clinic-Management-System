@@ -77,6 +77,8 @@ namespace Clinic_Business.Entities
             CreatedBy = createdBy;
         }
 
+        public static Task<int> GetTotalCountAsync(int? doctorId = null, int? patientId = null, DateTimeOffset? from = null, DateTimeOffset? to = null) => clsAppointmentDA.GetTotalCount(doctorId, patientId, from, to);
+
         public static async Task<PagedResult<clsAppointment>> FindAllAsync(
             int? doctorId,
             int? patientId,

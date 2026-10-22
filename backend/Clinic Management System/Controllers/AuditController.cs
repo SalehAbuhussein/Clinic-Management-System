@@ -57,10 +57,10 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult> ExportAuditEntries(DateTimeOffset? from, DateTimeOffset? to)
         {
-            PagedResult<AuditEntryItem> entriesPage = await _auditRepository.FindAllAsync(from, to, 1, ExcelFile.MaxRows + 1);
-
-            if (entriesPage.Items.Count > ExcelFile.MaxRows)
+            if (await _auditRepository.GetTotalCountAsync(from, to) > ExcelFile.MaxRows)
                 return Problem(statusCode: StatusCodes.Status400BadRequest, detail: $"That range holds more than {ExcelFile.MaxRows:N0} entries. Narrow it and try again.");
+
+            PagedResult<AuditEntryItem> entriesPage = await _auditRepository.FindAllAsync(from, to, 1, ExcelFile.MaxRows);
 
             return ExcelFile.Build("Audit", ExportColumns, entriesPage.Items);
         }

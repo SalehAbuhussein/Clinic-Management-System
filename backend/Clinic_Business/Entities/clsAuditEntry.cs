@@ -22,6 +22,8 @@ namespace Clinic_Business.Entities
             string Detail
         );
 
+        public static Task<int> GetTotalCountAsync(DateTimeOffset? from = null, DateTimeOffset? to = null) => clsAuditEntryDA.GetTotalCount(from, to);
+
         public static async Task<PagedResult<AuditEntryItem>> FindAllAsync(
             DateTimeOffset? from,
             DateTimeOffset? to,

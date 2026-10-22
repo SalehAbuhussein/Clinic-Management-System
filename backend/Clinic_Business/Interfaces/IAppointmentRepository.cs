@@ -6,6 +6,8 @@ namespace Clinic_Business.Interfaces
     public interface IAppointmentRepository
     {
         Task<clsAppointment?> FindByIdAsync(int id);
+        Task<int> GetTotalCountAsync(int? doctorId = null, int? patientId = null, DateTimeOffset? from = null, DateTimeOffset? to = null);
+
         Task<PagedResult<clsAppointment>> FindAllAsync(
             int? doctorId,
             int? patientId,

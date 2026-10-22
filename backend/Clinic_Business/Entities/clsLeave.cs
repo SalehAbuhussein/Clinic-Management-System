@@ -72,6 +72,8 @@ namespace Clinic_Business.Entities
             };
         }
 
+        public static Task<int> GetTotalCountAsync(int? userId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, byte? status = null) => clsLeaveDA.GetTotalCount(userId, from, to, status);
+
         public static async Task<PagedResult<LeaveItem>> FindAllLeavesAsync(
             int? userId,
             DateTimeOffset? from,

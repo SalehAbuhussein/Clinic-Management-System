@@ -10,6 +10,8 @@ namespace Clinic_Business.Repositories
 
         public Task<clsVisit?> FindByAppointmentIdAsync(int? id) => clsVisit.FindByAppointmentIDAsync(id);
 
+        public Task<int> GetTotalCountAsync(int? doctorId = null, int? patientId = null, DateTimeOffset? from = null, DateTimeOffset? to = null) => clsVisit.GetTotalCountAsync(doctorId, patientId, from, to);
+
         public Task<PagedResult<clsVisit.VisitItem>> FindAllAsync(int? doctorId = null, int? patientId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, int pageNumber = 1, int pageSize = 10)
             => clsVisit.FindAllAsync(doctorId, patientId, from, to, pageNumber, pageSize);
 
