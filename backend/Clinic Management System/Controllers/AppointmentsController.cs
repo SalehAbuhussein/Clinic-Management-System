@@ -209,7 +209,7 @@ namespace Clinic_Management_System.Controllers
         }
 
         [Authorize(Roles = "Admin,Staff")]
-        [HttpPut("{id}", Name = "UpdateAppointment")]
+        [HttpPatch("{id}", Name = "UpdateAppointment")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]

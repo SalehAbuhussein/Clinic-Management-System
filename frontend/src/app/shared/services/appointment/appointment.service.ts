@@ -88,5 +88,5 @@ export class AppointmentService {
    * @param id The appointment.
    * @param body The new window.
    */
-  rescheduleAppointment = (id: number, body: RescheduleAppointmentRequest) => this.apiService.put(`/Appointments/${id}`, body);
+  rescheduleAppointment = (id: number, body: RescheduleAppointmentRequest) => this.apiService.patch(`/Appointments/${id}`, body);
 }
