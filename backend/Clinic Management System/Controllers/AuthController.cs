@@ -24,6 +24,8 @@ namespace Clinic_Management_System.Controllers
         private readonly IAuditRepository _auditRepository;
         private readonly ILogger<AuthController> _logger;
 
+        private static readonly string _absentUserHash = BCrypt.Net.BCrypt.HashPassword("absent user");
+
         public AuthController(
             IUserRepository userRepository,
             IAuditRepository auditRepository,
@@ -49,6 +51,9 @@ namespace Clinic_Management_System.Controllers
             // Step 1: Find User by Email
             var user = await _userRepository.FindByEmailAsync(request.Email);
 
+            // Step 2: Verify the provided password against the stored hash
+            bool isValidPassword = BCrypt.Net.BCrypt.Verify(request.Password, user?.PasswordHash ?? _absentUserHash);
+            
             if (user == null)
             {
                 _logger.LogWarning("Failed login for unknown email {Email}", request.Email);
@@ -56,9 +61,6 @@ namespace Clinic_Management_System.Controllers
 
                 return Problem(statusCode: StatusCodes.Status401Unauthorized, detail: "Invalid credentials");
             }
-
-            // Step 2: Verify the provided password against the stored hash
-            bool isValidPassword = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
 
             if (!isValidPassword)
             {
