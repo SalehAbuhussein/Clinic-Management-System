@@ -42,7 +42,12 @@ namespace Clinic_Business.Entities
                 row.Field<string>("Detail") ?? string.Empty
             )).ToList();
 
-            int total = dt.Rows.Count == 0 ? 0 : dt.Rows[0].Field<int>("TotalCount");
+            int total = 0;
+
+            if (dt.Rows.Count > 0)
+                total = dt.Rows[0].Field<int>("TotalCount");
+            else if (pageNumber > 1)
+                total = await clsAuditEntryDA.GetTotalCount(from, to);
 
             return new PagedResult<AuditEntryItem>(entries, pageNumber, pageSize, total);
         }

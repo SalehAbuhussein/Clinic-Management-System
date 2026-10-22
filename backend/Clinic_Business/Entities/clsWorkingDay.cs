@@ -1,4 +1,4 @@
-using Clinic_Business.Common;
+﻿using Clinic_Business.Common;
 using Clinic_DataAccess;
 using System.Data;
 
@@ -42,7 +42,12 @@ namespace Clinic_Business.Entities
 
             List<WorkingDayItem> workingDays = table.AsEnumerable().Select(MapWorkingDay).ToList();
 
-            int total = table.Rows.Count == 0 ? 0 : table.Rows[0].Field<int>("TotalCount");
+            int total = 0;
+
+            if (table.Rows.Count > 0)
+                total = table.Rows[0].Field<int>("TotalCount");
+            else if (pageNumber > 1)
+                total = await clsWorkingDaysDA.GetTotalCount();
 
             return new PagedResult<WorkingDayItem>(workingDays, pageNumber, pageSize, total);
         }

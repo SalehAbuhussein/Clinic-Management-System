@@ -1,4 +1,4 @@
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
 using System.Data;
 
 namespace Clinic_DataAccess
@@ -34,6 +34,22 @@ namespace Clinic_DataAccess
             }
 
             return dt.Rows.Count > 0 ? dt.Rows[0] : null;
+        }
+
+        /// <summary>
+        /// How many working days are on file. The list takes no filters, so
+        /// there is nothing to share with it.
+        /// </summary>
+        /// <returns>The number of rows.</returns>
+        public static async Task<int> GetTotalCount()
+        {
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                await connection.OpenAsync();
+
+                using (SqlCommand command = new SqlCommand("SELECT COUNT(*) FROM WorkingDays", connection))
+                    return Convert.ToInt32(await command.ExecuteScalarAsync());
+            }
         }
 
         public static async Task<DataTable> FindAllAsync(int pageNumber = 1, int pageSize = 10)

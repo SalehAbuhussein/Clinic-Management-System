@@ -88,7 +88,12 @@ namespace Clinic_Business.Entities
             DataTable table = await clsAppointmentDA.FindAllAsync(doctorId, patientId, from, to, pageNumber, pageSize);
 
             List<clsAppointment> appointments = table.AsEnumerable().Select(MapAppointment).ToList();
-            int total = table.Rows.Count == 0 ? 0 : table.Rows[0].Field<int>("TotalCount");
+            int total = 0;
+
+            if (table.Rows.Count > 0)
+                total = table.Rows[0].Field<int>("TotalCount");
+            else if (pageNumber > 1)
+                total = await clsAppointmentDA.GetTotalCount(doctorId, patientId, from, to);
 
             return new PagedResult<clsAppointment>(appointments, pageNumber, pageSize, total);
         }
@@ -108,7 +113,12 @@ namespace Clinic_Business.Entities
                 row.Field<byte>("Status")
             )).ToList();
 
-            int total = table.Rows.Count == 0 ? 0 : table.Rows[0].Field<int>("TotalCount");
+            int total = 0;
+
+            if (table.Rows.Count > 0)
+                total = table.Rows[0].Field<int>("TotalCount");
+            else if (pageNumber > 1)
+                total = await clsAppointmentDA.GetDoctorSchedulesTotalCount(doctorId, from, to);
 
             return new PagedResult<DoctorSchedule>(schedules, pageNumber, pageSize, total);
         }

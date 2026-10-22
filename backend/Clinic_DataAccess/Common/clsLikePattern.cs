@@ -16,14 +16,14 @@
         /// </summary>
         /// <param name="value">What the user typed.</param>
         /// <returns>The pattern to send as the parameter.</returns>
-        public static string Contains(string value) => $"%{Escape(value.Trim())}%";
+        public static string Contains(string value) => $"%{_Escape(value.Trim())}%";
 
         /// <summary>
         /// Rows beginning with the text, which an index can still seek.
         /// </summary>
         /// <param name="value">What the user typed.</param>
         /// <returns>The pattern to send as the parameter.</returns>
-        public static string StartsWith(string value) => $"{Escape(value.Trim())}%";
+        public static string StartsWith(string value) => $"{_Escape(value.Trim())}%";
 
         /// <summary>
         /// Turns every wildcard into its literal self.
@@ -34,7 +34,7 @@
         /// </summary>
         /// <param name="value">Text that may hold wildcards.</param>
         /// <returns>The same text, safe to splice into a pattern.</returns>
-        private static string Escape(string value) => value
+        private static string _Escape(string value) => value
             .Replace("[", "[[]")
             .Replace("%", "[%]")
             .Replace("_", "[_]");

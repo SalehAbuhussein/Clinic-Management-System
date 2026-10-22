@@ -1,4 +1,4 @@
-using Clinic_Business.Common;
+﻿using Clinic_Business.Common;
 using Clinic_DataAccess;
 using System.Data;
 
@@ -65,7 +65,12 @@ namespace Clinic_Business.Entities
 
             List<clsPerson> people = dt.AsEnumerable().Select(MapPerson).ToList();
 
-            int total = dt.Rows.Count == 0 ? 0 : dt.Rows[0].Field<int>("TotalCount");
+            int total = 0;
+
+            if (dt.Rows.Count > 0)
+                total = dt.Rows[0].Field<int>("TotalCount");
+            else if (pageNumber > 1)
+                total = await clsPersonDA.GetTotalCount(fullname, nationalNo, phone);
 
             return new PagedResult<clsPerson>(people, pageNumber, pageSize, total);
         }

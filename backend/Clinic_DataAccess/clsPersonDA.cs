@@ -13,6 +13,65 @@ namespace Clinic_DataAccess
 {
     public class clsPersonDA
     {
+
+        /// <summary>
+        /// The WHERE clause the list filters by, with its parameters added to
+        /// the command. The list and GetTotalCount share it, so a filter added
+        /// to one applies to the other and the two cannot disagree.
+        /// </summary>
+        /// <param name="command">The command the parameters go on.</param>
+        /// <returns>The clause to append, or an empty string when nothing is filtered.</returns>
+        private static string _PeopleFilters(SqlCommand command, string? fullname, string? nationalNo, string? phone)
+        {
+            List<string> conditions = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(fullname))
+            {
+                conditions.Add("CONCAT_WS(' ', Firstname, Midname, Thirdname, Lastname) LIKE @Fullname");
+                command.Parameters.AddWithValue("@Fullname", clsLikePattern.Contains(fullname));
+            }
+
+            if (!string.IsNullOrWhiteSpace(nationalNo))
+            {
+                conditions.Add("NationalNo LIKE @NationalNo");
+                command.Parameters.AddWithValue("@NationalNo", clsLikePattern.StartsWith(nationalNo));
+            }
+
+            if (!string.IsNullOrWhiteSpace(phone))
+            {
+                conditions.Add("Phone LIKE @Phone");
+                command.Parameters.AddWithValue("@Phone", clsLikePattern.StartsWith(phone));
+            }
+
+            return conditions.Count == 0 ? string.Empty : $"\nWHERE {string.Join(" AND ", conditions)}";
+        }
+
+        /// <summary>
+        /// How many rows match the filters, ignoring paging.
+        ///
+        /// A page past the last one returns nothing, so the list query's
+        /// COUNT(*) OVER() has no row to ride on. This answers it directly.
+        /// </summary>
+        /// <returns>The number of matching rows.</returns>
+        public static async Task<int> GetTotalCount(string? fullname = null, string? nationalNo = null, string? phone = null)
+        {
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                await connection.OpenAsync();
+
+                using (SqlCommand command = new SqlCommand())
+                {
+                    command.Connection = connection;
+
+                    string query = @"SELECT COUNT(*) FROM [dbo].[People]";
+
+                    command.CommandText = query + _PeopleFilters(command, fullname, nationalNo, phone);
+
+                    return Convert.ToInt32(await command.ExecuteScalarAsync());
+                }
+            }
+        }
+
         public static async Task<DataTable> FindAllAsync(string? fullname = null, string? nationalNo = null, string? phone = null, int pageNumber = 1, int pageSize = 10)
         {
             DataTable dt = new DataTable();
@@ -38,28 +97,7 @@ namespace Clinic_DataAccess
                 {
                     command.Connection = connection;
 
-                    List<string> conditions = new List<string>();
-
-                    if (!string.IsNullOrWhiteSpace(fullname))
-                    {
-                        conditions.Add("CONCAT_WS(' ', Firstname, Midname, Thirdname, Lastname) LIKE @Fullname");
-                        command.Parameters.AddWithValue("@Fullname", clsLikePattern.Contains(fullname));
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(nationalNo))
-                    {
-                        conditions.Add("NationalNo LIKE @NationalNo");
-                        command.Parameters.AddWithValue("@NationalNo", clsLikePattern.StartsWith(nationalNo));
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(phone))
-                    {
-                        conditions.Add("Phone LIKE @Phone");
-                        command.Parameters.AddWithValue("@Phone", clsLikePattern.StartsWith(phone));
-                    }
-
-                    if (conditions.Count > 0)
-                        query += $"\nWHERE {string.Join(" AND ", conditions)}";
+                    query += _PeopleFilters(command, fullname, nationalNo, phone);
 
                     query += @"
                         ORDER BY PersonID

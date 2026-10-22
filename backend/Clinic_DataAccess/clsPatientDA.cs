@@ -11,6 +11,75 @@ namespace Clinic_DataAccess
 {
     public class clsPatientDA
     {
+
+        /// <summary>
+        /// The WHERE clause the list filters by, with its parameters added to
+        /// the command. The list and GetTotalCount share it, so a filter added
+        /// to one applies to the other and the two cannot disagree.
+        /// </summary>
+        /// <param name="command">The command the parameters go on.</param>
+        /// <returns>The clause to append, or an empty string when nothing is filtered.</returns>
+        private static string _PatientFilters(SqlCommand command, string? fullname, string? phone, DateTimeOffset? from, DateTimeOffset? to)
+        {
+            List<string> conditions = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(fullname))
+            {
+                conditions.Add("CONCAT_WS(' ', P.Firstname, P.Midname, P.Thirdname, P.Lastname) LIKE @Fullname");
+                command.Parameters.AddWithValue("@Fullname", clsLikePattern.Contains(fullname));
+            }
+
+            if (!string.IsNullOrWhiteSpace(phone))
+            {
+                // Anchored at the start: nobody searches a phone number from the
+                // middle, and a leading wildcard would rule out an index seek.
+                conditions.Add("P.Phone LIKE @Phone");
+                command.Parameters.AddWithValue("@Phone", clsLikePattern.StartsWith(phone));
+            }
+
+            if (from.HasValue)
+            {
+                conditions.Add("PT.CreatedAt >= @From");
+                command.Parameters.AddWithValue("@From", from.Value.UtcDateTime);
+            }
+
+            if (to.HasValue)
+            {
+                conditions.Add("PT.CreatedAt < @To");
+                command.Parameters.AddWithValue("@To", to.Value.UtcDateTime);
+            }
+
+            return conditions.Count == 0 ? string.Empty : $"\nWHERE {string.Join(" AND ", conditions)}";
+        }
+
+        /// <summary>
+        /// How many rows match the filters, ignoring paging.
+        ///
+        /// A page past the last one returns nothing, so the list query's
+        /// COUNT(*) OVER() has no row to ride on. This answers it directly.
+        /// </summary>
+        /// <returns>The number of matching rows.</returns>
+        public static async Task<int> GetTotalCount(string? fullname = null, string? phone = null, DateTimeOffset? from = null, DateTimeOffset? to = null)
+        {
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                await connection.OpenAsync();
+
+                using (SqlCommand command = new SqlCommand())
+                {
+                    command.Connection = connection;
+
+                    string query = @"SELECT COUNT(*)
+                    FROM Patients PT
+                    INNER JOIN People P ON P.PersonID = PT.PersonID";
+
+                    command.CommandText = query + _PatientFilters(command, fullname, phone, from, to);
+
+                    return Convert.ToInt32(await command.ExecuteScalarAsync());
+                }
+            }
+        }
+
         public static async Task<DataTable> FindAllAsync(string? fullname = null, string? phone = null, DateTimeOffset? from = null, DateTimeOffset? to = null, int pageNumber = 1, int pageSize = 10)
         {
             DataTable dt = new DataTable();
@@ -36,36 +105,7 @@ namespace Clinic_DataAccess
                 {
                     command.Connection = connection;
 
-                    List<string> conditions = new List<string>();
-
-                    if (!string.IsNullOrWhiteSpace(fullname))
-                    {
-                        conditions.Add("CONCAT_WS(' ', P.Firstname, P.Midname, P.Thirdname, P.Lastname) LIKE @Fullname");
-                        command.Parameters.AddWithValue("@Fullname", clsLikePattern.Contains(fullname));
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(phone))
-                    {
-                        // Anchored at the start: nobody searches a phone number from the
-                        // middle, and a leading wildcard would rule out an index seek.
-                        conditions.Add("P.Phone LIKE @Phone");
-                        command.Parameters.AddWithValue("@Phone", clsLikePattern.StartsWith(phone));
-                    }
-
-                    if (from.HasValue)
-                    {
-                        conditions.Add("PT.CreatedAt >= @From");
-                        command.Parameters.AddWithValue("@From", from.Value.UtcDateTime);
-                    }
-
-                    if (to.HasValue)
-                    {
-                        conditions.Add("PT.CreatedAt < @To");
-                        command.Parameters.AddWithValue("@To", to.Value.UtcDateTime);
-                    }
-
-                    if (conditions.Count > 0)
-                        query += $"\nWHERE {string.Join(" AND ", conditions)}";
+                    query += _PatientFilters(command, fullname, phone, from, to);
 
                     query += @"
                         ORDER BY PT.PatientID

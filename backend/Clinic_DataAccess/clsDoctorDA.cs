@@ -11,6 +11,68 @@ namespace Clinic_DataAccess
 {
     public class clsDoctorDA
     {
+
+        /// <summary>
+        /// The WHERE clause the list filters by, with its parameters added to
+        /// the command. The list and GetTotalCount share it, so a filter added
+        /// to one applies to the other and the two cannot disagree.
+        /// </summary>
+        /// <param name="command">The command the parameters go on.</param>
+        /// <returns>The clause to append, or an empty string when nothing is filtered.</returns>
+        private static string _DoctorFilters(SqlCommand command, string? fullname, string? specialization, bool? active)
+        {
+            List<string> conditions = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(fullname))
+            {
+                conditions.Add("CONCAT_WS(' ', P.Firstname, P.Midname, P.Thirdname, P.Lastname) LIKE @Fullname");
+                command.Parameters.AddWithValue("@Fullname", clsLikePattern.Contains(fullname));
+            }
+
+            if (!string.IsNullOrWhiteSpace(specialization))
+            {
+                conditions.Add("D.Specialization LIKE @Specialization");
+                command.Parameters.AddWithValue("@Specialization", clsLikePattern.Contains(specialization));
+            }
+
+            if (active.HasValue)
+            {
+                conditions.Add("U.Active = @Active");
+                command.Parameters.AddWithValue("@Active", active.Value);
+            }
+
+            return conditions.Count == 0 ? string.Empty : $"\nWHERE {string.Join(" AND ", conditions)}";
+        }
+
+        /// <summary>
+        /// How many rows match the filters, ignoring paging.
+        ///
+        /// A page past the last one returns nothing, so the list query's
+        /// COUNT(*) OVER() has no row to ride on. This answers it directly.
+        /// </summary>
+        /// <returns>The number of matching rows.</returns>
+        public static async Task<int> GetTotalCount(string? fullname = null, string? specialization = null, bool? active = null)
+        {
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                await connection.OpenAsync();
+
+                using (SqlCommand command = new SqlCommand())
+                {
+                    command.Connection = connection;
+
+                    string query = @"SELECT COUNT(*)
+                    FROM Doctors D
+                    INNER JOIN Users U ON D.UserID = U.UserID
+                    INNER JOIN People P ON P.PersonID = U.PersonID";
+
+                    command.CommandText = query + _DoctorFilters(command, fullname, specialization, active);
+
+                    return Convert.ToInt32(await command.ExecuteScalarAsync());
+                }
+            }
+        }
+
         public static async Task<DataTable> FindAllAsync(string? fullname = null, string? specialization = null, bool? active = null, int pageNumber = 1, int pageSize = 10)
         {
             DataTable dt = new DataTable();
@@ -37,28 +99,7 @@ namespace Clinic_DataAccess
                 {
                     command.Connection = connection;
 
-                    List<string> conditions = new List<string>();
-
-                    if (!string.IsNullOrWhiteSpace(fullname))
-                    {
-                        conditions.Add("CONCAT_WS(' ', P.Firstname, P.Midname, P.Thirdname, P.Lastname) LIKE @Fullname");
-                        command.Parameters.AddWithValue("@Fullname", clsLikePattern.Contains(fullname));
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(specialization))
-                    {
-                        conditions.Add("D.Specialization LIKE @Specialization");
-                        command.Parameters.AddWithValue("@Specialization", clsLikePattern.Contains(specialization));
-                    }
-
-                    if (active.HasValue)
-                    {
-                        conditions.Add("U.Active = @Active");
-                        command.Parameters.AddWithValue("@Active", active.Value);
-                    }
-
-                    if (conditions.Count > 0)
-                        query += $"\nWHERE {string.Join(" AND ", conditions)}";
+                    query += _DoctorFilters(command, fullname, specialization, active);
 
                     query += @"
                         ORDER BY D.DoctorID

@@ -67,7 +67,12 @@ namespace Clinic_Business.Entities
                 row.Field<bool>("Active")
             )).ToList();
 
-            int total = table.Rows.Count == 0 ? 0 : table.Rows[0].Field<int>("TotalCount");
+            int total = 0;
+
+            if (table.Rows.Count > 0)
+                total = table.Rows[0].Field<int>("TotalCount");
+            else if (pageNumber > 1)
+                total = await clsUserDA.GetTotalCount(fullname, email, active);
 
             return new PagedResult<UserItem>(users, pageNumber, pageSize, total);
         }

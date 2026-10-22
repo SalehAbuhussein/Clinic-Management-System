@@ -1,4 +1,4 @@
-using Clinic_Business.Common;
+﻿using Clinic_Business.Common;
 using Clinic_DataAccess;
 using System;
 using System.Collections.Generic;
@@ -73,7 +73,12 @@ namespace Clinic_Business.Entities
                 row.Field<string>("Notes")
             )).ToList();
 
-            int total = table.Rows.Count == 0 ? 0 : table.Rows[0].Field<int>("TotalCount");
+            int total = 0;
+
+            if (table.Rows.Count > 0)
+                total = table.Rows[0].Field<int>("TotalCount");
+            else if (pageNumber > 1)
+                total = await clsVisitDA.GetTotalCount(doctorId, patientId, from, to);
 
             return new PagedResult<VisitItem>(visits, pageNumber, pageSize, total);
         }

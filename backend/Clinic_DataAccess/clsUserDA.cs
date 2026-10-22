@@ -12,6 +12,75 @@ namespace Clinic_DataAccess
 {
     public class clsUserDA
     {
+        /// <summary>
+        /// The WHERE clause the user list filters by, with its parameters added
+        /// to the command.
+        ///
+        /// Both the list and the count call this, so a filter added to one
+        /// applies to the other and the two can never disagree about how many
+        /// rows match.
+        /// </summary>
+        /// <param name="command">The command the parameters go on.</param>
+        /// <param name="fullname">Part of a name, or null.</param>
+        /// <param name="email">The start of an email, or null.</param>
+        /// <param name="active">Whether the account is enabled, or null.</param>
+        /// <returns>The clause to append, or an empty string when nothing is filtered.</returns>
+        private static string _UserFilters(SqlCommand command, string? fullname, string? email, bool? active)
+        {
+            List<string> conditions = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(fullname))
+            {
+                conditions.Add("CONCAT_WS(' ', P.Firstname, P.Midname, P.Thirdname, P.Lastname) LIKE @Fullname");
+                command.Parameters.AddWithValue("@Fullname", clsLikePattern.Contains(fullname));
+            }
+
+            if (!string.IsNullOrWhiteSpace(email))
+            {
+                conditions.Add("U.Email LIKE @Email");
+                command.Parameters.AddWithValue("@Email", clsLikePattern.StartsWith(email));
+            }
+
+            if (active.HasValue)
+            {
+                conditions.Add("U.Active = @Active");
+                command.Parameters.AddWithValue("@Active", active.Value);
+            }
+
+            return conditions.Count == 0 ? string.Empty : $"\nWHERE {string.Join(" AND ", conditions)}";
+        }
+
+        /// <summary>
+        /// How many users match the filters, ignoring paging.
+        ///
+        /// A page past the last one returns no rows, so the list query's
+        /// COUNT(*) OVER() has nothing to ride on. This answers it directly.
+        /// </summary>
+        /// <param name="fullname">Part of a name, or null.</param>
+        /// <param name="email">The start of an email, or null.</param>
+        /// <param name="active">Whether the account is enabled, or null.</param>
+        /// <returns>The number of matching users.</returns>
+        public static async Task<int> GetTotalCount(string? fullname = null, string? email = null, bool? active = null)
+        {
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                await connection.OpenAsync();
+
+                using (SqlCommand command = new SqlCommand())
+                {
+                    command.Connection = connection;
+
+                    string query = @"SELECT COUNT(*)
+                    FROM Users U
+                    INNER JOIN People P ON U.PersonID = P.PersonID";
+
+                    command.CommandText = query + _UserFilters(command, fullname, email, active);
+
+                    return Convert.ToInt32(await command.ExecuteScalarAsync());
+                }
+            }
+        }
+
         public static async Task<DataTable> FindUsersAsync(string? fullname = null, string? email = null, bool? active = null, int pageNumber = 1, int pageSize = 10)
         {
             DataTable dt = new DataTable();
@@ -35,28 +104,7 @@ namespace Clinic_DataAccess
                 {
                     command.Connection = connection;
 
-                    List<string> conditions = new List<string>();
-
-                    if (!string.IsNullOrWhiteSpace(fullname))
-                    {
-                        conditions.Add("CONCAT_WS(' ', P.Firstname, P.Midname, P.Thirdname, P.Lastname) LIKE @Fullname");
-                        command.Parameters.AddWithValue("@Fullname", clsLikePattern.Contains(fullname));
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(email))
-                    {
-                        conditions.Add("U.Email LIKE @Email");
-                        command.Parameters.AddWithValue("@Email", clsLikePattern.StartsWith(email));
-                    }
-
-                    if (active.HasValue)
-                    {
-                        conditions.Add("U.Active = @Active");
-                        command.Parameters.AddWithValue("@Active", active.Value);
-                    }
-
-                    if (conditions.Count > 0)
-                        query += $"\nWHERE {string.Join(" AND ", conditions)}";
+                    query += _UserFilters(command, fullname, email, active);
 
                     query += @"
                         ORDER BY UserID

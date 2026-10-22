@@ -92,7 +92,12 @@ namespace Clinic_Business.Entities
                 row.Field<byte>("Status")
             )).ToList();
 
-            int total = table.Rows.Count == 0 ? 0 : table.Rows[0].Field<int>("TotalCount");
+            int total = 0;
+
+            if (table.Rows.Count > 0)
+                total = table.Rows[0].Field<int>("TotalCount");
+            else if (pageNumber > 1)
+                total = await clsLeaveDA.GetTotalCount(userId, from, to, status);
 
             return new PagedResult<LeaveItem>(leaves, pageNumber, pageSize, total);
         }

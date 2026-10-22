@@ -12,6 +12,107 @@ namespace Clinic_DataAccess
 {
     public class clsAppointmentDA
     {
+        /// <summary>
+        /// The WHERE clause the appointment list filters by, with its
+        /// parameters added to the command. The list and GetTotalCount share
+        /// it, so a filter added to one applies to the other.
+        ///
+        /// Every filter is qualified with A: DoctorID and PatientID each exist
+        /// on two of the joined tables, so an unqualified name is ambiguous SQL.
+        /// </summary>
+        /// <param name="command">The command the parameters go on.</param>
+        /// <returns>The clause to append, or an empty string when nothing is filtered.</returns>
+        private static string _AppointmentFilters(SqlCommand command, int? doctorId, int? patientId, DateTimeOffset? from, DateTimeOffset? to)
+        {
+            List<string> conditions = new List<string>();
+
+            if (doctorId.HasValue)
+            {
+                conditions.Add("A.DoctorID = @DoctorID");
+                command.Parameters.AddWithValue("@DoctorID", doctorId.Value);
+            }
+
+            if (patientId.HasValue)
+            {
+                conditions.Add("A.PatientID = @PatientID");
+                command.Parameters.AddWithValue("@PatientID", patientId.Value);
+            }
+
+            if (from.HasValue)
+            {
+                conditions.Add("A.EndAt >= @From");
+                command.Parameters.AddWithValue("@From", from.Value);
+            }
+
+            if (to.HasValue)
+            {
+                conditions.Add("A.StartAt < @To");
+                command.Parameters.AddWithValue("@To", to.Value);
+            }
+
+            return conditions.Count == 0 ? string.Empty : $"\nWHERE {string.Join(" AND ", conditions)}";
+        }
+
+        /// <summary>
+        /// How many appointments match the filters, ignoring paging.
+        ///
+        /// A page past the last one returns nothing, so the list query's
+        /// COUNT(*) OVER() has no row to ride on. This answers it directly.
+        /// </summary>
+        /// <returns>The number of matching appointments.</returns>
+        public static async Task<int> GetTotalCount(int? doctorId = null, int? patientId = null, DateTimeOffset? from = null, DateTimeOffset? to = null)
+        {
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                await connection.OpenAsync();
+
+                using (SqlCommand command = new SqlCommand())
+                {
+                    command.Connection = connection;
+
+                    string query = @"SELECT COUNT(*) FROM Appointments A";
+
+                    command.CommandText = query + _AppointmentFilters(command, doctorId, patientId, from, to);
+
+                    return Convert.ToInt32(await command.ExecuteScalarAsync());
+                }
+            }
+        }
+
+        /// <summary>
+        /// How many live appointments a doctor has in a range, ignoring paging.
+        ///
+        /// The WHERE repeats FindDoctorSchedules rather than sharing a helper,
+        /// because that query filters on fixed columns with no optional parts.
+        /// </summary>
+        /// <returns>The number of matching slots.</returns>
+        public static async Task<int> GetDoctorSchedulesTotalCount(int doctorId, DateTimeOffset from, DateTimeOffset to)
+        {
+            if (doctorId < 1)
+                return 0;
+
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                await connection.OpenAsync();
+
+                string query = @"SELECT COUNT(*)
+                FROM Appointments A
+                WHERE A.DoctorID = @DoctorID
+                AND A.StartAt >= @StartAt
+                AND A.EndAt < @EndAt
+                AND A.Status NOT IN (1, 2, 3)";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@DoctorID", doctorId);
+                    command.Parameters.AddWithValue("@StartAt", from);
+                    command.Parameters.AddWithValue("@EndAt", to);
+
+                    return Convert.ToInt32(await command.ExecuteScalarAsync());
+                }
+            }
+        }
+
         public static async Task<DataTable> FindAllAsync(
             int? doctorId,
             int? patientId,
@@ -54,40 +155,11 @@ namespace Clinic_DataAccess
                     INNER JOIN People PP ON PP.PersonID = P.PersonID
                     LEFT JOIN Visits V ON V.AppointmentID = A.AppointmentID";
 
-                List<string> conditions = new List<string>();
-
                 using (SqlCommand command = new SqlCommand())
                 {
                     command.Connection = connection;
 
-                    // Every filter is qualified with A: DoctorID and PatientID each exist on
-                    // two of the joined tables, so an unqualified name is ambiguous SQL.
-                    if (doctorId.HasValue)
-                    {
-                        conditions.Add("A.DoctorID = @DoctorID");
-                        command.Parameters.AddWithValue("@DoctorID", doctorId.Value);
-                    }
-
-                    if (patientId.HasValue)
-                    {
-                        conditions.Add("A.PatientID = @PatientID");
-                        command.Parameters.AddWithValue("@PatientID", patientId.Value);
-                    }
-
-                    if (from.HasValue)
-                    {
-                        conditions.Add("A.EndAt >= @From");
-                        command.Parameters.AddWithValue("@From", from.Value);
-                    }
-
-                    if (to.HasValue)
-                    {
-                        conditions.Add("A.StartAt < @To");
-                        command.Parameters.AddWithValue("@To", to.Value);
-                    }
-
-                    if (conditions.Count > 0)
-                        query += $"\nWHERE {string.Join(" AND ", conditions)}";
+                    query += _AppointmentFilters(command, doctorId, patientId, from, to);
 
                     query += @"
                         ORDER BY A.AppointmentID
