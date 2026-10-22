@@ -1,4 +1,5 @@
-﻿using Clinic_Business.Common;
+﻿using Clinic_DataAccess.Common.Models;
+using Clinic_Business.Common;
 using Clinic_DataAccess;
 using System;
 using System.Collections.Generic;
@@ -122,33 +123,32 @@ namespace Clinic_Business.Entities
         }
 
 
-
         public static Task<bool> DeleteUser(int? id)
         {
             return clsUserDA.Delete(id);
         }
 
-        public static Task<bool> DeactivateUser(int? id)
+        public static Task<bool> DeactivateUser(int? id, int? actorUserId)
         {
-            return clsUserDA.Deactivate(id);
+            return clsUserDA.Deactivate(id, [new AuditRow(actorUserId, AuditAction.UserDeactivated, "User", id)]);
         }
 
-        public Task<bool> Deactivate()
+        public Task<bool> Deactivate(int? actorUserId)
         {
-            return DeactivateUser(UserID);
+            return DeactivateUser(UserID, actorUserId);
         }
 
-        public static Task<bool> ActivateUser(int? id)
+        public static Task<bool> ActivateUser(int? id, int? actorUserId)
         {
-            return clsUserDA.Activate(id);
+            return clsUserDA.Activate(id, [new AuditRow(actorUserId, AuditAction.UserActivated, "User", id)]);
         }
 
-        public Task<bool> Activate()
+        public Task<bool> Activate(int? actorUserId)
         {
-            return ActivateUser(UserID);
+            return ActivateUser(UserID, actorUserId);
         }
 
-        private async Task<bool> _CreateUser()
+        private async Task<bool> _CreateUser(int? actorUserId, string auditAction, string? auditDetail)
         {
             UserID = await clsUserDA.Create(
                 PersonInfo.Firstname,
@@ -164,17 +164,20 @@ namespace Clinic_Business.Entities
                 Email,
                 RefreshTokenHash,
                 RefreshTokenExpiresAt,
-                RefreshTokenRevokedAt
+                RefreshTokenRevokedAt,
+                actorUserId,
+                auditAction,
+                auditDetail
             );
             return UserID.HasValue;
         }
 
-        private Task<bool> _UpdateUser()
+        private Task<bool> _UpdateUser(IReadOnlyList<AuditRow> auditRows)
         {
-            return clsUserDA.Update(UserID, PasswordHash, Role, Email, Active, PersonID, RefreshTokenHash, RefreshTokenExpiresAt, RefreshTokenRevokedAt);
+            return clsUserDA.Update(UserID, PasswordHash, Role, Email, Active, PersonID, RefreshTokenHash, RefreshTokenExpiresAt, RefreshTokenRevokedAt, auditRows);
         }
 
-        public async Task<bool> Create()
+        public async Task<bool> Create(int? actorUserId, string auditAction, string? auditDetail = null)
         {
             if (!_HasCredintals() || PersonInfo?.IsValid() != true)
                 return false;
@@ -182,15 +185,15 @@ namespace Clinic_Business.Entities
             if (UserID.HasValue)
                 return false;
 
-            return await _CreateUser();
+            return await _CreateUser(actorUserId, auditAction, auditDetail);
         }
 
-        public async Task<bool> Update()
+        public async Task<bool> Update(IReadOnlyList<AuditRow>? auditRows = null)
         {
             if (!_HasCredintals() || !(PersonID > 0))
                 return false;
 
-            return await _UpdateUser();
+            return await _UpdateUser(auditRows ?? []);
         }
 
         private bool _HasCredintals() => !string.IsNullOrEmpty(PasswordHash) && !string.IsNullOrEmpty(Email);

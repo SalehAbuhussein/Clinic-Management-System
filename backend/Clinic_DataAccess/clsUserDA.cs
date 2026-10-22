@@ -1,4 +1,5 @@
-﻿using Clinic_DataAccess.Common;
+﻿using Clinic_DataAccess.Common.Models;
+using Clinic_DataAccess.Common.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.SqlClient;
 using System;
@@ -186,7 +187,10 @@ namespace Clinic_DataAccess
             string email,
             string? refreshTokenHash,
             DateTime? refreshTokenExpiresAt,
-            DateTime? refreshTokenRevokedAt
+            DateTime? refreshTokenRevokedAt,
+            int? actorUserId,
+            string auditAction,
+            string? auditDetail
         )
         {
             int? id = null;
@@ -195,7 +199,8 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                using (SqlCommand command = new SqlCommand("CreateUser", connection))
+                using (SqlTransaction transaction = (SqlTransaction)await connection.BeginTransactionAsync())
+                using (SqlCommand command = new SqlCommand("CreateUser", connection, transaction))
                 {
                     command.CommandType = CommandType.StoredProcedure;
 
@@ -222,6 +227,11 @@ namespace Clinic_DataAccess
                     await command.ExecuteNonQueryAsync();
 
                     id = (int)userId.Value;
+
+                    await clsAuditEntryDA.CreateAsync(connection, transaction,
+                        [new AuditRow(actorUserId, auditAction, "User", id, auditDetail)]);
+
+                    await transaction.CommitAsync();
                 }
             }
 
@@ -237,7 +247,8 @@ namespace Clinic_DataAccess
             int? personID,
             string? refreshTokenHash,
             DateTime? refreshTokenExpiresAt,
-            DateTime? refreshTokenRevokedAt
+            DateTime? refreshTokenRevokedAt,
+            IReadOnlyList<AuditRow> auditRows
         )
         {
             if (!id.HasValue || !personID.HasValue)
@@ -249,34 +260,47 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"UPDATE [dbo].[Users]
-                    SET [PasswordHash] = @PasswordHash
-                        ,[Role] = @Role
-                        ,[Email] = @Email
-                        ,[Active] = @Active
-                        ,[PersonID] = @PersonID
-                        ,[RefreshTokenHash] = @RefreshTokenHash
-                        ,[RefreshTokenExpiresAt] = @RefreshTokenExpiresAt
-                        ,[RefreshTokenRevokedAt] = @RefreshTokenRevokedAt
-                    WHERE UserID = @UserID";
-
-                using (SqlCommand command = new SqlCommand(query, connection))
+                using (SqlTransaction transaction = (SqlTransaction)await connection.BeginTransactionAsync())
                 {
-                    command.Parameters.AddWithValue("@UserID", id);
-                    command.Parameters.AddWithValue("@PasswordHash", passwordHash);
-                    command.Parameters.AddWithValue("@Role", role);
-                    command.Parameters.AddWithValue("@Email", email);
-                    command.Parameters.AddWithValue("@Active", active);
-                    command.Parameters.AddWithValue("@PersonID", personID);
-                    command.Parameters.AddWithValue("@RefreshTokenHash", string.IsNullOrEmpty(refreshTokenHash) ? DBNull.Value : refreshTokenHash);
-                    command.Parameters.AddWithValue("@RefreshTokenExpiresAt", refreshTokenExpiresAt == null ? DBNull.Value : refreshTokenExpiresAt);
-                    command.Parameters.AddWithValue("@RefreshTokenRevokedAt", refreshTokenRevokedAt == null ? DBNull.Value : refreshTokenRevokedAt);
+                    string query = @"UPDATE [dbo].[Users]
+                        SET [PasswordHash] = @PasswordHash
+                            ,[Role] = @Role
+                            ,[Email] = @Email
+                            ,[Active] = @Active
+                            ,[PersonID] = @PersonID
+                            ,[RefreshTokenHash] = @RefreshTokenHash
+                            ,[RefreshTokenExpiresAt] = @RefreshTokenExpiresAt
+                            ,[RefreshTokenRevokedAt] = @RefreshTokenRevokedAt
+                        WHERE UserID = @UserID";
 
-                    rowsAffected = await command.ExecuteNonQueryAsync();
+                    using (SqlCommand command = new SqlCommand(query, connection, transaction))
+                    {
+                        command.Parameters.AddWithValue("@UserID", id);
+                        command.Parameters.AddWithValue("@PasswordHash", passwordHash);
+                        command.Parameters.AddWithValue("@Role", role);
+                        command.Parameters.AddWithValue("@Email", email);
+                        command.Parameters.AddWithValue("@Active", active);
+                        command.Parameters.AddWithValue("@PersonID", personID);
+                        command.Parameters.AddWithValue("@RefreshTokenHash", string.IsNullOrEmpty(refreshTokenHash) ? DBNull.Value : refreshTokenHash);
+                        command.Parameters.AddWithValue("@RefreshTokenExpiresAt", refreshTokenExpiresAt == null ? DBNull.Value : refreshTokenExpiresAt);
+                        command.Parameters.AddWithValue("@RefreshTokenRevokedAt", refreshTokenRevokedAt == null ? DBNull.Value : refreshTokenRevokedAt);
+
+                        rowsAffected = await command.ExecuteNonQueryAsync();
+                    }
+
+                    if (rowsAffected == 0)
+                    {
+                        await transaction.RollbackAsync();
+                        return false;
+                    }
+
+                    await clsAuditEntryDA.CreateAsync(connection, transaction, auditRows);
+
+                    await transaction.CommitAsync();
                 }
             }
 
-            return rowsAffected > 0;
+            return true;
         }
 
         public static async Task<bool> Delete(int? id)
@@ -303,7 +327,7 @@ namespace Clinic_DataAccess
             return rowsAffected > 0;
         }
 
-        public static async Task<bool> Deactivate(int? id)
+        public static async Task<bool> Deactivate(int? id, IReadOnlyList<AuditRow> auditRows)
         {
             if (!id.HasValue)
                 return false;
@@ -314,26 +338,39 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"UPDATE [dbo].[Users]
-                    SET
-                        [Active] = 0
-                        ,[RefreshTokenHash] = NULL
-                        ,[RefreshTokenExpiresAt] = NULL
-                        ,[RefreshTokenRevokedAt] = SYSUTCDATETIME()
-                    WHERE UserID = @UserID";
-
-                using (SqlCommand command = new SqlCommand(query, connection))
+                using (SqlTransaction transaction = (SqlTransaction)await connection.BeginTransactionAsync())
                 {
-                    command.Parameters.AddWithValue("@UserID", id);
+                    string query = @"UPDATE [dbo].[Users]
+                        SET
+                            [Active] = 0
+                            ,[RefreshTokenHash] = NULL
+                            ,[RefreshTokenExpiresAt] = NULL
+                            ,[RefreshTokenRevokedAt] = SYSUTCDATETIME()
+                        WHERE UserID = @UserID";
 
-                    rowsAffected = await command.ExecuteNonQueryAsync();
+                    using (SqlCommand command = new SqlCommand(query, connection, transaction))
+                    {
+                        command.Parameters.AddWithValue("@UserID", id);
+
+                        rowsAffected = await command.ExecuteNonQueryAsync();
+                    }
+
+                    if (rowsAffected == 0)
+                    {
+                        await transaction.RollbackAsync();
+                        return false;
+                    }
+
+                    await clsAuditEntryDA.CreateAsync(connection, transaction, auditRows);
+
+                    await transaction.CommitAsync();
                 }
             }
 
-            return rowsAffected > 0;
+            return true;
         }
 
-        public static async Task<bool> Activate(int? id)
+        public static async Task<bool> Activate(int? id, IReadOnlyList<AuditRow> auditRows)
         {
             if (!id.HasValue)
                 return false;
@@ -344,19 +381,32 @@ namespace Clinic_DataAccess
             {
                 await connection.OpenAsync();
 
-                string query = @"UPDATE [dbo].[Users]
-                    SET [Active] = 1
-                    WHERE UserID = @UserID";
-
-                using (SqlCommand command = new SqlCommand(query, connection))
+                using (SqlTransaction transaction = (SqlTransaction)await connection.BeginTransactionAsync())
                 {
-                    command.Parameters.AddWithValue("@UserID", id);
+                    string query = @"UPDATE [dbo].[Users]
+                        SET [Active] = 1
+                        WHERE UserID = @UserID";
 
-                    rowsAffected = await command.ExecuteNonQueryAsync();
+                    using (SqlCommand command = new SqlCommand(query, connection, transaction))
+                    {
+                        command.Parameters.AddWithValue("@UserID", id);
+
+                        rowsAffected = await command.ExecuteNonQueryAsync();
+                    }
+
+                    if (rowsAffected == 0)
+                    {
+                        await transaction.RollbackAsync();
+                        return false;
+                    }
+
+                    await clsAuditEntryDA.CreateAsync(connection, transaction, auditRows);
+
+                    await transaction.CommitAsync();
                 }
             }
 
-            return rowsAffected > 0;
+            return true;
         }
     }
 }

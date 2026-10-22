@@ -1,4 +1,4 @@
-﻿using Clinic_DataAccess.Common;
+﻿using Clinic_DataAccess.Common.Helpers;
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;

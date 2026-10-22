@@ -1,4 +1,4 @@
-﻿using Clinic_DataAccess.Common;
+﻿using Clinic_DataAccess.Common.Helpers;
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
@@ -178,7 +178,6 @@ namespace Clinic_DataAccess
             return userID.HasValue ? _FindByAsync("D.UserID", userID.Value) : Task.FromResult<DataRow?>(null);
         }
 
-
         public static async Task<(int? doctorID, int? personID, int? userID)> CreateAsync(
             string specialization,
             string medicalSchool,
@@ -224,7 +223,6 @@ namespace Clinic_DataAccess
                         command.Parameters.AddWithValue("@Gender", gender.Value);
                     command.Parameters.AddWithValue("@DateOfBirth", dateOfBirth);
                     command.Parameters.AddWithValue("@ProfileImage", (object?)profileImage ?? DBNull.Value);
-
 
                     // Doctor Info
                     command.Parameters.AddWithValue("@Specialization", specialization);

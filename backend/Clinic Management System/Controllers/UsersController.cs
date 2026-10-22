@@ -1,4 +1,5 @@
 ﻿using Clinic_Business.Common;
+using Clinic_DataAccess.Common.Models;
 using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Users;
@@ -26,8 +27,6 @@ namespace Clinic_Management_System.Controllers
             _auditRepository = auditRepository;
             _logger = logger;
         }
-
-        int? CurrentUserId() => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int id) ? id : null;
 
         [Authorize(Roles = "Admin")]
         [HttpGet(Name = "GetUsers")]
@@ -115,19 +114,13 @@ namespace Clinic_Management_System.Controllers
             user.Role = updatedUserDTO.Role ?? user.Role; // TODO: Check who really can change the role
             user.Active = updatedUserDTO.Active ?? user.Active;
 
-            if (await user.Update())
-            {
-                int? adminId = CurrentUserId();
+            int? adminId = CurrentUserId();
 
+            if (await user.Update(_AuditRowsFor(user, adminId, previousRole, previousActive)))
+            {
                 _logger.LogInformation(
                     "Admin {ActorId} updated user {UserId}: role {PreviousRole} -> {Role}, active {PreviousActive} -> {Active}",
                     adminId, id, previousRole, user.Role, previousActive, user.Active);
-
-                if (user.Role != previousRole)
-                    await _auditRepository.CreateAsync(adminId, AuditAction.UserRoleChanged, "User", id, $"{previousRole} -> {user.Role}");
-
-                if (user.Active != previousActive)
-                    await _auditRepository.CreateAsync(adminId, user.Active ? AuditAction.UserActivated : AuditAction.UserDeactivated, "User", id);
 
                 return NoContent();
             }
@@ -158,10 +151,9 @@ namespace Clinic_Management_System.Controllers
             if (userId == id)
                 return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "You cannot deactivate your own account.");
 
-            if (await user.Deactivate())
+            if (await user.Deactivate(userId))
             {
                 _logger.LogInformation("Admin {ActorId} deactivated user {UserId}", userId, id);
-                await _auditRepository.CreateAsync(userId, AuditAction.UserDeactivated, "User", id);
 
                 return NoContent();
             }
@@ -186,17 +178,39 @@ namespace Clinic_Management_System.Controllers
             if (user == null || !(await authorizationService.AuthorizeAsync(User, user, "ManageAccount")).Succeeded)
                 return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"User with id {id} not found");
 
-            if (await user.Activate())
-            {
-                int? adminId = CurrentUserId();
+            int? adminId = CurrentUserId();
 
+            if (await user.Activate(adminId))
+            {
                 _logger.LogInformation("Admin {ActorId} activated user {UserId}", adminId, id);
-                await _auditRepository.CreateAsync(adminId, AuditAction.UserActivated, "User", id);
 
                 return NoContent();
             }
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The user could not be activated.");
         }
+
+        /// <summary>
+        /// What an update should record, which is only what actually changed.
+        /// </summary>
+        /// <param name="user">The account after the edit.</param>
+        /// <param name="adminId">Who made the edit.</param>
+        /// <param name="previousRole">The role before it.</param>
+        /// <param name="previousActive">Whether the account was enabled before it.</param>
+        /// <returns>An entry per change, empty when the edit changed neither.</returns>
+        private static List<AuditRow> _AuditRowsFor(clsUser user, int? adminId, string previousRole, bool previousActive)
+        {
+            List<AuditRow> auditRows = new List<AuditRow>();
+
+            if (user.Role != previousRole)
+                auditRows.Add(new AuditRow(adminId, AuditAction.UserRoleChanged, "User", user.UserID, $"{previousRole} -> {user.Role}"));
+
+            if (user.Active != previousActive)
+                auditRows.Add(new AuditRow(adminId, user.Active ? AuditAction.UserActivated : AuditAction.UserDeactivated, "User", user.UserID));
+
+            return auditRows;
+        }
+
+        int? CurrentUserId() => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int id) ? id : null;
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace Clinic_DataAccess.Common
+﻿namespace Clinic_DataAccess.Common.Helpers
 {
     /// <summary>
     /// Builds the patterns the search filters hand to LIKE.

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
+using Clinic_DataAccess.Common.Models;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -118,6 +119,43 @@ namespace Clinic_DataAccess
             }
 
             return dt;
+        }
+
+        public static async Task CreateAsync(SqlConnection connection, SqlTransaction transaction, IReadOnlyList<AuditRow> rows)
+        {
+            if (rows.Count == 0)
+                return;
+
+            string query = @"INSERT INTO [dbo].[AuditEntries]
+                ([ActorUserID]
+                ,[Action]
+                ,[TargetType]
+                ,[TargetID]
+                ,[Detail])
+            VALUES ";
+
+            using (SqlCommand command = new SqlCommand())
+            {
+                command.Connection = connection;
+                command.Transaction = transaction;
+
+                List<string> valueRows = new List<string>();
+
+                for (int i = 0; i < rows.Count; i++)
+                {
+                    valueRows.Add($"(@ActorUserID{i}, @Action{i}, @TargetType{i}, @TargetID{i}, @Detail{i})");
+
+                    command.Parameters.AddWithValue($"@ActorUserID{i}", (object?)rows[i].ActorUserId ?? DBNull.Value);
+                    command.Parameters.AddWithValue($"@Action{i}", rows[i].Action);
+                    command.Parameters.AddWithValue($"@TargetType{i}", (object?)rows[i].TargetType ?? DBNull.Value);
+                    command.Parameters.AddWithValue($"@TargetID{i}", (object?)rows[i].TargetId ?? DBNull.Value);
+                    command.Parameters.AddWithValue($"@Detail{i}", (object?)rows[i].Detail ?? DBNull.Value);
+                }
+
+                command.CommandText = query + string.Join(",\n", valueRows) + ";";
+
+                await command.ExecuteNonQueryAsync();
+            }
         }
 
         public static async Task<int?> CreateAsync(

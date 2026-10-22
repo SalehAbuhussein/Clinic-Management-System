@@ -1,4 +1,4 @@
-﻿using Clinic_DataAccess.Common;
+﻿using Clinic_DataAccess.Common.Helpers;
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
@@ -176,7 +176,6 @@ namespace Clinic_DataAccess
         {
             return string.IsNullOrEmpty(nationalNo) ? Task.FromResult<DataRow?>(null) : _FindByAsync("P.NationalNo", nationalNo);
         }
-
 
         public static async Task<int?> CreateAsync(
             string? emergencyContactNumber,

@@ -1,5 +1,6 @@
 ﻿using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
+using Clinic_DataAccess.Common.Models;
 using Clinic_Management_System.DTOs.Auth;
 using Clinic_Management_System.Options;
 using Microsoft.AspNetCore.Authorization;
@@ -106,7 +107,7 @@ namespace Clinic_Management_System.Controllers
 
             // Step 8: Create Refresh token (secure random)
             // Refresh token is used to request a new access token later
-            var refreshToken = GenerateRefreshToken();
+            var refreshToken = _GenerateRefreshToken();
 
             // Step 9: Store refresh token securely (hash + expiry + not revoked).
             // We store the HASH only (never store the raw refresh token)
@@ -114,13 +115,12 @@ namespace Clinic_Management_System.Controllers
             user.RefreshTokenExpiresAt = DateTime.UtcNow.AddDays(_jwt.RefreshTokenDays);
             user.RefreshTokenRevokedAt = null;
 
-            if (await user.Update())
+            if (await user.Update([new AuditRow(user.UserID, AuditAction.LoginSucceeded, null, null)]))
             {
                 // Step 10: Return the serialized JWT token to the client.
                 // The client will send this token with future requests.
 
                 _logger.LogInformation("Login succeeded for user {UserId}", user.UserID);
-                await _auditRepository.CreateAsync(user.UserID, AuditAction.LoginSucceeded);
 
                 return Ok(new TokenResponse
                 {
@@ -198,7 +198,7 @@ namespace Clinic_Management_System.Controllers
             var newAccessToken = new JwtSecurityTokenHandler().WriteToken(jwt);
 
             // Rotation: replace refresh token
-            var newRefreshToken = GenerateRefreshToken();
+            var newRefreshToken = _GenerateRefreshToken();
             user.RefreshTokenHash = BCrypt.Net.BCrypt.HashPassword(newRefreshToken);
             user.RefreshTokenExpiresAt = DateTime.UtcNow.AddDays(_jwt.RefreshTokenDays);
             user.RefreshTokenRevokedAt = null;
@@ -276,12 +276,11 @@ namespace Clinic_Management_System.Controllers
             //user.RefreshTokenRevokedAt = null;
             //user.RefreshTokenHash = BCrypt.Net.BCrypt.HashPassword(GenerateRefreshToken());
 
-            if (await user.Create())
-            {
-                int? adminId = CurrentUserId();
+            int? creatorId = CurrentUserId();
 
-                _logger.LogInformation("User {UserId} created by admin {AdminId}", user.UserID, adminId);
-                await _auditRepository.CreateAsync(adminId, AuditAction.UserCreated, "User", user.UserID, request.Email);
+            if (await user.Create(creatorId, AuditAction.UserCreated, request.Email))
+            {
+                _logger.LogInformation("User {UserId} created by admin {AdminId}", user.UserID, creatorId);
 
                 return CreatedAtRoute("GetUser", new { id = user.UserID }, null);
             }
@@ -323,23 +322,23 @@ namespace Clinic_Management_System.Controllers
             if (!User.IsInRole("Admin") && !BCrypt.Net.BCrypt.Verify(request.CurrentPassword ?? "", user.PasswordHash))
                 return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The current password is wrong.");
 
-            ActionResult result = await SetPassword(user, request.NewPassword);
+            int? actorId = CurrentUserId();
+            string action = actorId == user.UserID ? AuditAction.PasswordChanged : AuditAction.PasswordReset;
+
+            ActionResult result = await _SetPassword(user, request.NewPassword,
+                new AuditRow(actorId, action, "User", user.UserID));
 
             if (result is not NoContentResult)
                 return result;
 
-            int? actorId = CurrentUserId();
-            string action = actorId == user.UserID ? AuditAction.PasswordChanged : AuditAction.PasswordReset;
-
             _logger.LogInformation("{Action} for user {UserId} by {ActorId}", action, user.UserID, actorId);
-            await _auditRepository.CreateAsync(actorId, action, "User", user.UserID);
 
             return result;
         }
 
         int? CurrentUserId() => int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int id) ? id : null;
 
-        private async Task<ActionResult> SetPassword(clsUser user, string newPassword)
+        private async Task<ActionResult> _SetPassword(clsUser user, string newPassword, AuditRow auditRow)
         {
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
 
@@ -348,13 +347,13 @@ namespace Clinic_Management_System.Controllers
             user.RefreshTokenExpiresAt = null;
             user.RefreshTokenRevokedAt = DateTime.UtcNow;
 
-            if (await user.Update())
+            if (await user.Update([auditRow]))
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The password could not be saved.");
         }
 
-        private static string GenerateRefreshToken()
+        private static string _GenerateRefreshToken()
         {
             var bytes = new byte[64];
             using var rng = RandomNumberGenerator.Create();
