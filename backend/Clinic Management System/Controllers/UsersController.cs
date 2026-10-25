@@ -116,7 +116,7 @@ namespace Clinic_Management_System.Controllers
 
             int? adminId = CurrentUserId();
 
-            if (await user.Update(_AuditRowsFor(user, adminId, previousRole, previousActive)))
+            if (await user.UpdateAsync(_AuditRowsFor(user, adminId, previousRole, previousActive)))
             {
                 _logger.LogInformation(
                     "Admin {ActorId} updated user {UserId}: role {PreviousRole} -> {Role}, active {PreviousActive} -> {Active}",
@@ -151,7 +151,7 @@ namespace Clinic_Management_System.Controllers
             if (userId == id)
                 return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "You cannot deactivate your own account.");
 
-            if (await user.Deactivate(userId))
+            if (await user.DeactivateAsync(userId))
             {
                 _logger.LogInformation("Admin {ActorId} deactivated user {UserId}", userId, id);
 
@@ -180,7 +180,7 @@ namespace Clinic_Management_System.Controllers
 
             int? adminId = CurrentUserId();
 
-            if (await user.Activate(adminId))
+            if (await user.ActivateAsync(adminId))
             {
                 _logger.LogInformation("Admin {ActorId} activated user {UserId}", adminId, id);
 

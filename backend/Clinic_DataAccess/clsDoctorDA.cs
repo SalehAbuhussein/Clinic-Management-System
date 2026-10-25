@@ -11,14 +11,6 @@ namespace Clinic_DataAccess
 {
     public class clsDoctorDA
     {
-
-        /// <summary>
-        /// The WHERE clause the list filters by, with its parameters added to
-        /// the command. The list and GetTotalCount share it, so a filter added
-        /// to one applies to the other and the two cannot disagree.
-        /// </summary>
-        /// <param name="command">The command the parameters go on.</param>
-        /// <returns>The clause to append, or an empty string when nothing is filtered.</returns>
         private static string _DoctorFilters(SqlCommand command, string? fullname, string? specialization, bool? active)
         {
             List<string> conditions = new List<string>();
@@ -44,14 +36,7 @@ namespace Clinic_DataAccess
             return conditions.Count == 0 ? string.Empty : $"\nWHERE {string.Join(" AND ", conditions)}";
         }
 
-        /// <summary>
-        /// How many rows match the filters, ignoring paging.
-        ///
-        /// A page past the last one returns nothing, so the list query's
-        /// COUNT(*) OVER() has no row to ride on. This answers it directly.
-        /// </summary>
-        /// <returns>The number of matching rows.</returns>
-        public static async Task<int> GetTotalCount(string? fullname = null, string? specialization = null, bool? active = null)
+        public static async Task<int> GetTotalCountAsync(string? fullname = null, string? specialization = null, bool? active = null)
         {
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
@@ -124,15 +109,6 @@ namespace Clinic_DataAccess
             return dt;
         }
 
-        /// <summary>
-        /// A doctor with its user and person, in one round trip. Find and FindByUserID
-        /// differ only in their WHERE, so they share this query, and the column name is a
-        /// compile-time literal from those two callers rather than anything from a request.
-        ///
-        /// Columns are named rather than SELECT *: Doctors and Users both have UserID,
-        /// Users and People both have PersonID, and ADO.NET would silently rename the
-        /// duplicates to UserID1/PersonID1.
-        /// </summary>
         private static async Task<DataRow?> _FindByAsync(string whereColumn, object value)
         {
             DataTable dt = new DataTable();

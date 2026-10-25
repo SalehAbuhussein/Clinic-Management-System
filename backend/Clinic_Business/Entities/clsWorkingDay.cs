@@ -47,7 +47,7 @@ namespace Clinic_Business.Entities
             if (table.Rows.Count > 0)
                 total = table.Rows[0].Field<int>("TotalCount");
             else if (pageNumber > 1)
-                total = await clsWorkingDaysDA.GetTotalCount();
+                total = await clsWorkingDaysDA.GetTotalCountAsync();
 
             return new PagedResult<WorkingDayItem>(workingDays, pageNumber, pageSize, total);
         }

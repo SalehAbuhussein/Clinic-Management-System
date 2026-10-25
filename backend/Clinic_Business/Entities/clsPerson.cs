@@ -70,7 +70,7 @@ namespace Clinic_Business.Entities
             if (dt.Rows.Count > 0)
                 total = dt.Rows[0].Field<int>("TotalCount");
             else if (pageNumber > 1)
-                total = await clsPersonDA.GetTotalCount(fullname, nationalNo, phone);
+                total = await clsPersonDA.GetTotalCountAsync(fullname, nationalNo, phone);
 
             return new PagedResult<clsPerson>(people, pageNumber, pageSize, total);
         }

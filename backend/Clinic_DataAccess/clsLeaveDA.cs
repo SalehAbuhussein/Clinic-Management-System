@@ -12,14 +12,6 @@ namespace Clinic_DataAccess
 {
     public class clsLeaveDA
     {
-
-        /// <summary>
-        /// The WHERE clause the list filters by, with its parameters added to
-        /// the command. The list and GetTotalCount share it, so a filter added
-        /// to one applies to the other and the two cannot disagree.
-        /// </summary>
-        /// <param name="command">The command the parameters go on.</param>
-        /// <returns>The clause to append, or an empty string when nothing is filtered.</returns>
         private static string _LeaveFilters(SqlCommand command, int? userId, DateTimeOffset? from, DateTimeOffset? to, byte? status)
         {
             List<string> conditions = new List<string>();
@@ -51,14 +43,7 @@ namespace Clinic_DataAccess
             return conditions.Count == 0 ? string.Empty : $"\nWHERE {string.Join(" AND ", conditions)}";
         }
 
-        /// <summary>
-        /// How many rows match the filters, ignoring paging.
-        ///
-        /// A page past the last one returns nothing, so the list query's
-        /// COUNT(*) OVER() has no row to ride on. This answers it directly.
-        /// </summary>
-        /// <returns>The number of matching rows.</returns>
-        public static async Task<int> GetTotalCount(int? userId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, byte? status = null, CancellationToken cancellationToken = default)
+        public static async Task<int> GetTotalCountAsync(int? userId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, byte? status = null, CancellationToken cancellationToken = default)
         {
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {

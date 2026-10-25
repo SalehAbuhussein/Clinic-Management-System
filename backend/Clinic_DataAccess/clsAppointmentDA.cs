@@ -12,16 +12,6 @@ namespace Clinic_DataAccess
 {
     public class clsAppointmentDA
     {
-        /// <summary>
-        /// The WHERE clause the appointment list filters by, with its
-        /// parameters added to the command. The list and GetTotalCount share
-        /// it, so a filter added to one applies to the other.
-        ///
-        /// Every filter is qualified with A: DoctorID and PatientID each exist
-        /// on two of the joined tables, so an unqualified name is ambiguous SQL.
-        /// </summary>
-        /// <param name="command">The command the parameters go on.</param>
-        /// <returns>The clause to append, or an empty string when nothing is filtered.</returns>
         private static string _AppointmentFilters(SqlCommand command, int? doctorId, int? patientId, DateTimeOffset? from, DateTimeOffset? to)
         {
             List<string> conditions = new List<string>();
@@ -53,14 +43,7 @@ namespace Clinic_DataAccess
             return conditions.Count == 0 ? string.Empty : $"\nWHERE {string.Join(" AND ", conditions)}";
         }
 
-        /// <summary>
-        /// How many appointments match the filters, ignoring paging.
-        ///
-        /// A page past the last one returns nothing, so the list query's
-        /// COUNT(*) OVER() has no row to ride on. This answers it directly.
-        /// </summary>
-        /// <returns>The number of matching appointments.</returns>
-        public static async Task<int> GetTotalCount(int? doctorId = null, int? patientId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, CancellationToken cancellationToken = default)
+        public static async Task<int> GetTotalCountAsync(int? doctorId = null, int? patientId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, CancellationToken cancellationToken = default)
         {
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
@@ -79,14 +62,7 @@ namespace Clinic_DataAccess
             }
         }
 
-        /// <summary>
-        /// How many live appointments a doctor has in a range, ignoring paging.
-        ///
-        /// The WHERE repeats FindDoctorSchedules rather than sharing a helper,
-        /// because that query filters on fixed columns with no optional parts.
-        /// </summary>
-        /// <returns>The number of matching slots.</returns>
-        public static async Task<int> GetDoctorSchedulesTotalCount(int doctorId, DateTimeOffset from, DateTimeOffset to)
+        public static async Task<int> GetDoctorSchedulesTotalCountAsync(int doctorId, DateTimeOffset from, DateTimeOffset to)
         {
             if (doctorId < 1)
                 return 0;
@@ -185,11 +161,6 @@ namespace Clinic_DataAccess
             return dt;
         }
 
-        /// <summary>
-        /// Returns the row instead of filling ten ref parameters. ref cannot cross an await
-        /// (CS1988), and the caller no longer has to pre-declare ten locals seeded with
-        /// MinValue just to receive them.
-        /// </summary>
         public static async Task<DataRow?> FindAsync(int id)
         {
             if (id < 1)
@@ -241,7 +212,7 @@ namespace Clinic_DataAccess
             return dt.Rows.Count > 0 ? dt.Rows[0] : null;
         }
 
-        public static async Task<DataTable> FindDoctorSchedules(int doctorId, DateTimeOffset from, DateTimeOffset to, int pageNumber, int pageSize)
+        public static async Task<DataTable> FindDoctorSchedulesAsync(int doctorId, DateTimeOffset from, DateTimeOffset to, int pageNumber, int pageSize)
         {
             DataTable dt = new DataTable();
 

@@ -13,19 +13,6 @@ namespace Clinic_DataAccess
 {
     public class clsUserDA
     {
-        /// <summary>
-        /// The WHERE clause the user list filters by, with its parameters added
-        /// to the command.
-        ///
-        /// Both the list and the count call this, so a filter added to one
-        /// applies to the other and the two can never disagree about how many
-        /// rows match.
-        /// </summary>
-        /// <param name="command">The command the parameters go on.</param>
-        /// <param name="fullname">Part of a name, or null.</param>
-        /// <param name="email">The start of an email, or null.</param>
-        /// <param name="active">Whether the account is enabled, or null.</param>
-        /// <returns>The clause to append, or an empty string when nothing is filtered.</returns>
         private static string _UserFilters(SqlCommand command, string? fullname, string? email, bool? active)
         {
             List<string> conditions = new List<string>();
@@ -51,17 +38,7 @@ namespace Clinic_DataAccess
             return conditions.Count == 0 ? string.Empty : $"\nWHERE {string.Join(" AND ", conditions)}";
         }
 
-        /// <summary>
-        /// How many users match the filters, ignoring paging.
-        ///
-        /// A page past the last one returns no rows, so the list query's
-        /// COUNT(*) OVER() has nothing to ride on. This answers it directly.
-        /// </summary>
-        /// <param name="fullname">Part of a name, or null.</param>
-        /// <param name="email">The start of an email, or null.</param>
-        /// <param name="active">Whether the account is enabled, or null.</param>
-        /// <returns>The number of matching users.</returns>
-        public static async Task<int> GetTotalCount(string? fullname = null, string? email = null, bool? active = null)
+        public static async Task<int> GetTotalCountAsync(string? fullname = null, string? email = null, bool? active = null)
         {
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
@@ -130,11 +107,6 @@ namespace Clinic_DataAccess
             return dt;
         }
 
-        /// <summary>
-        /// A user with its person, in one round trip. The three public loaders differ only
-        /// in their WHERE, so they share this query. The column name is a compile-time
-        /// literal from the callers below and never comes from a request.
-        /// </summary>
         private static async Task<DataRow?> _FindByAsync(string whereColumn, object value)
         {
             DataTable dt = new DataTable();
@@ -167,13 +139,13 @@ namespace Clinic_DataAccess
             return dt.Rows.Count > 0 ? dt.Rows[0] : null;
         }
 
-        public static Task<DataRow?> Find(int? id) => id.HasValue ? _FindByAsync("U.UserID", id.Value) : Task.FromResult<DataRow?>(null);
+        public static Task<DataRow?> FindAsync(int? id) => id.HasValue ? _FindByAsync("U.UserID", id.Value) : Task.FromResult<DataRow?>(null);
 
         public static Task<DataRow?> FindByEmailAsync(string email) => string.IsNullOrEmpty(email) ? Task.FromResult<DataRow?>(null) : _FindByAsync("U.Email", email);
 
         public static Task<DataRow?> FindByPersonIDAsync(int? personID) => personID.HasValue ? _FindByAsync("U.PersonID", personID.Value) : Task.FromResult<DataRow?>(null);
 
-        public static async Task<int?> Create(
+        public static async Task<int?> CreateAsync(
             string firstname,
             string midname,
             string? thirdname,
@@ -238,7 +210,7 @@ namespace Clinic_DataAccess
             return id;
         }
 
-        public static async Task<bool> Update(
+        public static async Task<bool> UpdateAsync(
             int? id,
             string passwordHash,
             string role,
@@ -303,7 +275,7 @@ namespace Clinic_DataAccess
             return true;
         }
 
-        public static async Task<bool> Delete(int? id)
+        public static async Task<bool> DeleteAsync(int? id)
         {
             if (!id.HasValue)
                 return false;
@@ -327,7 +299,7 @@ namespace Clinic_DataAccess
             return rowsAffected > 0;
         }
 
-        public static async Task<bool> Deactivate(int? id, IReadOnlyList<AuditRow> auditRows)
+        public static async Task<bool> DeactivateAsync(int? id, IReadOnlyList<AuditRow> auditRows)
         {
             if (!id.HasValue)
                 return false;
@@ -370,7 +342,7 @@ namespace Clinic_DataAccess
             return true;
         }
 
-        public static async Task<bool> Activate(int? id, IReadOnlyList<AuditRow> auditRows)
+        public static async Task<bool> ActivateAsync(int? id, IReadOnlyList<AuditRow> auditRows)
         {
             if (!id.HasValue)
                 return false;

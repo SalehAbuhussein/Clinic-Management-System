@@ -80,7 +80,7 @@ namespace Clinic_Management_System.Controllers
 
             TokenPair tokens = _tokenService.IssueFor(user);
 
-            if (await user.Update([new AuditRow(user.UserID, AuditAction.LoginSucceeded, null, null)]))
+            if (await user.UpdateAsync([new AuditRow(user.UserID, AuditAction.LoginSucceeded, null, null)]))
             {
                 // Step 10: Return the serialized JWT token to the client.
                 // The client will send this token with future requests.
@@ -144,7 +144,7 @@ namespace Clinic_Management_System.Controllers
             // Rotation: the old refresh token is replaced, not reused.
             TokenPair tokens = _tokenService.IssueFor(user);
 
-            if (await user.Update())
+            if (await user.UpdateAsync())
                 return Ok(new TokenResponse
                 {
                     AccessToken = tokens.AccessToken,
@@ -176,7 +176,7 @@ namespace Clinic_Management_System.Controllers
 
             user.RefreshTokenRevokedAt = DateTime.UtcNow;
 
-            if (!await user.Update())
+            if (!await user.UpdateAsync())
                 return NoContent();
 
             return NoContent();
@@ -219,7 +219,7 @@ namespace Clinic_Management_System.Controllers
 
             int? creatorId = CurrentUserId();
 
-            if (await user.Create(creatorId, AuditAction.UserCreated, request.Email))
+            if (await user.CreateAsync(creatorId, AuditAction.UserCreated, request.Email))
             {
                 _logger.LogInformation("User {UserId} created by admin {AdminId}", user.UserID, creatorId);
 
@@ -288,7 +288,7 @@ namespace Clinic_Management_System.Controllers
             user.RefreshTokenExpiresAt = null;
             user.RefreshTokenRevokedAt = DateTime.UtcNow;
 
-            if (await user.Update([auditRow]))
+            if (await user.UpdateAsync([auditRow]))
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The password could not be saved.");

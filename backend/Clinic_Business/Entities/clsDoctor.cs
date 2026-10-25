@@ -94,7 +94,7 @@ namespace Clinic_Business.Entities
             if (table.Rows.Count > 0)
                 total = table.Rows[0].Field<int>("TotalCount");
             else if (pageNumber > 1)
-                total = await clsDoctorDA.GetTotalCount(fullname, specialization, active);
+                total = await clsDoctorDA.GetTotalCountAsync(fullname, specialization, active);
 
             return new PagedResult<DoctorItem>(doctors, pageNumber, pageSize, total);
         }

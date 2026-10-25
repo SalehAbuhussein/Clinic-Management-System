@@ -47,7 +47,7 @@ namespace Clinic_Business.Entities
 
         public record VisitItem(int Id, int AppointmentID, string? PatientName, string? DoctorName, DateTimeOffset AppointmentStartAt, DateTimeOffset CheckinTime, DateTimeOffset? CheckoutTime, string? Notes);
 
-        public static Task<int> GetTotalCountAsync(int? doctorId = null, int? patientId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, CancellationToken cancellationToken = default) => clsVisitDA.GetTotalCount(doctorId, patientId, from, to, cancellationToken);
+        public static Task<int> GetTotalCountAsync(int? doctorId = null, int? patientId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, CancellationToken cancellationToken = default) => clsVisitDA.GetTotalCountAsync(doctorId, patientId, from, to, cancellationToken);
 
         public static async Task<PagedResult<VisitItem>> FindAllAsync(int? doctorId = null, int? patientId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default)
         {
@@ -69,7 +69,7 @@ namespace Clinic_Business.Entities
             if (table.Rows.Count > 0)
                 total = table.Rows[0].Field<int>("TotalCount");
             else if (pageNumber > 1)
-                total = await clsVisitDA.GetTotalCount(doctorId, patientId, from, to, cancellationToken);
+                total = await clsVisitDA.GetTotalCountAsync(doctorId, patientId, from, to, cancellationToken);
 
             return new PagedResult<VisitItem>(visits, pageNumber, pageSize, total);
         }

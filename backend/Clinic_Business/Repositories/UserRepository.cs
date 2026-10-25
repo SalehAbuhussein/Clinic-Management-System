@@ -26,14 +26,14 @@ namespace Clinic_Business.Repositories
             return clsUser.FindUsersAsync(fullname, email, active, pageNumber, pageSize);
         }
 
-        public Task<bool> Deactivate(int? userId, int? actorUserId)
+        public Task<bool> DeactivateAsync(int? userId, int? actorUserId)
         {
-            return clsUser.DeactivateUser(userId, actorUserId);
+            return clsUser.DeactivateUserAsync(userId, actorUserId);
         }
 
-        public Task<bool> Activate(int? userId, int? actorUserId)
+        public Task<bool> ActivateAsync(int? userId, int? actorUserId)
         {
-            return clsUser.ActivateUser(userId, actorUserId);
+            return clsUser.ActivateUserAsync(userId, actorUserId);
         }
   }
 }

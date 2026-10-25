@@ -11,14 +11,6 @@ namespace Clinic_DataAccess
 {
     public class clsPatientDA
     {
-
-        /// <summary>
-        /// The WHERE clause the list filters by, with its parameters added to
-        /// the command. The list and GetTotalCount share it, so a filter added
-        /// to one applies to the other and the two cannot disagree.
-        /// </summary>
-        /// <param name="command">The command the parameters go on.</param>
-        /// <returns>The clause to append, or an empty string when nothing is filtered.</returns>
         private static string _PatientFilters(SqlCommand command, string? fullname, string? phone, DateTimeOffset? from, DateTimeOffset? to)
         {
             List<string> conditions = new List<string>();
@@ -52,14 +44,7 @@ namespace Clinic_DataAccess
             return conditions.Count == 0 ? string.Empty : $"\nWHERE {string.Join(" AND ", conditions)}";
         }
 
-        /// <summary>
-        /// How many rows match the filters, ignoring paging.
-        ///
-        /// A page past the last one returns nothing, so the list query's
-        /// COUNT(*) OVER() has no row to ride on. This answers it directly.
-        /// </summary>
-        /// <returns>The number of matching rows.</returns>
-        public static async Task<int> GetTotalCount(string? fullname = null, string? phone = null, DateTimeOffset? from = null, DateTimeOffset? to = null, CancellationToken cancellationToken = default)
+        public static async Task<int> GetTotalCountAsync(string? fullname = null, string? phone = null, DateTimeOffset? from = null, DateTimeOffset? to = null, CancellationToken cancellationToken = default)
         {
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
@@ -129,12 +114,7 @@ namespace Clinic_DataAccess
 
             return dt;
         }
-
-        /// <summary>
-        /// A patient with its person, in one round trip. Find and FindByNationalNo differ
-        /// only in their WHERE, so they share this query. The column name is a compile-time
-        /// literal from the two callers below, never from a request.
-        /// </summary>
+        
         private static async Task<DataRow?> _FindByAsync(string whereColumn, object value)
         {
             DataTable dt = new DataTable();

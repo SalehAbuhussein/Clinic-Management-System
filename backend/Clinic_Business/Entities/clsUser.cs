@@ -73,14 +73,14 @@ namespace Clinic_Business.Entities
             if (table.Rows.Count > 0)
                 total = table.Rows[0].Field<int>("TotalCount");
             else if (pageNumber > 1)
-                total = await clsUserDA.GetTotalCount(fullname, email, active);
+                total = await clsUserDA.GetTotalCountAsync(fullname, email, active);
 
             return new PagedResult<UserItem>(users, pageNumber, pageSize, total);
         }
 
         public static async Task<clsUser?> FindUserAsync(int? id)
         {
-            DataRow? row = await clsUserDA.Find(id);
+            DataRow? row = await clsUserDA.FindAsync(id);
 
             return row == null ? null : MapUser(row);
         }
@@ -123,34 +123,34 @@ namespace Clinic_Business.Entities
         }
 
 
-        public static Task<bool> DeleteUser(int? id)
+        public static Task<bool> DeleteUserAsync(int? id)
         {
-            return clsUserDA.Delete(id);
+            return clsUserDA.DeleteAsync(id);
         }
 
-        public static Task<bool> DeactivateUser(int? id, int? actorUserId)
+        public static Task<bool> DeactivateUserAsync(int? id, int? actorUserId)
         {
-            return clsUserDA.Deactivate(id, [new AuditRow(actorUserId, AuditAction.UserDeactivated, "User", id)]);
+            return clsUserDA.DeactivateAsync(id, [new AuditRow(actorUserId, AuditAction.UserDeactivated, "User", id)]);
         }
 
-        public Task<bool> Deactivate(int? actorUserId)
+        public Task<bool> DeactivateAsync(int? actorUserId)
         {
-            return DeactivateUser(UserID, actorUserId);
+            return DeactivateUserAsync(UserID, actorUserId);
         }
 
-        public static Task<bool> ActivateUser(int? id, int? actorUserId)
+        public static Task<bool> ActivateUserAsync(int? id, int? actorUserId)
         {
-            return clsUserDA.Activate(id, [new AuditRow(actorUserId, AuditAction.UserActivated, "User", id)]);
+            return clsUserDA.ActivateAsync(id, [new AuditRow(actorUserId, AuditAction.UserActivated, "User", id)]);
         }
 
-        public Task<bool> Activate(int? actorUserId)
+        public Task<bool> ActivateAsync(int? actorUserId)
         {
-            return ActivateUser(UserID, actorUserId);
+            return ActivateUserAsync(UserID, actorUserId);
         }
 
-        private async Task<bool> _CreateUser(int? actorUserId, string auditAction, string? auditDetail)
+        private async Task<bool> _CreateUserAsync(int? actorUserId, string auditAction, string? auditDetail)
         {
-            UserID = await clsUserDA.Create(
+            UserID = await clsUserDA.CreateAsync(
                 PersonInfo.Firstname,
                 PersonInfo.Midname,
                 PersonInfo.Thirdname,
@@ -172,12 +172,12 @@ namespace Clinic_Business.Entities
             return UserID.HasValue;
         }
 
-        private Task<bool> _UpdateUser(IReadOnlyList<AuditRow> auditRows)
+        private Task<bool> _UpdateUserAsync(IReadOnlyList<AuditRow> auditRows)
         {
-            return clsUserDA.Update(UserID, PasswordHash, Role, Email, Active, PersonID, RefreshTokenHash, RefreshTokenExpiresAt, RefreshTokenRevokedAt, auditRows);
+            return clsUserDA.UpdateAsync(UserID, PasswordHash, Role, Email, Active, PersonID, RefreshTokenHash, RefreshTokenExpiresAt, RefreshTokenRevokedAt, auditRows);
         }
 
-        public async Task<bool> Create(int? actorUserId, string auditAction, string? auditDetail = null)
+        public async Task<bool> CreateAsync(int? actorUserId, string auditAction, string? auditDetail = null)
         {
             if (!_HasCredintals() || PersonInfo?.IsValid() != true)
                 return false;
@@ -185,15 +185,15 @@ namespace Clinic_Business.Entities
             if (UserID.HasValue)
                 return false;
 
-            return await _CreateUser(actorUserId, auditAction, auditDetail);
+            return await _CreateUserAsync(actorUserId, auditAction, auditDetail);
         }
 
-        public async Task<bool> Update(IReadOnlyList<AuditRow>? auditRows = null)
+        public async Task<bool> UpdateAsync(IReadOnlyList<AuditRow>? auditRows = null)
         {
             if (!_HasCredintals() || !(PersonID > 0))
                 return false;
 
-            return await _UpdateUser(auditRows ?? []);
+            return await _UpdateUserAsync(auditRows ?? []);
         }
 
         private bool _HasCredintals() => !string.IsNullOrEmpty(PasswordHash) && !string.IsNullOrEmpty(Email);

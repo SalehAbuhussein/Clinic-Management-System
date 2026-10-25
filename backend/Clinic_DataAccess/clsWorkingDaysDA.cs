@@ -5,10 +5,6 @@ namespace Clinic_DataAccess
 {
     public class clsWorkingDaysDA
     {
-        /// <summary>
-        /// The clinic's hours for one weekday, named as the column stores it.
-        /// </summary>
-        /// <param name="weekday">Sunday through Saturday.</param>
         public static async Task<DataRow?> FindByWeekdayAsync(string weekday)
         {
             DataTable dt = new DataTable();
@@ -36,12 +32,7 @@ namespace Clinic_DataAccess
             return dt.Rows.Count > 0 ? dt.Rows[0] : null;
         }
 
-        /// <summary>
-        /// How many working days are on file. The list takes no filters, so
-        /// there is nothing to share with it.
-        /// </summary>
-        /// <returns>The number of rows.</returns>
-        public static async Task<int> GetTotalCount()
+        public static async Task<int> GetTotalCountAsync()
         {
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {

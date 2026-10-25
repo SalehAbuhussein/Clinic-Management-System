@@ -22,7 +22,7 @@ namespace Clinic_Business.Entities
             string Detail
         );
 
-        public static Task<int> GetTotalCountAsync(DateTimeOffset? from = null, DateTimeOffset? to = null, CancellationToken cancellationToken = default) => clsAuditEntryDA.GetTotalCount(from, to, cancellationToken);
+        public static Task<int> GetTotalCountAsync(DateTimeOffset? from = null, DateTimeOffset? to = null, CancellationToken cancellationToken = default) => clsAuditEntryDA.GetTotalCountAsync(from, to, cancellationToken);
 
         public static async Task<PagedResult<AuditEntryItem>> FindAllAsync(
             DateTimeOffset? from,
@@ -50,7 +50,7 @@ namespace Clinic_Business.Entities
             if (dt.Rows.Count > 0)
                 total = dt.Rows[0].Field<int>("TotalCount");
             else if (pageNumber > 1)
-                total = await clsAuditEntryDA.GetTotalCount(from, to, cancellationToken);
+                total = await clsAuditEntryDA.GetTotalCountAsync(from, to, cancellationToken);
 
             return new PagedResult<AuditEntryItem>(entries, pageNumber, pageSize, total);
         }
