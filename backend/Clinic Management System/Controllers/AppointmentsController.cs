@@ -88,8 +88,7 @@ namespace Clinic_Management_System.Controllers
         {
             clsAppointment? appointment = await _appointmentRepository.FindByIdAsync(id);
             if (appointment == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Appointment with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Appointment with id {id} not found");
 
             var authResult = await authorizationService.AuthorizeAsync(
                 User,
@@ -98,7 +97,7 @@ namespace Clinic_Management_System.Controllers
             );
 
             if (!authResult.Succeeded)
-                return Forbid();
+                return Problem(statusCode: StatusCodes.Status403Forbidden, detail: "You do not have permission to do that.");
 
             AppointmentDTO appointmentDTO = new AppointmentDTO
             {
@@ -238,8 +237,7 @@ namespace Clinic_Management_System.Controllers
             if (timeWindowChanged)
             {
                 if (newStart < DateTime.UtcNow)
-                    return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                        detail: "An appointment cannot be rescheduled into the past.");
+                    return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "An appointment cannot be rescheduled into the past.");
 
                 if (!await _workingDayRepository.IsOpenAtAsync(newStart, newEnd))
                     return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The clinic is closed at that time.");
@@ -288,7 +286,7 @@ namespace Clinic_Management_System.Controllers
             );
 
             if (!authResult.Succeeded)
-                return Forbid();
+                return Problem(statusCode: StatusCodes.Status403Forbidden, detail: "You do not have permission to do that.");
 
             PagedResult<clsAppointment> appointmentsPage = await _appointmentRepository.FindAllAsync(doctorId, null, null, null, page, perPage);
 
@@ -355,26 +353,21 @@ namespace Clinic_Management_System.Controllers
         {
             clsAppointment? appointment = await _appointmentRepository.FindByIdAsync(id);
             if (appointment == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Appointment with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Appointment with id {id} not found");
 
             if (appointment.IsCancelled())
-                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                    detail: "The appointment has already been cancelled.");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The appointment has already been cancelled.");
 
             if (appointment.IsAttended())
-                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                    detail: "The appointment has already been marked attended.");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The appointment has already been marked attended.");
 
             if (appointment.IsNotAttended())
-                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                    detail: "The appointment date has passed.");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The appointment date has passed.");
 
             if (await appointment.AttendAppointmentAsync())
                 return NoContent();
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The appointment could not be marked attended.");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The appointment could not be marked attended.");
         }
 
         [Authorize(Roles = "Admin,Staff")]

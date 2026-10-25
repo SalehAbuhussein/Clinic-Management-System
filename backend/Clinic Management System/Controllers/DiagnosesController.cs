@@ -40,7 +40,7 @@ namespace Clinic_Management_System.Controllers
             var authResult = await _authorizationService.AuthorizeAsync(User, visitId, "ViewVisitRecord");
 
             if (!authResult.Succeeded)
-                return Forbid();
+                return Problem(statusCode: StatusCodes.Status403Forbidden, detail: "You do not have permission to do that.");
 
             clsDiagnosis? diagnosis = await _diagnosisRepository.FindByVisitIdAsync(visitId);
             if (diagnosis == null)
@@ -71,7 +71,7 @@ namespace Clinic_Management_System.Controllers
             var authResult = await _authorizationService.AuthorizeAsync(User, visitId, "ManageVisitRecord");
 
             if (!authResult.Succeeded)
-                return Forbid();
+                return Problem(statusCode: StatusCodes.Status403Forbidden, detail: "You do not have permission to do that.");
 
             if (await _diagnosisRepository.ExistsByVisitIdAsync(visitId))
                 return Problem(statusCode: StatusCodes.Status409Conflict,
@@ -119,7 +119,7 @@ namespace Clinic_Management_System.Controllers
             var authResult = await _authorizationService.AuthorizeAsync(User, visitId, "ManageVisitRecord");
 
             if (!authResult.Succeeded)
-                return Forbid();
+                return Problem(statusCode: StatusCodes.Status403Forbidden, detail: "You do not have permission to do that.");
 
             clsDiagnosis? diagnosis = await _diagnosisRepository.FindByVisitIdAsync(visitId);
             clsVisit? visit = diagnosis?.VisitInfo;
@@ -152,7 +152,7 @@ namespace Clinic_Management_System.Controllers
             var authResult = await _authorizationService.AuthorizeAsync(User, visitId, "ManageVisitRecord");
 
             if (!authResult.Succeeded)
-                return Forbid();
+                return Problem(statusCode: StatusCodes.Status403Forbidden, detail: "You do not have permission to do that.");
 
             clsDiagnosis? diagnosis = await _diagnosisRepository.FindByVisitIdAsync(visitId);
             if (diagnosis == null)

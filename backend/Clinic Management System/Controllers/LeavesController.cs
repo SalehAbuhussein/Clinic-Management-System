@@ -93,7 +93,7 @@ namespace Clinic_Management_System.Controllers
             {
                 AuthorizationResult authorization = await authorizationService.AuthorizeAsync(User, leave, "ViewLeave");
                 if (!authorization.Succeeded)
-                    return Forbid();
+                    return Problem(statusCode: StatusCodes.Status403Forbidden, detail: "You do not have permission to do that.");
             }
 
             if (leave == null)
@@ -174,7 +174,7 @@ namespace Clinic_Management_System.Controllers
             {
                 AuthorizationResult authorization = await authorizationService.AuthorizeAsync(User, leave, "UpdateLeave");
                 if (!authorization.Succeeded)
-                    return Forbid();
+                    return Problem(statusCode: StatusCodes.Status403Forbidden, detail: "You do not have permission to do that.");
             }
 
             if (leave == null)

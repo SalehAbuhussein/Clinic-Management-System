@@ -76,7 +76,7 @@ namespace Clinic_Management_System.Controllers
             }
 
             if (!user.Active)
-                return Problem(statusCode: 403, detail: "Account inactive, please contact an admin");
+                return Problem(statusCode: StatusCodes.Status403Forbidden, detail: "Account inactive, please contact an admin");
 
             TokenPair tokens = _tokenService.IssueFor(user);
 
@@ -139,7 +139,7 @@ namespace Clinic_Management_System.Controllers
             }
 
             if (!user.Active)
-                return Problem(statusCode: 403, detail: "Account inactive, please contact an admin");
+                return Problem(statusCode: StatusCodes.Status403Forbidden, detail: "Account inactive, please contact an admin");
 
             // Rotation: the old refresh token is replaced, not reused.
             TokenPair tokens = _tokenService.IssueFor(user);

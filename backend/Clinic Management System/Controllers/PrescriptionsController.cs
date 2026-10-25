@@ -51,7 +51,7 @@ namespace Clinic_Management_System.Controllers
             );
 
             if (!authResult.Succeeded)
-                return Forbid();
+                return Problem(statusCode: StatusCodes.Status403Forbidden, detail: "You do not have permission to do that.");
 
             PagedResult<PrescriptionItem> itemsPage =
                 await _prescriptionItemRepository.FindAllByVisitIdAsync(visitId);
@@ -95,7 +95,7 @@ namespace Clinic_Management_System.Controllers
             );
 
             if (!authResult.Succeeded)
-                return Forbid();
+                return Problem(statusCode: StatusCodes.Status403Forbidden, detail: "You do not have permission to do that.");
 
             // 1- Check if medicines list id are valid
             List<string> medicineIds = request.Items.Select(item => item.MedicineID.ToString()).ToList();
@@ -153,7 +153,7 @@ namespace Clinic_Management_System.Controllers
             );
 
             if (!authResult.Succeeded)
-                return Forbid();
+                return Problem(statusCode: StatusCodes.Status403Forbidden, detail: "You do not have permission to do that.");
 
             // 1- Check if medicines list id are valid
             List<string> medicineIds = request.Items.Select(item => item.MedicineID.ToString()).ToList();

@@ -73,7 +73,7 @@ namespace Clinic_Management_System.Controllers
             );
 
             if (!authResult.Succeeded)
-                return Forbid();
+                return Problem(statusCode: StatusCodes.Status403Forbidden, detail: "You do not have permission to do that.");
 
             PersonDTO personDTO = new PersonDTO
             {
