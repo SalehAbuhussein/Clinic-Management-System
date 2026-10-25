@@ -29,8 +29,6 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<PagedResult<PatientDTO>>> GetPatients(string? fullname, string? phone, [Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
-            perPage = Math.Clamp(perPage, 1, 10);
-
             PagedResult<clsPatient.PatientItem> patientsPage = await _patientRepository.FindAllAsync(fullname, phone, null, null, page, perPage);
 
             List<PatientDTO> patientsList = patientsPage.Items

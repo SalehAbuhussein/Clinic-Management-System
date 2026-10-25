@@ -43,8 +43,6 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<PagedResult<VisitDTO>>> GetVisits(int? doctorId, int? patientId, DateTimeOffset? from, DateTimeOffset? to, [Range(1, int.MaxValue)] int page = 1, [Range(1, 10)] int perPage = 10)
         {
-            perPage = Math.Clamp(perPage, 1, 10);
-
             if (from.HasValue && to.HasValue && from > to)
                 return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "The start of the range must be on or before its end.");
 
