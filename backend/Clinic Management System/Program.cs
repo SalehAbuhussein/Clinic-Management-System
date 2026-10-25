@@ -102,6 +102,8 @@ builder.Services.AddAuthorization(options =>
         policy => policy.Requirements.Add(new UpdateLeaveRequirement()));
     options.AddPolicy("ManageAccount",
         policy => policy.Requirements.Add(new ManageAccountRequirement()));
+    options.AddPolicy("DeleteAccount",
+        policy => policy.Requirements.Add(new DeleteAccountRequirement()));
     options.AddPolicy("ViewPatient",
         policy => policy.Requirements.Add(new ViewPatientRequirement()));
 });
@@ -112,6 +114,7 @@ builder.Services.AddScoped<IAuthorizationHandler, ViewVisitRecordHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, ViewLeaveHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, UpdateLeaveHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, ManageAccountHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, DeleteAccountHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, ViewPatientHandler>();
 builder.Services.AddScoped<IStatsRepository, StatsRepository>();
 builder.Services.AddScoped<ILeaveRepository, LeaveRepository>();

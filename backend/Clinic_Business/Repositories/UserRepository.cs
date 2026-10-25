@@ -26,6 +26,11 @@ namespace Clinic_Business.Repositories
             return clsUser.FindAllAsync(fullname, email, active, pageNumber, pageSize);
         }
 
+        public Task<bool> DeleteAsync(int? userId)
+        {
+            return clsUser.DeleteUserAsync(userId);
+        }
+
         public Task<bool> DeactivateAsync(int? userId, int? actorUserId)
         {
             return clsUser.DeactivateUserAsync(userId, actorUserId);

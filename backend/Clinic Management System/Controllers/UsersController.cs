@@ -5,6 +5,7 @@ using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 
@@ -126,6 +127,52 @@ namespace Clinic_Management_System.Controllers
             }
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The user could not be saved.");
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{id}", Name = "DeleteUser")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+        public async Task<ActionResult> DeleteUser(
+            [Range(1, int.MaxValue)] int id,
+            [FromServices] IAuthorizationService authorizationService
+        )
+        {
+            var adminId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            clsUser? user = await _userRepository.FindByIdAsync(id);
+
+            if (user == null)
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"User with id {id} not found");
+
+            if (!(await authorizationService.AuthorizeAsync(User, user, "DeleteAccount")).Succeeded)
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "Only a doctor or staff account can be deleted, and not your own. Deactivate it instead.");
+
+            try
+            {
+                if (await _userRepository.DeleteAsync(id))
+                {
+                    _logger.LogInformation("Admin {ActorId} deleted user {UserId}", adminId, id);
+
+                    return NoContent();
+                }
+            }
+            catch (SqlException exception) when (exception.Number == 547)
+            {
+                // Audit entries, a doctor record or leave requests still point at
+                // this account, and the clinic keeps that history.
+                _logger.LogWarning(exception, "Admin {ActorId} could not delete user {UserId}: rows still reference it", adminId, id);
+
+                return Problem(statusCode: StatusCodes.Status409Conflict,
+                    detail: "This account has history that cannot be removed. Deactivate it instead.");
+            }
+
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The user could not be deleted.");
         }
 
         [Authorize(Roles = "Admin")]
