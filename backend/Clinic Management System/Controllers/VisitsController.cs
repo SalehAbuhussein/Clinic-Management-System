@@ -49,16 +49,12 @@ namespace Clinic_Management_System.Controllers
                 return Problem(statusCode: StatusCodes.Status400BadRequest,
                     detail: "The start of the range must be on or before its end.");
 
-            // If Docotor tries to get visits get them the visits of there own only
-            if (User.IsInRole("Doctor"))
-            {
-                clsDoctor? doctor = await _doctorRepository.FindByUserIdAsync(int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!));
+            DoctorScope scope = await _ScopeToOwnVisits(doctorId);
 
-                if (doctor == null)
-                    return Problem(statusCode: StatusCodes.Status403Forbidden, detail: "This account has the Doctor role but no doctor record.");
+            if (scope.Failure != null)
+                return scope.Failure;
 
-                doctorId = doctor.DoctorID;
-            }
+            doctorId = scope.DoctorId;
 
             PagedResult<clsVisit.VisitItem> visitsPage = await _visitRepository.FindAllAsync(doctorId, patientId, from, to, page, perPage);
 
@@ -89,16 +85,12 @@ namespace Clinic_Management_System.Controllers
             if (from.HasValue && to.HasValue && from > to)
                 return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "The start of the range must be on or before its end.");
 
-            // A doctor exports their own visits only, the same scoping GetVisits applies.
-            if (User.IsInRole("Doctor"))
-            {
-                clsDoctor? doctor = await _doctorRepository.FindByUserIdAsync(int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!));
+            DoctorScope scope = await _ScopeToOwnVisits(doctorId);
 
-                if (doctor == null)
-                    return Problem(statusCode: StatusCodes.Status403Forbidden, detail: "This account has the Doctor role but no doctor record.");
+            if (scope.Failure != null)
+                return scope.Failure;
 
-                doctorId = doctor.DoctorID;
-            }
+            doctorId = scope.DoctorId;
 
             if (await _visitRepository.GetTotalCountAsync(doctorId, patientId, from, to, HttpContext.RequestAborted) > ExcelFile.MaxRows)
                 return Problem(statusCode: StatusCodes.Status400BadRequest, detail: $"That range holds more than {ExcelFile.MaxRows:N0} visits. Narrow it and try again.");
@@ -316,6 +308,34 @@ namespace Clinic_Management_System.Controllers
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
                 detail: "The visit could not be deleted.");
+        }
+
+        /// <summary>
+        /// Which doctor the caller may see, and the answer when they may see
+        /// nobody.
+        /// </summary>
+        /// <param name="DoctorId">The id to filter by, unchanged for anyone who is not a doctor.</param>
+        /// <param name="Failure">The response to return instead, or null to carry on.</param>
+        private record DoctorScope(int? DoctorId, ActionResult? Failure);
+
+        /// <summary>
+        /// A doctor sees their own visits and nobody else's, so their own id
+        /// replaces whatever was asked for. Everyone else keeps the filter
+        /// they sent.
+        /// </summary>
+        /// <param name="requestedDoctorId">The doctorId from the query string.</param>
+        /// <returns>The id to filter by, or the failure to return.</returns>
+        private async Task<DoctorScope> _ScopeToOwnVisits(int? requestedDoctorId)
+        {
+            if (!User.IsInRole("Doctor"))
+                return new DoctorScope(requestedDoctorId, null);
+
+            clsDoctor? doctor = await _doctorRepository.FindByUserIdAsync(int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!));
+
+            if (doctor == null)
+                return new DoctorScope(null, Problem(statusCode: StatusCodes.Status403Forbidden, detail: "This account has the Doctor role but no doctor record."));
+
+            return new DoctorScope(doctor.DoctorID, null);
         }
     }
 }

@@ -36,9 +36,7 @@ namespace Clinic_Management_System.Controllers
             [Range(1, int.MaxValue)] int page = 1,
             [Range(1, 10)] int perPage = 10)
         {
-            int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-            string role = User.FindFirstValue(ClaimTypes.Role)!;
-            int? scopedUserId = role == "Admin" ? null : userId;
+            int? scopedUserId = _ScopedUserId();
 
             PagedResult<LeaveItem> leavesPage = await _leaveRepository.FindAllLeavesAsync(scopedUserId, from, to, status, page, perPage);
             List<LeaveDTO> itemsDTO = leavesPage.Items.Select(item => new LeaveDTO
@@ -61,10 +59,7 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult> ExportLeaves(DateTimeOffset? from, DateTimeOffset? to)
         {
-            // Everyone but an admin exports their own leave, the same scoping GetLeaves applies.
-            int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-            string role = User.FindFirstValue(ClaimTypes.Role)!;
-            int? scopedUserId = role == "Admin" ? null : userId;
+            int? scopedUserId = _ScopedUserId();
 
             if (await _leaveRepository.GetTotalCountAsync(scopedUserId, from, to, null, HttpContext.RequestAborted) > ExcelFile.MaxRows)
                 return Problem(statusCode: StatusCodes.Status400BadRequest, detail: $"That range holds more than {ExcelFile.MaxRows:N0} leave requests. Narrow it and try again.");
@@ -232,5 +227,12 @@ namespace Clinic_Management_System.Controllers
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The Leave could not be saved.");
         }
+
+        /// <summary>
+        /// Whose leave the caller may see. An admin sees everyone's, so there
+        /// is nothing to filter by; everyone else sees their own.
+        /// </summary>
+        /// <returns>The user id to filter by, or null for no filter.</returns>
+        private int? _ScopedUserId() => User.IsInRole("Admin") ? null : int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     }
 }
