@@ -3,6 +3,7 @@ using Clinic_Business.Interfaces;
 using Clinic_DataAccess.Common.Models;
 using Clinic_Management_System.DTOs.Auth;
 using Clinic_Management_System.Options;
+using Clinic_Management_System.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -24,6 +25,7 @@ namespace Clinic_Management_System.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IAuditRepository _auditRepository;
         private readonly ILogger<AuthController> _logger;
+        private readonly ITokenService _tokenService;
 
         private static readonly string _absentUserHash = BCrypt.Net.BCrypt.HashPassword("absent user");
 
@@ -31,13 +33,15 @@ namespace Clinic_Management_System.Controllers
             IUserRepository userRepository,
             IAuditRepository auditRepository,
             IOptions<JwtOptions> jwtOptions, 
-            ILogger<AuthController> logger
+            ILogger<AuthController> logger,
+            ITokenService tokenService
         )
         {
             _userRepository = userRepository;
             _jwt = jwtOptions.Value;
             _logger = logger;
             _auditRepository = auditRepository;
+            _tokenService = tokenService;
         }
 
         [HttpPost("login")]
@@ -74,46 +78,7 @@ namespace Clinic_Management_System.Controllers
             if (!user.Active)
                 return Problem(statusCode: 403, detail: "Account inactive, please contact an admin");
 
-            // Step 3: Create claims that represent the authenticated user's identity
-            // These claims will be embedded inside the JWT.
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString() ?? ""),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.Role)
-            };
-
-            // Step 4: Create the symmetric security key used to sign the JWT.
-            // This key must match the key used in JWT validation middleware.
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Key));
-
-            // Step 5: Define the signing credentials.
-            // This specifies the algorithm used to sign the token.
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            // Step 6: Create the JWT token.
-            // The token includes issuer, audience, claims, expiration, and signature.
-            var token = new JwtSecurityToken(
-                issuer: _jwt.Issuer,
-                audience: _jwt.Audience,
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(_jwt.AccessTokenMinutes),
-                signingCredentials: creds
-            );
-
-            // Step 7: Serialize the JWT into a string
-            // This is what the client will send in the Authorization header
-            var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
-
-            // Step 8: Create Refresh token (secure random)
-            // Refresh token is used to request a new access token later
-            var refreshToken = _GenerateRefreshToken();
-
-            // Step 9: Store refresh token securely (hash + expiry + not revoked).
-            // We store the HASH only (never store the raw refresh token)
-            user.RefreshTokenHash = BCrypt.Net.BCrypt.HashPassword(refreshToken);
-            user.RefreshTokenExpiresAt = DateTime.UtcNow.AddDays(_jwt.RefreshTokenDays);
-            user.RefreshTokenRevokedAt = null;
+            TokenPair tokens = _tokenService.IssueFor(user);
 
             if (await user.Update([new AuditRow(user.UserID, AuditAction.LoginSucceeded, null, null)]))
             {
@@ -124,8 +89,8 @@ namespace Clinic_Management_System.Controllers
 
                 return Ok(new TokenResponse
                 {
-                    AccessToken = accessToken,
-                    RefreshToken = refreshToken
+                    AccessToken = tokens.AccessToken,
+                    RefreshToken = tokens.RefreshToken
                 });
             }
 
@@ -176,38 +141,14 @@ namespace Clinic_Management_System.Controllers
             if (!user.Active)
                 return Problem(statusCode: 403, detail: "Account inactive, please contact an admin");
 
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString() ?? ""),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.Role)
-            };
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Key));
-
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var jwt = new JwtSecurityToken(
-                issuer: _jwt.Issuer,
-                audience: _jwt.Audience,
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(_jwt.AccessTokenMinutes),
-                signingCredentials: creds
-            );
-
-            var newAccessToken = new JwtSecurityTokenHandler().WriteToken(jwt);
-
-            // Rotation: replace refresh token
-            var newRefreshToken = _GenerateRefreshToken();
-            user.RefreshTokenHash = BCrypt.Net.BCrypt.HashPassword(newRefreshToken);
-            user.RefreshTokenExpiresAt = DateTime.UtcNow.AddDays(_jwt.RefreshTokenDays);
-            user.RefreshTokenRevokedAt = null;
+            // Rotation: the old refresh token is replaced, not reused.
+            TokenPair tokens = _tokenService.IssueFor(user);
 
             if (await user.Update())
                 return Ok(new TokenResponse
                 {
-                    AccessToken = newAccessToken,
-                    RefreshToken = newRefreshToken
+                    AccessToken = tokens.AccessToken,
+                    RefreshToken = tokens.RefreshToken
                 });
 
             return Problem(statusCode: StatusCodes.Status500InternalServerError,
@@ -353,12 +294,5 @@ namespace Clinic_Management_System.Controllers
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The password could not be saved.");
         }
 
-        private static string _GenerateRefreshToken()
-        {
-            var bytes = new byte[64];
-            using var rng = RandomNumberGenerator.Create();
-            rng.GetBytes(bytes);
-            return Convert.ToBase64String(bytes);
-        }
     }
 }

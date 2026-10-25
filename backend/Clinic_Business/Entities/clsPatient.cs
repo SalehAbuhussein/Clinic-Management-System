@@ -191,8 +191,7 @@ namespace Clinic_Business.Entities
             return _CreatePatientAsync();
         }
 
-        /// <returns>Whether the row was written.</returns>
-        public Task<bool> UpdateAsync()
+        public override Task<bool> UpdateAsync()
         {
             if (!base.IsValid())
                 return Task.FromResult(false);

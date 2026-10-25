@@ -82,7 +82,7 @@ namespace Clinic_Business.Entities
             return row is null ? null : MapPerson(row);
         }
 
-        public Task<bool> UpdateAsync()
+        public virtual Task<bool> UpdateAsync()
         {
             return clsPersonDA.UpdateAsync(
                 PersonID,

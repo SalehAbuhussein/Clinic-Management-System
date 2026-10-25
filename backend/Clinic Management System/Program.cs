@@ -8,6 +8,7 @@ using Clinic_Management_System.Authorization.People;
 using Clinic_Management_System.Authorization.Users;
 using Clinic_Management_System.Authorization.VisitRecord;
 using Clinic_Management_System.Options;
+using Clinic_Management_System.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 // ✅ NEW (Rate limiting)
@@ -129,6 +130,7 @@ builder.Services.AddScoped<IDiagnosisRepository, DiagnosisRepository>();
 builder.Services.AddScoped<IPrescriptionItemRepository, PrescriptionItemRepository>();
 builder.Services.AddScoped<IPersonRepository, PersonRepository>();
 builder.Services.AddScoped<IWorkingDayRepository, WorkingDayRepository>();
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 builder.Services.AddProblemDetails(options =>
     options.CustomizeProblemDetails = context =>
