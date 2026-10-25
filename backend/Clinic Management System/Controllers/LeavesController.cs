@@ -146,7 +146,7 @@ namespace Clinic_Management_System.Controllers
             leave.EndAt = request.To;
             leave.Reason = request.Reason;
 
-            if (await leave.SaveAsync())
+            if (await leave.CreateAsync())
             {
                 return CreatedAtRoute("GetLeaveByID", new { id = leave.LeaveID }, new LeaveDTO
                 {
@@ -187,7 +187,7 @@ namespace Clinic_Management_System.Controllers
 
             leave.Reason = request.Reason;
 
-            if (await leave.SaveAsync())
+            if (await leave.UpdateAsync())
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The Leave could not be updated!");
@@ -207,7 +207,7 @@ namespace Clinic_Management_System.Controllers
 
             leave.Status = (int)clsLeave.enStatus.Approved;
 
-            if (await leave.SaveAsync())
+            if (await leave.UpdateAsync())
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The Leave could not be saved.");
@@ -227,7 +227,7 @@ namespace Clinic_Management_System.Controllers
 
             leave.Status = (int)clsLeave.enStatus.Rejected;
 
-            if (await leave.SaveAsync())
+            if (await leave.UpdateAsync())
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The Leave could not be saved.");

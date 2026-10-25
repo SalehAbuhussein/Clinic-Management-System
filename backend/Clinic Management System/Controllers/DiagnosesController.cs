@@ -91,7 +91,7 @@ namespace Clinic_Management_System.Controllers
             diagnosis.Diagnosis = createDiagnosesDTO.Diagnosis;
             diagnosis.Notes = createDiagnosesDTO.Notes;
 
-            if (await diagnosis.SaveAsync())
+            if (await diagnosis.CreateAsync())
                 return CreatedAtRoute("GetVisitDiagnosis", new { visitId },
                     new DiagnosisDTO
                     {
@@ -132,7 +132,7 @@ namespace Clinic_Management_System.Controllers
             diagnosis.Diagnosis = updateDiagnosesDTO.Diagnosis;
             diagnosis.Notes = updateDiagnosesDTO.Notes;
 
-            if (await diagnosis.SaveAsync())
+            if (await diagnosis.UpdateAsync())
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,

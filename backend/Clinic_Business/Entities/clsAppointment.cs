@@ -7,12 +7,6 @@ namespace Clinic_Business.Entities
 {
     public class clsAppointment
     {
-        public enum enMode
-        {
-            Add,
-            Update
-        }
-
         public int AppointmentID { get; set; }
         public int? DoctorID { get; set; }
         public clsDoctor? DoctorInfo { get; set; }
@@ -40,12 +34,8 @@ namespace Clinic_Business.Entities
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public int CreatedBy { get; set; }
-        public enMode Mode { get { return _Mode; } }
-        private enMode _Mode = enMode.Add;
-
         public clsAppointment()
         {
-            _Mode = enMode.Add;
         }
 
         private clsAppointment(
@@ -62,8 +52,6 @@ namespace Clinic_Business.Entities
             int? visitId
         )
         {
-            _Mode = enMode.Update;
-
             AppointmentID = id;
             DoctorID = doctorId;
             PatientID = patientID;
@@ -273,35 +261,31 @@ namespace Clinic_Business.Entities
             return clsAppointmentDA.UpdateAsync(AppointmentID, DoctorID, PatientID, StartAt, EndAt, Status, Notes);
         }
 
-        public async Task<bool> SaveAsync()
+        /// <summary>
+        /// Books the appointment. A new one cannot start in the past.
+        /// </summary>
+        /// <returns>Whether the row was written.</returns>
+        public Task<bool> CreateAsync()
         {
-            if (!IsValid())
-                return false;
+            if (!(EndAt > StartAt) || StartAt < DateTimeOffset.UtcNow)
+                return Task.FromResult(false);
 
-            switch (_Mode)
-            {
-                case enMode.Add:
-                    if (await _CreateAppointmentAsync())
-                    {
-                        _Mode = enMode.Update;
-                        return true;
-                    }
-
-                    return false;
-                case enMode.Update:
-                    return await _UpdateAppointmentAsync();
-            }
-
-            return false;
+            return _CreateAppointmentAsync();
         }
 
-        public bool IsValid()
+        /// <summary>
+        /// Saves an appointment that already exists. Rescheduling into the past
+        /// is allowed, because correcting a record after the fact is ordinary.
+        /// </summary>
+        /// <returns>Whether the row was written.</returns>
+        public Task<bool> UpdateAsync()
         {
-            bool isValidRange = EndAt > StartAt;
-            bool isValidStart = _Mode == enMode.Update || StartAt >= DateTimeOffset.UtcNow;
+            if (!(EndAt > StartAt))
+                return Task.FromResult(false);
 
-            return isValidRange && isValidStart;
+            return _UpdateAppointmentAsync();
         }
+
 
         public bool IsScheduled()
         {

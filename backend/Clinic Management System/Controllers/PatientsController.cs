@@ -135,7 +135,7 @@ namespace Clinic_Management_System.Controllers
             newPatient.Gender = patientDTO.Gender!.Value;
             newPatient.DateOfBirth = patientDTO.DateOfBirth!.Value;
 
-            if (await newPatient.SaveAsync())
+            if (await newPatient.CreateAsync())
             {
                 PatientDTO newPatientDTO = new PatientDTO
                 {
@@ -175,7 +175,7 @@ namespace Clinic_Management_System.Controllers
             patient.Gender = updatedPatient.Gender!.Value;
             patient.DateOfBirth = updatedPatient.DateOfBirth!.Value;
 
-            if (await patient.SaveAsync())
+            if (await patient.UpdateAsync())
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The patient could not be saved. Check the name, phone, national number and date of birth.");

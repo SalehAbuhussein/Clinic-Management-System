@@ -11,12 +11,6 @@ namespace Clinic_Business.Entities
 {
     public class clsVisit
     {
-        public enum enMode
-        {
-            Add,
-            Update
-        }
-
         public int? VisitID { get; set; }
         public int AppointmentID { get; set; }
         public clsAppointment? AppointmentInfo { get; set; }
@@ -30,11 +24,8 @@ namespace Clinic_Business.Entities
         public clsDoctor? DoctorInfo { get; set; }
         public DateTimeOffset? AppointmentStartAt { get; set; }
 
-        private enMode _Mode = enMode.Add;
-
         public clsVisit()
         {
-            _Mode = enMode.Add;
         }
 
         private clsVisit(
@@ -46,8 +37,6 @@ namespace Clinic_Business.Entities
             bool isLocked
         )
         {
-            _Mode = enMode.Update;
-
             VisitID = visitID;
             AppointmentID = appointmentID;
             CheckinTime = checkinTime;
@@ -150,39 +139,31 @@ namespace Clinic_Business.Entities
             return clsVisitDA.UpdateAsync(VisitID, AppointmentID, CheckinTime, CheckoutTime, Notes, IsLocked);
         }
 
-        public async Task<bool> SaveAsync()
+        /// <summary>
+        /// Opens a visit for an appointment.
+        /// </summary>
+        /// <returns>Whether it was written.</returns>
+        public Task<bool> CreateAsync()
         {
-            if (!IsValid())
-                return false;
+            if (AppointmentID <= 0)
+                return Task.FromResult(false);
 
-            switch (_Mode)
-            {
-                case enMode.Add:
-                    if (await _CreateVisitAsync())
-                    {
-                        _Mode = enMode.Update;
-                        return true;
-                    }
-
-                    return false;
-                case enMode.Update:
-                    return await _UpdateVisitAsync();
-            }
-
-            return false;
+            return _CreateVisitAsync();
         }
 
-        public bool IsValid()
+        /// <summary>
+        /// Saves a visit that already exists. A checkout, when there is one,
+        /// has to come after the check-in.
+        /// </summary>
+        /// <returns>Whether it was written.</returns>
+        public Task<bool> UpdateAsync()
         {
-            if (_Mode == enMode.Update)
-            {
-                bool isCheckoutExist = CheckoutTime != null;
-                bool isValidCheckout = isCheckoutExist ? (CheckoutTime > CheckinTime) : true;
+            bool isValidCheckout = CheckoutTime == null || CheckoutTime > CheckinTime;
 
-                return VisitID > 0 && AppointmentID > 0 && isValidCheckout;
-            }
+            if (!(VisitID > 0 && AppointmentID > 0 && isValidCheckout))
+                return Task.FromResult(false);
 
-            return AppointmentID > 0;
+            return _UpdateVisitAsync();
         }
     }
 }

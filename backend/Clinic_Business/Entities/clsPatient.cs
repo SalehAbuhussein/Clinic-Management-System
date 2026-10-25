@@ -11,12 +11,6 @@ namespace Clinic_Business.Entities
 {
     public class clsPatient : clsPerson
     {
-        public enum enMode
-        {
-            Add,
-            Update
-        }
-
         public int? PatientID { get; set; }
         public string? EmergencyContactNumber { get; set; }
         public string? EmergencyContactName { get; set; }
@@ -24,11 +18,8 @@ namespace Clinic_Business.Entities
         public DateTime UpdatedAt { get; set; }
         public int CreatedBy { get; set; }
         public bool Active { get; set; }
-        private enMode _Mode = enMode.Add;
-
         public clsPatient()
         {
-            _Mode = enMode.Add;
         }
 
         private clsPatient(
@@ -51,8 +42,6 @@ namespace Clinic_Business.Entities
             string nationalNo
         )
         {
-            _Mode = enMode.Update;
-
             PatientID = id;
             EmergencyContactNumber = emergencyContactNumber;
             EmergencyContactName = emergencyContactName;
@@ -193,25 +182,22 @@ namespace Clinic_Business.Entities
             );
         }
 
-        public async Task<bool> SaveAsync()
+        /// <returns>Whether the row was written.</returns>
+        public Task<bool> CreateAsync()
         {
             if (!base.IsValid())
-                return false;
+                return Task.FromResult(false);
 
-            switch (_Mode)
-            {
-                case enMode.Add:
-                    if (await _CreatePatientAsync())
-                    {
-                        _Mode = enMode.Update;
-                        return true;
-                    }
-                    return false;
-                case enMode.Update:
-                    return await _UpdatePatientAsync();
-            }
+            return _CreatePatientAsync();
+        }
 
-            return false;
+        /// <returns>Whether the row was written.</returns>
+        public Task<bool> UpdateAsync()
+        {
+            if (!base.IsValid())
+                return Task.FromResult(false);
+
+            return _UpdatePatientAsync();
         }
     }
 }

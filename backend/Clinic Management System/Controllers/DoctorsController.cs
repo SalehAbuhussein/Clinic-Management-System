@@ -123,7 +123,7 @@ namespace Clinic_Management_System.Controllers
             newDoctor.UserInfo.Email = addDoctorDTO.Email;
             newDoctor.UserInfo.PasswordHash = BCrypt.Net.BCrypt.HashPassword(addDoctorDTO.Password);
 
-            if (await newDoctor.SaveAsync())
+            if (await newDoctor.CreateAsync())
             {
                 DoctorDTO newDoctorDTO = new DoctorDTO
                 {
@@ -179,7 +179,7 @@ namespace Clinic_Management_System.Controllers
             person.DateOfBirth = updatedDoctor.DateOfBirth!.Value;
             person.ProfileImage = updatedDoctor.ProfileImage;
 
-            if (await doctor.SaveAsync())
+            if (await doctor.UpdateAsync())
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,

@@ -11,28 +11,18 @@ namespace Clinic_Business.Entities
 {
     public class clsMedicine
     {
-        public enum enMode
-        {
-            Add,
-            Update
-        }
-
         public int? MedicineID { get; set; }
         public int RxCUI { get; set; }
         public string Genericname { get; set; } = string.Empty;
         public string? Brandname { get; set; }
         public string Form { get; set; } = string.Empty;
         public string Strength { get; set; } = string.Empty;
-        private enMode _Mode = enMode.Add;
-
         public clsMedicine()
         {
-            _Mode = enMode.Add;
         }
 
         private clsMedicine(int id, int rxCUI, string genericname, string brandname, string form, string strength)
         {
-            _Mode = enMode.Update;
             MedicineID = id;
             Genericname = genericname;
             Brandname = brandname;
@@ -104,29 +94,25 @@ namespace Clinic_Business.Entities
             return clsMedicineDA.UpdateAsync(MedicineID, RxCUI, Genericname, Brandname, Form, Strength);
         }
 
-        public async Task<bool> SaveAsync()
+        /// <returns>Whether the row was written.</returns>
+        public Task<bool> CreateAsync()
         {
             if (!IsValid())
-                return false;
+                return Task.FromResult(false);
 
-            switch (_Mode)
-            {
-                case enMode.Add:
-                    if (await _CreateMedicineAsync())
-                    {
-                        _Mode = enMode.Update;
-                        return true;
-                    }
-
-                    return false;
-                case enMode.Update:
-                    return await _UpdateMedicineAsync();
-            }
-
-            return false;
+            return _CreateMedicineAsync();
         }
 
-        public bool IsValid()
+        /// <returns>Whether the row was written.</returns>
+        public Task<bool> UpdateAsync()
+        {
+            if (!IsValid())
+                return Task.FromResult(false);
+
+            return _UpdateMedicineAsync();
+        }
+
+        private bool IsValid()
         {
             return RxCUI > 0 && !string.IsNullOrEmpty(Genericname) && !string.IsNullOrEmpty(Form) && !string.IsNullOrEmpty(Strength);
         }

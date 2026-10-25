@@ -11,11 +11,6 @@ namespace Clinic_Business.Entities
 {
     public class clsLeave
     {
-        public enum enMode
-        {
-            Add,
-            Update
-        }
         public enum enStatus
         {
             Pending,
@@ -33,11 +28,8 @@ namespace Clinic_Business.Entities
         public bool IsApproved { get { return Status == 1; } }
         public bool IsRejected { get { return Status == 2; } }
         public clsUser UserInfo { get; set; }
-        private enMode _Mode;
-
         public clsLeave()
         {
-            _Mode = enMode.Add;
             UserInfo = new clsUser();
         }
 
@@ -50,8 +42,6 @@ namespace Clinic_Business.Entities
             byte status
         )
         {
-            _Mode = enMode.Update;
-
             LeaveID = id;
             UserID = userId;
             StartAt = startAt;
@@ -136,21 +126,16 @@ namespace Clinic_Business.Entities
             return await clsLeaveDA.UpdateAsync(LeaveID, Reason, Status);
         }
 
-        public async Task<bool> SaveAsync()
+        /// <returns>Whether the row was written.</returns>
+        public Task<bool> CreateAsync()
         {
-            switch (_Mode)
-            {
-                case enMode.Add:
-                    if (await _CreateAsync())
-                    {
-                        return true;
-                    }
-                    return false;
-                case enMode.Update:
-                    return await _UpdateAsync();
-            }
+            return _CreateAsync();
+        }
 
-            return false;
+        /// <returns>Whether the row was written.</returns>
+        public Task<bool> UpdateAsync()
+        {
+            return _UpdateAsync();
         }
 
         internal static clsLeave MapLeave(DataRow row)

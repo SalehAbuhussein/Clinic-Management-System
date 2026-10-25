@@ -12,12 +12,6 @@ namespace Clinic_Business.Entities
 {
     public class clsDoctor
     {
-        public enum enMode
-        {
-            Add,
-            Update
-        }
-
         public int? DoctorID { get; set; }
         public string Specialization { get; set; } = string.Empty;
         public string MedicalSchool { get; set; } = string.Empty;
@@ -27,11 +21,8 @@ namespace Clinic_Business.Entities
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public int CreatedBy { get; set; }
-        private enMode _Mode = enMode.Add;
-
         public clsDoctor()
         {
-            _Mode = enMode.Add;
             UserInfo = new clsUser();
         }
 
@@ -46,8 +37,6 @@ namespace Clinic_Business.Entities
             int createdBy
         )
         {
-            _Mode = enMode.Update;
-
             DoctorID = id;
             Specialization = specialization;
             MedicalSchool = medicalSchool;
@@ -225,36 +214,26 @@ namespace Clinic_Business.Entities
             );
         }
 
-        public async Task<bool> SaveAsync()
+        /// <returns>Whether the row was written.</returns>
+        public Task<bool> CreateAsync()
         {
-            if (!IsValid())
-                return false;
+            if (!_IsValidDoctor() || !_IsValidPerson())
+                return Task.FromResult(false);
 
-            switch (_Mode)
-            {
-                case enMode.Add:
-                    if (await _CreateDoctorAsync())
-                    {
-                        _Mode = enMode.Update;
-                        return true;
-                    }
-                    return false;
-                case enMode.Update:
-                    return await _UpdateDoctorAsync();
-            }
-
-            return false;
+            return _CreateDoctorAsync();
         }
 
-        public bool IsValid()
+        /// <returns>Whether the row was written.</returns>
+        public Task<bool> UpdateAsync()
         {
-            bool isValidPerson = UserInfo?.PersonInfo?.IsValid() == true;
-            bool isValidDoctor = (!string.IsNullOrEmpty(Specialization) && !string.IsNullOrEmpty(MedicalSchool) && GraduationYear > 0);
+            if (!_IsValidDoctor() || !_IsValidPerson() || !(UserID > 0) || !(UserInfo!.PersonID > 0))
+                return Task.FromResult(false);
 
-            if (_Mode == enMode.Update)
-                return isValidDoctor && isValidPerson && UserID > 0 &&  UserInfo!.PersonID > 0;
-
-            return isValidDoctor && isValidPerson;
+            return _UpdateDoctorAsync();
         }
+
+        private bool _IsValidPerson() => UserInfo?.PersonInfo?.IsValid() == true;
+
+        private bool _IsValidDoctor() => !string.IsNullOrEmpty(Specialization) && !string.IsNullOrEmpty(MedicalSchool) && GraduationYear > 0;
     }
 }

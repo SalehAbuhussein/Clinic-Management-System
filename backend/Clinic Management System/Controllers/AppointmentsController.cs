@@ -190,7 +190,7 @@ namespace Clinic_Management_System.Controllers
             if (int.TryParse(userId, out int parsedUserID))
                 newAppointment.CreatedBy = parsedUserID;
 
-            if (await newAppointment.SaveAsync())
+            if (await newAppointment.CreateAsync())
             {
                 AppointmentDTO newAppointmentDTO = new AppointmentDTO
                 {
@@ -223,9 +223,6 @@ namespace Clinic_Management_System.Controllers
 
             if (appointment == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Appointment with id {id} not found");
-
-            if (!appointment.IsValid())
-                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The appointment is not in a valid state to be updated.");
 
             DateTimeOffset newStart = updatedAppointmentDTO.StartAt;
             DateTimeOffset newEnd = updatedAppointmentDTO.EndAt;
@@ -261,7 +258,7 @@ namespace Clinic_Management_System.Controllers
             appointment.EndAt = newEnd;
             appointment.Notes = updatedAppointmentDTO.Notes;
 
-            if (await appointment.SaveAsync())
+            if (await appointment.UpdateAsync())
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The appointment could not be saved. Check the doctor, patient and time range.");

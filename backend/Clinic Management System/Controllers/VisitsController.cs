@@ -179,7 +179,7 @@ namespace Clinic_Management_System.Controllers
 
             try
             {
-                if (await newVisit.SaveAsync())
+                if (await newVisit.CreateAsync())
                     return CreatedAtRoute("GetVisitByID", new { id = newVisit.VisitID }, new VisitDTO
                     {
                         Id = newVisit.VisitID,
@@ -244,7 +244,7 @@ namespace Clinic_Management_System.Controllers
             visit.CheckinTime = checkinTimeUtc;
             visit.Notes = visitDTO.Notes;
 
-            if (await visit.SaveAsync())
+            if (await visit.UpdateAsync())
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
@@ -278,7 +278,7 @@ namespace Clinic_Management_System.Controllers
             visit.CheckoutTime = DateTime.UtcNow;
             visit.IsLocked = true;
 
-            if (await visit.SaveAsync())
+            if (await visit.UpdateAsync())
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,

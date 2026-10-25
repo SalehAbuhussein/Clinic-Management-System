@@ -10,12 +10,6 @@ namespace Clinic_Business.Entities
 {
     public class clsDiagnosis
     {
-        public enum enMode
-        {
-            Add,
-            Update
-        }
-
         public int? DiagnosesID { get; set; }
         public int? VisitID { get; set; }
         public clsVisit? VisitInfo { get; set; }
@@ -23,16 +17,12 @@ namespace Clinic_Business.Entities
         public string? Notes { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-        private enMode _Mode = enMode.Add;
-
         public clsDiagnosis()
         {
-            _Mode = enMode.Add;
         }
 
         private clsDiagnosis(int diagnosesID, int? visitID, clsVisit visitInfo, string diagnosis, string? notes, DateTime createdAt, DateTime updatedAt)
         {
-            _Mode = enMode.Update;
             DiagnosesID = diagnosesID;
             VisitID = visitID;
             VisitInfo = visitInfo;
@@ -98,30 +88,25 @@ namespace Clinic_Business.Entities
             return clsDiagnosisDA.UpdateAsync(DiagnosesID, Diagnosis, Notes);
         }
 
-        public async Task<bool> SaveAsync()
+        /// <returns>Whether the row was written.</returns>
+        public Task<bool> CreateAsync()
         {
             if (!IsValid())
-                return false;
+                return Task.FromResult(false);
 
-            switch (_Mode)
-            {
-                case enMode.Add:
-                    if (await _CreateAsync())
-                    {
-                        _Mode = enMode.Update;
-                        return true;
-                    } else
-                    {
-                        return false;
-                    }
-                case enMode.Update:
-                    return await _UpdateAsync();
-            }
-
-            return false;
+            return _CreateAsync();
         }
 
-        public bool IsValid()
+        /// <returns>Whether the row was written.</returns>
+        public Task<bool> UpdateAsync()
+        {
+            if (!IsValid())
+                return Task.FromResult(false);
+
+            return _UpdateAsync();
+        }
+
+        private bool IsValid()
         {
             return !string.IsNullOrEmpty(Diagnosis);
         }

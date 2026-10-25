@@ -90,7 +90,7 @@ namespace Clinic_Management_System.Controllers
             newMedicine.Strength = medicineDTO.Strength;
             newMedicine.RxCUI = medicineDTO.RxCUI;
 
-            if (await newMedicine.SaveAsync())
+            if (await newMedicine.CreateAsync())
             {
                 MedicineDTO newMedicineDTO = new MedicineDTO
                 {
@@ -126,7 +126,7 @@ namespace Clinic_Management_System.Controllers
             medicine.Form = updatedMedicine.Form;
             medicine.Strength = updatedMedicine.Strength;
 
-            if (await medicine.SaveAsync())
+            if (await medicine.UpdateAsync())
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The medicine could not be saved. Check RxCUI, generic name, form and strength.");
