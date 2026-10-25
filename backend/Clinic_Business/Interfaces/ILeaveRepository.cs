@@ -13,7 +13,7 @@ namespace Clinic_Business.Interfaces
     {
         Task<int> GetTotalCountAsync(int? userId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, byte? status = null, CancellationToken cancellationToken = default);
 
-        Task<PagedResult<LeaveItem>> FindAllLeavesAsync(
+        Task<PagedResult<LeaveItem>> FindAllAsync(
             int? userId,
             DateTimeOffset? from,
             DateTimeOffset? to,

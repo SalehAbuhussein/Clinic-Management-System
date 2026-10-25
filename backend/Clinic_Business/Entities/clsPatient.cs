@@ -67,7 +67,7 @@ namespace Clinic_Business.Entities
 
         public static Task<int> GetTotalCountAsync(string? fullname = null, string? phone = null, DateTimeOffset? from = null, DateTimeOffset? to = null, CancellationToken cancellationToken = default) => clsPatientDA.GetTotalCountAsync(fullname, phone, from, to, cancellationToken);
 
-        public static async Task<PagedResult<PatientItem>> FindPatientsAsync(string? fullname = null, string? phone = null, DateTimeOffset? from = null, DateTimeOffset? to = null, int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default)
+        public static async Task<PagedResult<PatientItem>> FindAllAsync(string? fullname = null, string? phone = null, DateTimeOffset? from = null, DateTimeOffset? to = null, int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default)
         {
             DataTable table = await clsPatientDA.FindAllAsync(fullname, phone, from, to, pageNumber, pageSize, cancellationToken);
 

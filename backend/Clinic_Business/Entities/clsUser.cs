@@ -56,9 +56,9 @@ namespace Clinic_Business.Entities
             PersonInfo = new clsPerson();
         }
 
-        public static async Task<PagedResult<UserItem>> FindUsersAsync(string? fullname = null, string? email = null, bool? active = null, int pageNumber = 1, int pageSize = 10)
+        public static async Task<PagedResult<UserItem>> FindAllAsync(string? fullname = null, string? email = null, bool? active = null, int pageNumber = 1, int pageSize = 10)
         {
-            DataTable table = await clsUserDA.FindUsersAsync(fullname, email, active, pageNumber, pageSize);
+            DataTable table = await clsUserDA.FindAllAsync(fullname, email, active, pageNumber, pageSize);
 
             List<UserItem> users = table.AsEnumerable().Select(row => new UserItem(
                 row.Field<int>("UserID"),

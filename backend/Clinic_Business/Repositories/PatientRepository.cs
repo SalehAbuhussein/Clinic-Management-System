@@ -20,7 +20,7 @@ namespace Clinic_Business.Repositories
 
         public Task<PagedResult<clsPatient.PatientItem>> FindAllAsync(string? fullname = null, string? phone = null, DateTimeOffset? from = null, DateTimeOffset? to = null, int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default)
         {
-            return clsPatient.FindPatientsAsync(fullname, phone, from, to, pageNumber, pageSize, cancellationToken);
+            return clsPatient.FindAllAsync(fullname, phone, from, to, pageNumber, pageSize, cancellationToken);
         }
 
         public Task<bool> DeleteAsync(int? id)

@@ -38,7 +38,7 @@ namespace Clinic_Management_System.Controllers
         {
             int? scopedUserId = _ScopedUserId();
 
-            PagedResult<LeaveItem> leavesPage = await _leaveRepository.FindAllLeavesAsync(scopedUserId, from, to, status, page, perPage);
+            PagedResult<LeaveItem> leavesPage = await _leaveRepository.FindAllAsync(scopedUserId, from, to, status, page, perPage);
             List<LeaveDTO> itemsDTO = leavesPage.Items.Select(item => new LeaveDTO
             {
                 Id = item.Id,
@@ -64,7 +64,7 @@ namespace Clinic_Management_System.Controllers
             if (await _leaveRepository.GetTotalCountAsync(scopedUserId, from, to, null, HttpContext.RequestAborted) > ExcelFile.MaxRows)
                 return Problem(statusCode: StatusCodes.Status400BadRequest, detail: $"That range holds more than {ExcelFile.MaxRows:N0} leave requests. Narrow it and try again.");
 
-            PagedResult<LeaveItem> leavesPage = await _leaveRepository.FindAllLeavesAsync(scopedUserId, from, to, null, 1, ExcelFile.MaxRows, HttpContext.RequestAborted);
+            PagedResult<LeaveItem> leavesPage = await _leaveRepository.FindAllAsync(scopedUserId, from, to, null, 1, ExcelFile.MaxRows, HttpContext.RequestAborted);
 
             return ExcelFile.Build("Leaves", ExportColumns, leavesPage.Items);
         }

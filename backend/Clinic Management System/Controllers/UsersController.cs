@@ -38,7 +38,7 @@ namespace Clinic_Management_System.Controllers
         {
             perPage = Math.Clamp(perPage, 1, 10);
 
-            PagedResult<clsUser.UserItem> usersPage = await _userRepository.FindUsersAsync(fullname, email, active, page, perPage);
+            PagedResult<clsUser.UserItem> usersPage = await _userRepository.FindAllAsync(fullname, email, active, page, perPage);
 
             List<UserDTO> usersList = usersPage.Items
                 .Select(user => new UserDTO

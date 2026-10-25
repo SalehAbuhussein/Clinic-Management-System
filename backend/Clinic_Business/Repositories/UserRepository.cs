@@ -21,9 +21,9 @@ namespace Clinic_Business.Repositories
             return clsUser.FindUserAsync(userID);
         }
 
-        public Task<PagedResult<clsUser.UserItem>> FindUsersAsync(string? fullname = null, string? email = null, bool? active = null, int pageNumber = 1, int pageSize = 10)
+        public Task<PagedResult<clsUser.UserItem>> FindAllAsync(string? fullname = null, string? email = null, bool? active = null, int pageNumber = 1, int pageSize = 10)
         {
-            return clsUser.FindUsersAsync(fullname, email, active, pageNumber, pageSize);
+            return clsUser.FindAllAsync(fullname, email, active, pageNumber, pageSize);
         }
 
         public Task<bool> DeactivateAsync(int? userId, int? actorUserId)

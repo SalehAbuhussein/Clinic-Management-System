@@ -13,9 +13,9 @@ namespace Clinic_Business.Repositories
     {
         public Task<int> GetTotalCountAsync(int? userId = null, DateTimeOffset? from = null, DateTimeOffset? to = null, byte? status = null, CancellationToken cancellationToken = default) => clsLeave.GetTotalCountAsync(userId, from, to, status, cancellationToken);
 
-        public async Task<PagedResult<clsLeave.LeaveItem>> FindAllLeavesAsync(int? userId, DateTimeOffset? from, DateTimeOffset? to, byte? status = null, int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default)
+        public async Task<PagedResult<clsLeave.LeaveItem>> FindAllAsync(int? userId, DateTimeOffset? from, DateTimeOffset? to, byte? status = null, int pageNumber = 1, int pageSize = 10, CancellationToken cancellationToken = default)
         {
-            return await clsLeave.FindAllLeavesAsync(userId, from, to, status, pageNumber, pageSize, cancellationToken);
+            return await clsLeave.FindAllAsync(userId, from, to, status, pageNumber, pageSize, cancellationToken);
         }
 
         public async Task<clsLeave?> FindAsync(int id)

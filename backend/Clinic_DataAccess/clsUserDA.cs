@@ -59,7 +59,7 @@ namespace Clinic_DataAccess
             }
         }
 
-        public static async Task<DataTable> FindUsersAsync(string? fullname = null, string? email = null, bool? active = null, int pageNumber = 1, int pageSize = 10)
+        public static async Task<DataTable> FindAllAsync(string? fullname = null, string? email = null, bool? active = null, int pageNumber = 1, int pageSize = 10)
         {
             DataTable dt = new DataTable();
 

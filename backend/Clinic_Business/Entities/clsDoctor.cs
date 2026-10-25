@@ -67,7 +67,7 @@ namespace Clinic_Business.Entities
             int PersonID,
             bool Active);
 
-        public static async Task<PagedResult<DoctorItem>> FindAllDoctorsAsync(string? fullname = null, string? specialization = null, bool? active = null, int pageNumber = 1, int pageSize = 10)
+        public static async Task<PagedResult<DoctorItem>> FindAllAsync(string? fullname = null, string? specialization = null, bool? active = null, int pageNumber = 1, int pageSize = 10)
         {
             DataTable table = await clsDoctorDA.FindAllAsync(fullname, specialization, active, pageNumber, pageSize);
 

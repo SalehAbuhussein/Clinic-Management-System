@@ -11,7 +11,7 @@ namespace Clinic_Business.Repositories
         public Task<clsDoctor?> FindByUserIdAsync(int? userID) => clsDoctor.FindByUserIDAsync(userID);
 
         public Task<PagedResult<clsDoctor.DoctorItem>> FindAllAsync(string? fullname = null, string? specialization = null, bool? active = null, int pageNumber = 1, int pageSize = 10)
-            => clsDoctor.FindAllDoctorsAsync(fullname, specialization, active, pageNumber, pageSize);
+            => clsDoctor.FindAllAsync(fullname, specialization, active, pageNumber, pageSize);
 
         public Task<bool> DeleteAsync(int? id) => clsDoctor.DeleteDoctorAsync(id);
 
