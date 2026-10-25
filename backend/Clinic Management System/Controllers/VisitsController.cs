@@ -118,7 +118,7 @@ namespace Clinic_Management_System.Controllers
             new("Notes", v => v.Notes),
         ];
 
-        [Authorize(Roles = "Admin, Staff")]
+        [Authorize(Roles = "Admin,Staff")]
         [HttpGet("{id}", Name = "GetVisitByID")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -285,7 +285,7 @@ namespace Clinic_Management_System.Controllers
                 detail: "The visit could not be checked out.");
         }
 
-        [Authorize(Roles = "Admin, Staff")]
+        [Authorize(Roles = "Admin,Staff")]
         [HttpDelete("{id}", Name = "DeleteVisit")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

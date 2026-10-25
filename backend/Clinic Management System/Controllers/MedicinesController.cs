@@ -23,7 +23,7 @@ namespace Clinic_Management_System.Controllers
             _prescriptionItemRepository = prescriptionItemRepository;
         }
 
-        [Authorize(Roles = "Admin,Doctor,Staff")]
+        [Authorize(Roles = "Admin,Staff,Doctor")]
         [HttpGet(Name = "GetMedicines")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -47,7 +47,7 @@ namespace Clinic_Management_System.Controllers
             return Ok(new PagedResult<MedicineDTO>(medicinesList, medicinesPage.Page, medicinesPage.PerPage, medicinesPage.Total));
         }
 
-        [Authorize(Roles = "Admin,Doctor,Staff")]
+        [Authorize(Roles = "Admin,Staff,Doctor")]
         [HttpGet("{id}", Name = "GetMedicineByID")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

@@ -74,7 +74,7 @@ namespace Clinic_Management_System.Controllers
             return Ok(new PagedResult<AppointmentDTO>(appointmentsList, appointmentsPage.Page, appointmentsPage.PerPage, appointmentsPage.Total));
         }
 
-        [Authorize(Roles = "Admin,Doctor,Staff")]
+        [Authorize(Roles = "Admin,Staff,Doctor")]
         [HttpGet("{id}", Name = "GetAppointmentByID")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
