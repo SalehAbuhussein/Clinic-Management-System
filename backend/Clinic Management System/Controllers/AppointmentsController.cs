@@ -382,26 +382,21 @@ namespace Clinic_Management_System.Controllers
         {
             clsAppointment? appointment = await _appointmentRepository.FindByIdAsync(id);
             if (appointment == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Appointment with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Appointment with id {id} not found");
 
             if (appointment.IsCancelled())
-                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                    detail: "The appointment has already been cancelled.");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The appointment has already been cancelled.");
 
             if (appointment.IsNotAttended())
-                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                    detail: "The appointment is already marked as not attended.");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The appointment is already marked as not attended.");
 
             if (appointment.IsAttended())
-                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                    detail: "The appointment has already been marked attended.");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The appointment has already been marked attended.");
 
             if (await appointment.UnattendAppointmentAsync())
                 return NoContent();
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The appointment could not be marked as not attended.");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The appointment could not be marked as not attended.");
         }
 
         [Authorize(Roles = "Admin,Staff")]
@@ -416,26 +411,21 @@ namespace Clinic_Management_System.Controllers
         {
             clsAppointment? appointment = await _appointmentRepository.FindByIdAsync(id);
             if (appointment == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Appointment with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Appointment with id {id} not found");
 
             if (appointment.IsCancelled())
-                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                    detail: "The appointment has already been cancelled.");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The appointment has already been cancelled.");
 
             if (appointment.IsNotAttended())
-                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                    detail: "The appointment is already marked as not attended.");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The appointment is already marked as not attended.");
 
             if (appointment.IsAttended())
-                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                    detail: "The appointment has already been marked attended.");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The appointment has already been marked attended.");
 
             if (await appointment.CancelAppointmentAsync())
                 return NoContent();
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The appointment could not be cancelled.");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The appointment could not be cancelled.");
         }
 
         [Authorize(Roles = "Admin")]
@@ -450,14 +440,12 @@ namespace Clinic_Management_System.Controllers
         {
             clsAppointment? appointment = await _appointmentRepository.FindByIdAsync(id);
             if (appointment == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Appointment with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Appointment with id {id} not found");
 
             if (await _appointmentRepository.DeleteAsync(id))
                 return NoContent();
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The appointment could not be deleted.");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The appointment could not be deleted.");
         }
     }
 }

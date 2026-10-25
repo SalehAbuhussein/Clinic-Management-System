@@ -58,8 +58,7 @@ namespace Clinic_Management_System.Controllers
         {
             clsMedicine? medicine = await _medicineRepository.FindByIdAsync(id);
             if (medicine == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Medicine with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Medicine with id {id} not found");
 
             MedicineDTO medicineDTO = new MedicineDTO
             {
@@ -144,14 +143,12 @@ namespace Clinic_Management_System.Controllers
         {
             clsMedicine? medicine = await _medicineRepository.FindByIdAsync(id);
             if (medicine == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Medicine with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Medicine with id {id} not found");
 
             // Checked rather than caught: the foreign key would refuse anyway,
             // and that arrives as a 500 with nothing a caller can act on.
             if (await _prescriptionItemRepository.HasPrescriptionByMedicineIdAsync(id))
-                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                    detail: "This medicine is on an existing prescription and cannot be deleted.");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "This medicine is on an existing prescription and cannot be deleted.");
 
             if (await _medicineRepository.DeleteAsync(id))
                 return NoContent();

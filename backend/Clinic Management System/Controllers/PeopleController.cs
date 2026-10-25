@@ -63,8 +63,7 @@ namespace Clinic_Management_System.Controllers
             clsPerson? person = await _personRepository.FindByIdAsync(id);
 
             if (person == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Person with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Person with id {id} not found");
 
             var authResult = await authorizationService.AuthorizeAsync(
                 User,

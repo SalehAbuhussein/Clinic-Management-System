@@ -46,8 +46,7 @@ namespace Clinic_Management_System.Controllers
             perPage = Math.Clamp(perPage, 1, 10);
 
             if (from.HasValue && to.HasValue && from > to)
-                return Problem(statusCode: StatusCodes.Status400BadRequest,
-                    detail: "The start of the range must be on or before its end.");
+                return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "The start of the range must be on or before its end.");
 
             DoctorScope scope = await _ScopeToOwnVisits(doctorId);
 
@@ -121,8 +120,7 @@ namespace Clinic_Management_System.Controllers
         {
             clsVisit? visit = await _visitRepository.FindByIdAsync(id);
             if (visit == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Visit with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Visit with id {id} not found");
 
             VisitDTO visitDTO = new VisitDTO
             {
@@ -205,33 +203,23 @@ namespace Clinic_Management_System.Controllers
         {
             clsVisit? visit = await _visitRepository.FindByIdAsync(id);
             if (visit == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Visit with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Visit with id {id} not found");
 
-            if (visit.IsLocked)
-                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                    detail: "The visit has already been finalized.");
+            if (visit.IsLocked && !User.IsInRole("Admin"))
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The visit is locked and can only be changed by an admin.");
 
             if (visitDTO.CheckinTime is not DateTimeOffset checkinTime)
-                return Problem(statusCode: StatusCodes.Status400BadRequest,
-                    detail: "Checkin time is required.");
+                return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "Checkin time is required.");
 
             DateTimeOffset checkinTimeUtc = checkinTime;
 
             if (visit.CheckoutTime.HasValue && checkinTimeUtc > visit.CheckoutTime.Value)
-                return Problem(statusCode: StatusCodes.Status400BadRequest,
-                    detail: "Checkin time cannot be later than the checkout time.");
+                return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "Checkin time cannot be later than the checkout time.");
             else
             {
                 if (checkinTimeUtc > DateTimeOffset.UtcNow)
-                    return Problem(statusCode: StatusCodes.Status400BadRequest,
-                        detail: "Checkin time cannot be in the future.");
+                    return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "Checkin time cannot be in the future.");
             }
-
-            // Allow Admin to modify the resource
-            if (visit.IsLocked && !User.IsInRole("Admin"))
-                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                    detail: "The visit is locked and can only be changed by an admin.");
 
             visit.CheckinTime = checkinTimeUtc;
             visit.Notes = visitDTO.Notes;
@@ -239,8 +227,7 @@ namespace Clinic_Management_System.Controllers
             if (await visit.UpdateAsync())
                 return NoContent();
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The visit could not be saved.");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The visit could not be saved.");
         }
 
         [Authorize(Roles = "Admin,Staff")]
@@ -255,17 +242,14 @@ namespace Clinic_Management_System.Controllers
         {
             clsVisit? visit = await _visitRepository.FindByIdAsync(id);
             if (visit == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Visit with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Visit with id {id} not found");
 
             clsDiagnosis? diagnosis = await _diagnosisRepository.FindByVisitIdAsync(id);
             if (diagnosis == null)
-                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                    detail: "A visit must have a diagnosis before it can be checked out.");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "A visit must have a diagnosis before it can be checked out.");
 
             if (visit.IsLocked)
-                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                    detail: "The visit has already been finalized.");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The visit has already been finalized.");
 
             visit.CheckoutTime = DateTime.UtcNow;
             visit.IsLocked = true;
@@ -273,8 +257,7 @@ namespace Clinic_Management_System.Controllers
             if (await visit.UpdateAsync())
                 return NoContent();
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The visit could not be checked out.");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The visit could not be checked out.");
         }
 
         [Authorize(Roles = "Admin,Staff")]
@@ -289,25 +272,15 @@ namespace Clinic_Management_System.Controllers
         {
             clsVisit? visit = await _visitRepository.FindByIdAsync(id);
             if (visit == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Visit with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Visit with id {id} not found");
 
             if (visit.IsLocked)
-                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                    detail: "The visit has already been finalized.");
-
-            if (User.IsInRole("Staff"))
-            {
-                if (visit.IsLocked)
-                    return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                        detail: "The visit has already been finalized.");
-            }
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The visit has already been finalized.");
 
             if (await _visitRepository.DeleteAsync(id))
                 return NoContent();
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The visit could not be deleted.");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The visit could not be deleted.");
         }
 
         /// <summary>

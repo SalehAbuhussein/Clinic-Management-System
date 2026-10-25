@@ -16,16 +16,13 @@ namespace Clinic_Management_System.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
-        private readonly IAuditRepository _auditRepository;
         private readonly ILogger<UsersController> _logger;
 
         public UsersController(
             IUserRepository userRepository,
-            IAuditRepository auditRepository,
             ILogger<UsersController> logger)
         {
             _userRepository = userRepository;
-            _auditRepository = auditRepository;
             _logger = logger;
         }
 

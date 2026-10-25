@@ -109,8 +109,7 @@ namespace Clinic_Management_System.Controllers
             clsUser? user = await _userRepository.FindByEmailAsync(request.Email);
 
             if (user == null)
-                return Problem(statusCode: StatusCodes.Status401Unauthorized,
-                    detail: "Invalid refresh request.");
+                return Problem(statusCode: StatusCodes.Status401Unauthorized, detail: "Invalid refresh request.");
 
             if (user.RefreshTokenRevokedAt != null)
             {
@@ -151,8 +150,7 @@ namespace Clinic_Management_System.Controllers
                     RefreshToken = tokens.RefreshToken
                 });
 
-            return Problem(statusCode: StatusCodes.Status500InternalServerError,
-                detail: "The session could not be refreshed. Please try again.");
+            return Problem(statusCode: StatusCodes.Status500InternalServerError, detail: "The session could not be refreshed. Please try again.");
         }
 
         [HttpPost("logout")]

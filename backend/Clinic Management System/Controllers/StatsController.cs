@@ -26,8 +26,7 @@ namespace Clinic_Management_System.Controllers
         public async Task<ActionResult<StatsDTO>> GetStats(DateTimeOffset todayFrom, DateTimeOffset from, DateTimeOffset to)
         {
             if (from >= to)
-                return Problem(statusCode: StatusCodes.Status400BadRequest,
-                    detail: "The start of the range must be before its end.");
+                return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "The start of the range must be before its end.");
 
             // One bar per day, capped at a quarter so nobody asks for decades of them.
             int days = Math.Clamp((int)(to - from).TotalDays, 1, 92);

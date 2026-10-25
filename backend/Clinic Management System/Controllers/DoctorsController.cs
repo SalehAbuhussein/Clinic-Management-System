@@ -136,8 +136,7 @@ namespace Clinic_Management_System.Controllers
                 return CreatedAtRoute("GetDoctorByID", new { id = newDoctor.DoctorID }, newDoctorDTO);
             }
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The doctor could not be created. Check the person details and credentials.");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The doctor could not be created. Check the person details and credentials.");
         }
 
         [Authorize(Roles = "Admin")]
@@ -153,18 +152,15 @@ namespace Clinic_Management_System.Controllers
         {
             clsDoctor? doctor = await _doctorRepository.FindByIdAsync(id);
             if (doctor == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Doctor with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Doctor with id {id} not found");
 
             clsPerson? person = doctor.UserInfo?.PersonInfo;
             if (person == null)
-                return Problem(statusCode: StatusCodes.Status500InternalServerError,
-                    detail: $"Doctor {id} is missing its linked person record.");
+                return Problem(statusCode: StatusCodes.Status500InternalServerError, detail: $"Doctor {id} is missing its linked person record.");
 
             clsUser? user = doctor.UserInfo;
             if (user != null && !user.Active)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Doctor with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Doctor with id {id} not found");
 
             doctor.Specialization = updatedDoctor.Specialization;
             doctor.MedicalSchool = updatedDoctor.MedicalSchool;
@@ -182,8 +178,7 @@ namespace Clinic_Management_System.Controllers
             if (await doctor.UpdateAsync())
                 return NoContent();
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The doctor could not be saved. Check the person details and specialization.");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The doctor could not be saved. Check the person details and specialization.");
         }
 
         [Authorize(Roles = "Admin")]
@@ -198,19 +193,16 @@ namespace Clinic_Management_System.Controllers
         {
             clsDoctor? doctor = await _doctorRepository.FindByIdAsync(id);
             if (doctor == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Doctor with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Doctor with id {id} not found");
 
             clsUser? user = doctor.UserInfo;
             if (user != null && !user.Active)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Doctor with id {id} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Doctor with id {id} not found");
 
             if (await _doctorRepository.DeleteAsync(id))
                 return NoContent();
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The doctor could not be deleted.");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The doctor could not be deleted.");
         }
     }
 }

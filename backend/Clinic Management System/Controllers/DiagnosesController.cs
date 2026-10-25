@@ -44,8 +44,7 @@ namespace Clinic_Management_System.Controllers
 
             clsDiagnosis? diagnosis = await _diagnosisRepository.FindByVisitIdAsync(visitId);
             if (diagnosis == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Visit {visitId} has no diagnosis");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Visit {visitId} has no diagnosis");
 
             return new DiagnosisDTO
             {
@@ -74,17 +73,14 @@ namespace Clinic_Management_System.Controllers
                 return Problem(statusCode: StatusCodes.Status403Forbidden, detail: "You do not have permission to do that.");
 
             if (await _diagnosisRepository.ExistsByVisitIdAsync(visitId))
-                return Problem(statusCode: StatusCodes.Status409Conflict,
-                    detail: $"Visit {visitId} already has a diagnosis");
+                return Problem(statusCode: StatusCodes.Status409Conflict, detail: $"Visit {visitId} already has a diagnosis");
 
             clsVisit? visit = await _visitRepository.FindByIdAsync(visitId);
             if (visit == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Visit with id {visitId} not found");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Visit with id {visitId} not found");
 
             if (visit.IsLocked)
-                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                    detail: "The visit is locked, so its diagnosis cannot be changed.");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The visit is locked, so its diagnosis cannot be changed.");
 
             clsDiagnosis diagnosis = new clsDiagnosis();
             diagnosis.VisitID = visitId;
@@ -100,8 +96,7 @@ namespace Clinic_Management_System.Controllers
                         Notes = diagnosis.Notes
                     });
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The diagnosis could not be saved. Check the diagnosis text.");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The diagnosis could not be saved. Check the diagnosis text.");
         }
 
         [Authorize(Roles = "Admin,Doctor")]
@@ -135,8 +130,7 @@ namespace Clinic_Management_System.Controllers
             if (await diagnosis.UpdateAsync())
                 return NoContent();
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The diagnosis could not be saved. Check the diagnosis text.");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The diagnosis could not be saved. Check the diagnosis text.");
         }
 
         [Authorize(Roles = "Admin,Doctor")]
@@ -156,18 +150,15 @@ namespace Clinic_Management_System.Controllers
 
             clsDiagnosis? diagnosis = await _diagnosisRepository.FindByVisitIdAsync(visitId);
             if (diagnosis == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: $"Visit {visitId} has no diagnosis");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Visit {visitId} has no diagnosis");
 
             if (await _visitRepository.HasCheckedOutAsync(visitId))
-                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                    detail: "The visit is locked, so its diagnosis cannot be removed.");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The visit is locked, so its diagnosis cannot be removed.");
 
             if (await _diagnosisRepository.DeleteAsync(diagnosis.DiagnosesID ?? 0))
                 return NoContent();
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The diagnosis could not be deleted.");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The diagnosis could not be deleted.");
         }
     }
 }

@@ -100,18 +100,15 @@ namespace Clinic_Management_System.Controllers
             // 1- Check if medicines list id are valid
             List<string> medicineIds = request.Items.Select(item => item.MedicineID.ToString()).ToList();
             if (!await _medicineRepository.AreValidMedicinesAsync(medicineIds))
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: "One or more of the medicines referenced does not exist.");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: "One or more of the medicines referenced does not exist.");
 
             // 2- If Visit has been checked out refuse.
             if (await _visitRepository.HasCheckedOutAsync(visitId))
-                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                    detail: "The visit has already ended, so its prescription cannot be changed.");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The visit has already ended, so its prescription cannot be changed.");
 
             // 3- If Visit has existing Prescription refuse (will be making endpoint to update).
             if (await _prescriptionItemRepository.HasPrescriptionByVisitIdAsync(visitId))
-                return Problem(statusCode: StatusCodes.Status409Conflict,
-                    detail: "This visit already has a prescription.");
+                return Problem(statusCode: StatusCodes.Status409Conflict, detail: "This visit already has a prescription.");
 
             var items = request.Items.Select(item => (visitId, item.MedicineID, item.Dosage, item.Frequency, item.Duration)).ToList();
 
@@ -158,25 +155,21 @@ namespace Clinic_Management_System.Controllers
             // 1- Check if medicines list id are valid
             List<string> medicineIds = request.Items.Select(item => item.MedicineID.ToString()).ToList();
             if (!await _medicineRepository.AreValidMedicinesAsync(medicineIds))
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: "One or more of the medicines referenced does not exist.");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: "One or more of the medicines referenced does not exist.");
 
             // 2- If Visit has been checked out refuse.
             if (await _visitRepository.HasCheckedOutAsync(visitId))
-                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                    detail: "The visit has already ended, so its prescription cannot be changed.");
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The visit has already ended, so its prescription cannot be changed.");
 
             // 3- Make sure Prescription Exist.
             if (!await _prescriptionItemRepository.HasPrescriptionByVisitIdAsync(visitId))
-                return Problem(statusCode: StatusCodes.Status404NotFound,
-                    detail: "This visit has no prescription to update.");
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: "This visit has no prescription to update.");
 
             var items = request.Items.Select(item => (visitId, item.MedicineID, item.Dosage, item.Frequency, item.Duration)).ToList();
             if (await _prescriptionItemRepository.UpdateManyAsync(items) > 0)
                 return NoContent();
 
-            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity,
-                detail: "The prescription could not be saved.");
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The prescription could not be saved.");
         }
     }
 }
