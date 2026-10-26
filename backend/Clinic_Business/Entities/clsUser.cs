@@ -18,8 +18,8 @@ namespace Clinic_Business.Entities
         public string Email { get; set; } = string.Empty;
         public bool Active { get; set; }
         public string? RefreshTokenHash { get; set; }
-        public DateTime? RefreshTokenExpiresAt { get; set; }
-        public DateTime? RefreshTokenRevokedAt { get; set; }
+        public DateTimeOffset? RefreshTokenExpiresAt { get; set; }
+        public DateTimeOffset? RefreshTokenRevokedAt { get; set; }
         public int? PersonID { get; set; }
         public clsPerson PersonInfo { get; set; } = new clsPerson();
 
@@ -35,8 +35,8 @@ namespace Clinic_Business.Entities
             string email,
             bool active,
             string? refreshTokenHash,
-            DateTime? refreshTokenExpiresAt,
-            DateTime? refreshTokenRevokedAt,
+            DateTimeOffset? refreshTokenExpiresAt,
+            DateTimeOffset? refreshTokenRevokedAt,
             int? personID
         )
         {
@@ -115,8 +115,8 @@ namespace Clinic_Business.Entities
                 row.Field<string>("Email") ?? string.Empty,
                 row.Field<bool>("Active"),
                 row.Field<string>("RefreshTokenHash"),
-                row.Field<DateTime?>("RefreshTokenExpiresAt"),
-                row.Field<DateTime?>("RefreshTokenRevokedAt"),
+                row.Field<DateTimeOffset?>("RefreshTokenExpiresAt"),
+                row.Field<DateTimeOffset?>("RefreshTokenRevokedAt"),
                 row.Field<int>("PersonID")
             )
             { PersonInfo = person };
@@ -162,9 +162,6 @@ namespace Clinic_Business.Entities
                 PersonInfo.ProfileImage,
                 PasswordHash,
                 Email,
-                RefreshTokenHash,
-                RefreshTokenExpiresAt,
-                RefreshTokenRevokedAt,
                 actorUserId,
                 auditAction,
                 auditDetail

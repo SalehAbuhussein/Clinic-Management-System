@@ -236,7 +236,7 @@ namespace Clinic_Management_System.Controllers
 
             if (timeWindowChanged)
             {
-                if (newStart < DateTime.UtcNow)
+                if (newStart < DateTimeOffset.UtcNow)
                     return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "An appointment cannot be rescheduled into the past.");
 
                 if (!await _workingDayRepository.IsOpenAtAsync(newStart, newEnd))

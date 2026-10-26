@@ -155,9 +155,10 @@ namespace Clinic_Management_System.Controllers
             if (await _appointmentRepository.IsCancelledAsync(visitDTO.AppointmentID))
                 return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The appointment has been cancelled, so no visit can be created for it.");
 
-            DateTimeOffset checkinTime = visitDTO.CheckinTime ?? DateTimeOffset.Now;
+            DateTimeOffset now = DateTimeOffset.UtcNow;
+            DateTimeOffset checkinTime = visitDTO.CheckinTime ?? now;
 
-            if (checkinTime > DateTimeOffset.UtcNow)
+            if (checkinTime > now)
                 return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "Checkin time cannot be in the future.");
 
             clsVisit newVisit = new clsVisit();
@@ -249,7 +250,7 @@ namespace Clinic_Management_System.Controllers
             if (visit.IsLocked)
                 return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The visit has already been finalized.");
 
-            visit.CheckoutTime = DateTime.UtcNow;
+            visit.CheckoutTime = DateTimeOffset.UtcNow;
             visit.IsLocked = true;
 
             if (await visit.UpdateAsync())

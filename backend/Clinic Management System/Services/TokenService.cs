@@ -62,7 +62,7 @@ namespace Clinic_Management_System.Services
             string refreshToken = _GenerateRefreshToken();
 
             user.RefreshTokenHash = BCrypt.Net.BCrypt.HashPassword(refreshToken);
-            user.RefreshTokenExpiresAt = DateTime.UtcNow.AddDays(_jwt.RefreshTokenDays);
+            user.RefreshTokenExpiresAt = DateTimeOffset.UtcNow.AddDays(_jwt.RefreshTokenDays);
             user.RefreshTokenRevokedAt = null;
 
             return new TokenPair(new JwtSecurityTokenHandler().WriteToken(token), refreshToken);

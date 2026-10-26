@@ -119,7 +119,7 @@ namespace Clinic_Management_System.Controllers
                 return Problem(statusCode: StatusCodes.Status401Unauthorized, detail: "Refresh token is revoked.");
             }
 
-            if (user.RefreshTokenExpiresAt == null || user.RefreshTokenExpiresAt <= DateTime.UtcNow)
+            if (user.RefreshTokenExpiresAt == null || user.RefreshTokenExpiresAt <= DateTimeOffset.UtcNow)
             {
                 await _auditRepository.CreateAsync(null, AuditAction.RefreshRejected, "User", user.UserID, $"expired at {user.RefreshTokenExpiresAt:u}");
                 return Problem(statusCode: StatusCodes.Status401Unauthorized, detail: "Refresh token expired.");
@@ -172,7 +172,7 @@ namespace Clinic_Management_System.Controllers
             if (!refreshValid)
                 return NoContent();
 
-            user.RefreshTokenRevokedAt = DateTime.UtcNow;
+            user.RefreshTokenRevokedAt = DateTimeOffset.UtcNow;
 
             if (!await user.UpdateAsync())
                 return NoContent();
@@ -210,10 +210,6 @@ namespace Clinic_Management_System.Controllers
             user.Email = request.Email;
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
             user.PersonInfo = person;
-
-            //user.RefreshTokenExpiresAt = DateTime.UtcNow.AddDays(7);
-            //user.RefreshTokenRevokedAt = null;
-            //user.RefreshTokenHash = BCrypt.Net.BCrypt.HashPassword(GenerateRefreshToken());
 
             int? creatorId = CurrentUserId();
 
@@ -284,7 +280,7 @@ namespace Clinic_Management_System.Controllers
             // End Existing session
             user.RefreshTokenHash = null;
             user.RefreshTokenExpiresAt = null;
-            user.RefreshTokenRevokedAt = DateTime.UtcNow;
+            user.RefreshTokenRevokedAt = DateTimeOffset.UtcNow;
 
             if (await user.UpdateAsync([auditRow]))
                 return NoContent();

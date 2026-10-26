@@ -157,9 +157,6 @@ namespace Clinic_DataAccess
             string? profileImage,
             string passwordHash,
             string email,
-            string? refreshTokenHash,
-            DateTime? refreshTokenExpiresAt,
-            DateTime? refreshTokenRevokedAt,
             int? actorUserId,
             string auditAction,
             string? auditDetail
@@ -218,8 +215,8 @@ namespace Clinic_DataAccess
             bool active,
             int? personID,
             string? refreshTokenHash,
-            DateTime? refreshTokenExpiresAt,
-            DateTime? refreshTokenRevokedAt,
+            DateTimeOffset? refreshTokenExpiresAt,
+            DateTimeOffset? refreshTokenRevokedAt,
             IReadOnlyList<AuditRow> auditRows
         )
         {
