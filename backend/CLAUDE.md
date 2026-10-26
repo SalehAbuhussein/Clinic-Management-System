@@ -1,7 +1,8 @@
 # Clinic Management System
 
 ASP.NET Core 8 Web API for a clinic (people, patients, doctors, appointments, visits,
-medicines, prescriptions), with JWT auth. An Angular frontend is planned but not started.
+medicines, prescriptions, leaves, auditing), with JWT auth. The Angular 22 frontend lives
+beside it in `frontend/` and is built out across twelve features.
 
 ## Where the code lives
 
@@ -56,19 +57,31 @@ Persistence ownership was reviewed on 8 September and the object keeps it — se
 Every entity is reached through a **repository** injected into the controller. The nine
 repositories delegate to the entity's own statics rather than calling `*DA` directly, so the
 injected and any remaining static path cannot drift. Reads return entities or projection
-records; writes still happen on the object (`appointment.SaveAsync()`), which is the recorded
-active-record decision.
+records; writes still happen on the object (`appointment.UpdateAsync()`), which is the
+recorded active-record decision.
 
-Two shapes exist side by side, and the difference matters:
+**The `enMode` migration is finished.** As of 25 October 2026 every entity has explicit
+`CreateAsync()` and `UpdateAsync()`, each carrying only the validation rule that applies to
+it. `enMode`, `_Mode`, `SaveAsync()` and the mode-dependent `IsValid()` have **zero**
+references left in the solution. A caller states which operation it wants; nothing is
+inferred from hidden state.
 
-- **`clsUser` is the migrated one.** It has explicit `Create()` and `Update()`, each carrying
-  the validation rule that applies to it. `enMode`, `_Mode`, `Save()` and `IsValid()` are
-  gone. A caller states which operation it wants; nothing is inferred from hidden state.
-- **The other six still use the flag.** `clsAppointment`, `clsDiagnosis`, `clsDoctor`,
-  `clsMedicine`, `clsPatient` and `clsVisit` each have a private `enMode _Mode` that
-  `SaveAsync()` switches on — `Add` inserts, `Update` updates, and `IsValid()` silently means
-  different things depending on it. Converting them is optional and should follow need, not
-  momentum.
+`clsUser` went first, and `clsAppointment`, `clsDiagnosis`, `clsDoctor`, `clsLeave`,
+`clsMedicine`, `clsPatient` and `clsVisit` followed. Three of them had validation that
+branched on the flag, which is what made it worth doing: `clsVisit`, `clsDoctor` and
+`clsAppointment` each had one `IsValid()` that meant two different things. Those rules now
+sit in the method they belong to, so `clsAppointment.CreateAsync` refuses a start in the past
+while `UpdateAsync` allows it, visibly rather than by implication.
+
+Two things that came out of it and are worth knowing:
+
+- **`AppointmentsController` lost a guard.** It called `IsValid()` on a freshly loaded
+  appointment and then overwrote `StartAt` and `EndAt` seven lines later, so it validated
+  values that were about to be replaced. It could only fire on an already-corrupt row, and
+  then blocked the edit that would have fixed it.
+- **`clsLeave` never validated anything.** Its `SaveAsync()` had no `IsValid()` call, so
+  `CreateAsync` and `UpdateAsync` have no guard either. That is faithful to what was there,
+  not an oversight introduced by the migration.
 
 Where a list query cannot produce a full entity — no join, or a join across three tables —
 the entity declares a nested **projection record** instead of returning a `DataTable`:
@@ -105,14 +118,14 @@ distinction between 422 and 500 in the controllers meaningful.
 
 ## Dependency injection
 
-`Program.cs` is the composition root. Registered there, all **`AddScoped`** (lines 92-104):
+`Program.cs` is the composition root. Registered there, all **`AddScoped`** (lines 103-126):
 
 | Registration | Count | Why scoped |
 |---|---|---|
-| the three `IAuthorizationHandler`s | 3 | each injects a scoped repository |
-| `IXRepository` → `XRepository` | 9 | per-request is the lifetime a DB-touching service wants |
+| the seven `IAuthorizationHandler`s | 7 | each injects a scoped repository |
+| `IXRepository` → `XRepository` | 13 | per-request is the lifetime a DB-touching service wants |
 
-All three authorization handlers **had** to move from `AddSingleton` to `AddScoped` as they
+The authorization handlers **had** to move from `AddSingleton` to `AddScoped` as they
 gained injected repositories, and that is the part worth understanding. A singleton may not consume a scoped service — the
 container refuses at startup with *"Cannot consume scoped service … from singleton"*, because
 the singleton would capture the first request's instance forever. Changing that one line from
@@ -120,7 +133,7 @@ the singleton would capture the first request's instance forever. Changing that 
 container does **not** catch the reverse mistake: a `Transient` injected into a singleton is
 silently constructed once and lives as long as the singleton.
 
-There are **nine** interfaces, one per entity, and every member is async. Every controller
+There are **thirteen** interfaces, one per entity, and every member is async. Every controller
 takes its repositories by constructor injection; `PeopleController` was the last one that had
 no constructor at all.
 
@@ -130,7 +143,7 @@ into `PrescriptionsController` alongside its two other repositories. It still ta
 `List<string>` of ids stringified from `int`s and passes them to `STRING_SPLIT` in SQL —
 the signature is worth revisiting even though the wiring is now right.
 
-Entity persistence is still called on the object (`user.Create()`, `appointment.SaveAsync()`).
+Entity persistence is still called on the object (`user.Create()`, `appointment.UpdateAsync()`).
 That is the recorded decision, not an oversight.
 
 ## Logging
@@ -157,7 +170,13 @@ Applied, that is:
 | `AuthController.Refresh` | revoked token used; hash mismatch | Warning |
 | `UsersController` | role/active change, deactivate, activate — with the acting admin's id | Information |
 | `Program.cs` `OnRejected` | rate-limit rejection | Warning |
-| the three authorization handlers | denial, with acting user and resource id | Warning |
+| the seven authorization handlers | denial, with acting user and resource id | Warning |
+
+**Every one of those also writes an `AuditEntries` row**, added 18 October, plus rows for
+`Register` and `ChangePassword` which had no logging at all before. The log is for us and is
+lost on restart; the table is queryable, admin-readable at `GET /api/Audit`, and is what the
+"a user owns audit history" rule above actually refers to. `AuditAction` holds the ten action
+names as constants so the screen and the writers cannot drift.
 
 Levels are set per category in `appsettings.json`, matched by **prefix, most specific wins**:
 `Default` is `Warning`, while the `AuthController` category and `Clinic.RateLimiting` stay at
@@ -194,17 +213,25 @@ Three decisions here are deliberate and easy to mistake for gaps:
   `api/Visits/{visitId}/prescription` and `api/Visits/{visitId}/diagnosis`. Neither carries
   an id segment, and neither create DTO carries `VisitID` — the parent is in the URL.
   `POST` returns 409 if one already exists.
-- **`Users` has no `DELETE` on purpose.** `PATCH {id}/deactivate` and `{id}/activate` are the
-  delete: a user owns audit history (refresh tokens, which admin changed which role), so
-  hard-deleting it would orphan the record of what it did. This is soft delete, not an
-  oversight.
-- **`People` has neither `POST` nor `DELETE`.** A person is only ever created as part of a
-  role — `POST /api/Auth/register`, `POST /api/Patients`, `POST /api/Doctors`, all of which
-  inherit `CreatePersonDTO`. `DELETE /api/People/{id}` was **removed on 11 September**: it
-  could destroy a person the API cannot recreate, out from under the patient, doctor or user
-  attached to them. `GET /api/People/{id}` still exists, so the route answers **405**, not 404.
-  `clsPerson.DeleteAsync`, `PersonRepository.DeleteAsync` and `clsPersonDA.DeleteAsync` are
-  now unreferenced and kept deliberately.
+- **`Users` has both a soft and a hard delete, and the soft one is the default.**
+  `PATCH {id}/deactivate` and `{id}/activate` are what the UI uses, because a user owns audit
+  history and deactivating keeps it. `DELETE /api/Users/{id}` was added on 25 October 2026 for
+  the accounts that have none. Three rules guard it. The caller must be an admin
+  (`[Authorize(Roles = "Admin")]`) and may not delete their own account, both checked in
+  `UsersController.DeleteUser`. Whether the target may be deleted at all is the
+  `DeleteAccount` policy, which succeeds only for a doctor or a staff member, so one admin
+  cannot delete another. Like the other seven handlers it logs the denial and writes an
+  `AccessDenied` audit row.
+  A delete that any `AuditEntries`, `Doctors` or `Leaves` row still references fails on a
+  foreign key, which the endpoint catches as `SqlException` 547 and answers 409 telling the
+  caller to deactivate instead. In practice that is most accounts: anyone who has logged in
+  owns a `LoginSucceeded` row.
+- **`People` has no `POST`.** A person is only ever created as part of a role —
+  `POST /api/Auth/register`, `POST /api/Patients`, `POST /api/Doctors`, all of which inherit
+  `CreatePersonDTO`. `DELETE /api/People/{id}` was removed on 11 September and **restored on
+  18 October**, admin-only and guarded: `clsPersonDA.IsUsedAsync` refuses any person a user or
+  a patient belongs to, which is almost all of them. The original worry was destroying a person
+  the API cannot recreate; the guard is what answers it.
 
 **Both sub-resources of a visit are guarded the same way**, as of 11 September. All four
 diagnosis actions call
@@ -241,9 +268,13 @@ four places (`ManageVisitRecord` would describe it), and `POST` checks `visit.Is
   are written five different ways across the controllers (`"Admin,Staff"`,
   `"Admin, Staff"`, `"Admin,Staff,Doctor"`, `"Admin,Doctor,Staff"`, `"Admin,Doctor"`) —
   inconsistent, and worth normalising.
-- **Eight stored procedures and one trigger exist only inside the running database.** There
-  is no `.sql` file anywhere in the three projects, so they cannot be read, reviewed, or
-  restored from this repo. Scripting them to a `Database/` folder is an open roadmap item.
+- **The whole schema lives in the committed `.bak` and nowhere else.** There is no `.sql`
+  file in the repo and no migration mechanism, by decision: eight stored procedures, one
+  trigger and every table can be read only by restoring the backup. A schema change means
+  running the DDL by hand and refreshing `ClinicManagementSystem.bak` afterwards. Backing up
+  straight into the repo fails with **OS error 5** because SQL Server's service account cannot
+  write inside the user folder, so back up to the instance's own `MSSQL\Backup` directory and
+  copy the file across.
   A trigger or a procedure also invalidates a row count, which is why every procedure call
   now reads its own `RETURN` value rather than `rowsAffected`.
 
