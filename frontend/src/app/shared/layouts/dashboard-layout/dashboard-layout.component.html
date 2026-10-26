@@ -21,19 +21,19 @@
         </a>
       }
 
-      @if (authService.isFrontDesk()) {
-        <a
-          class="dashboard-side__link"
-          mat-list-item
-          routerLink="/dashboard"
-          routerLinkActive
-          #appointments="routerLinkActive"
-          [routerLinkActiveOptions]="{ paths: 'exact', queryParams: 'ignored', fragment: 'ignored', matrixParams: 'ignored' }"
-          [activated]="appointments.isActive">
-          <mat-icon class="dashboard-side__icon" matListItemIcon>today</mat-icon>
-          <span class="dashboard-side__label" matListItemTitle>Appointments</span>
-        </a>
+      <a
+        class="dashboard-side__link"
+        mat-list-item
+        routerLink="/dashboard"
+        routerLinkActive
+        #appointments="routerLinkActive"
+        [routerLinkActiveOptions]="{ paths: 'exact', queryParams: 'ignored', fragment: 'ignored', matrixParams: 'ignored' }"
+        [activated]="appointments.isActive">
+        <mat-icon class="dashboard-side__icon" matListItemIcon>today</mat-icon>
+        <span class="dashboard-side__label" matListItemTitle>Appointments</span>
+      </a>
 
+      @if (authService.isFrontDesk()) {
         <a
           class="dashboard-side__link"
           mat-list-item

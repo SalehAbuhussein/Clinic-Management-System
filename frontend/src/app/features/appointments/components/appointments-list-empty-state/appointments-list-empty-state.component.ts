@@ -11,6 +11,7 @@ import { MatIcon } from '@angular/material/icon';
 })
 export class AppointmentsListEmptyStateComponent {
   day = input<string>('');
+  canBook = input(true);
 
   book = output<void>();
 }

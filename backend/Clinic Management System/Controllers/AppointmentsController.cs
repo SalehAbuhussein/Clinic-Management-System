@@ -34,7 +34,7 @@ namespace Clinic_Management_System.Controllers
             _workingDayRepository = workingDayRepository;
         }
 
-        [Authorize(Roles = "Admin,Staff")]
+        [Authorize(Roles = "Admin,Staff,Doctor")]
         [HttpGet(Name = "GetAppointments")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -53,6 +53,12 @@ namespace Clinic_Management_System.Controllers
             {
                 return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "The start of the range must be on or before its end.");
             }
+
+            DoctorScope scope = await _ScopeToOwnAppointments(doctorId);
+            if (scope.Failure != null)
+                return scope.Failure;
+
+            doctorId = scope.DoctorId;
 
             PagedResult<clsAppointment> appointmentsPage = await _appointmentRepository.FindAllAsync(doctorId, patientId, from, to, page, perPage);
 
@@ -116,7 +122,7 @@ namespace Clinic_Management_System.Controllers
             return Ok(appointmentDTO);
         }
 
-        [Authorize(Roles = "Admin,Staff")]
+        [Authorize(Roles = "Admin,Staff,Doctor")]
         [HttpGet("export", Name = "ExportAppointments")]
         [ProducesResponseType<FileContentResult>(StatusCodes.Status200OK, ExcelFile.SpreadsheetContentType)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -132,7 +138,19 @@ namespace Clinic_Management_System.Controllers
             if (from.HasValue && to.HasValue && from > to)
                 return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "The start of the range must be on or before its end.");
 
-            if (await _appointmentRepository.GetTotalCountAsync(doctorId, patientId, from, to, HttpContext.RequestAborted) > ExcelFile.MaxRows)
+            DoctorScope scope = await _ScopeToOwnAppointments(doctorId);
+
+            if (scope.Failure != null)
+                return scope.Failure;
+
+            doctorId = scope.DoctorId;
+
+            int total = await _appointmentRepository.GetTotalCountAsync(doctorId, patientId, from, to, HttpContext.RequestAborted);
+
+            if (total == 0)
+                return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "There are no appointments to export for that range.");
+
+            if (total > ExcelFile.MaxRows)
                 return Problem(statusCode: StatusCodes.Status400BadRequest, detail: $"That range hold more than {ExcelFile.MaxRows:N0} appointments. Narrow it and try again.");
 
             PagedResult<clsAppointment> appointmentsPage = await _appointmentRepository.FindAllAsync(doctorId, patientId, from, to, 1, ExcelFile.MaxRows, HttpContext.RequestAborted);
@@ -447,5 +465,29 @@ namespace Clinic_Management_System.Controllers
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The appointment could not be deleted.");
         }
+
+        private record DoctorScope(int? DoctorId, ActionResult? Failure);
+
+        /// <summary>
+        /// A doctor sees their own appointments and nobody else's, so their own
+        /// id replaces whatever was asked for. Everyone else keeps the filter
+        /// they sent.
+        /// </summary>
+        /// <param name="requestedDoctorId">The doctorId from the query string.</param>
+        /// <returns>The id to filter by, or the failure to return.</returns>
+        private async Task<DoctorScope> _ScopeToOwnAppointments(int? requestedDoctorId)
+        {
+            if (!User.IsInRole("Doctor"))
+                return new DoctorScope(requestedDoctorId, null);
+
+            clsDoctor? doctor = await _doctorRepository.FindByUserIdAsync(int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!));
+
+            if (doctor == null)
+                return new DoctorScope(null, Problem(statusCode: StatusCodes.Status403Forbidden,
+                    detail: "This account has the Doctor role but no doctor record."));
+
+            return new DoctorScope(doctor.DoctorID, null);
+        }
+
     }
 }

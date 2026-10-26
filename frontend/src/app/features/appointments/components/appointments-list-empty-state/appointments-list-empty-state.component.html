@@ -13,8 +13,10 @@
     }
   </p>
 
-  <button matButton="tonal" type="button" (click)="book.emit()">
-    <mat-icon>add</mat-icon>
-    Book appointment
-  </button>
+  @if (canBook()) {
+    <button matButton="tonal" type="button" (click)="book.emit()">
+      <mat-icon>add</mat-icon>
+      Book appointment
+    </button>
+  }
 </div>

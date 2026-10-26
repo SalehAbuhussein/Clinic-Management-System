@@ -61,7 +61,12 @@ namespace Clinic_Management_System.Controllers
         {
             int? scopedUserId = _ScopedUserId();
 
-            if (await _leaveRepository.GetTotalCountAsync(scopedUserId, from, to, null, HttpContext.RequestAborted) > ExcelFile.MaxRows)
+            int total = await _leaveRepository.GetTotalCountAsync(scopedUserId, from, to, null, HttpContext.RequestAborted);
+
+            if (total == 0)
+                return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "There are no leave requests to export for that range.");
+
+            if (total > ExcelFile.MaxRows)
                 return Problem(statusCode: StatusCodes.Status400BadRequest, detail: $"That range holds more than {ExcelFile.MaxRows:N0} leave requests. Narrow it and try again.");
 
             PagedResult<LeaveItem> leavesPage = await _leaveRepository.FindAllAsync(scopedUserId, from, to, null, 1, ExcelFile.MaxRows, HttpContext.RequestAborted);

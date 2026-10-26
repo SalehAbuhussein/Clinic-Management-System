@@ -57,7 +57,12 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult> ExportAuditEntries(DateTimeOffset? from, DateTimeOffset? to)
         {
-            if (await _auditRepository.GetTotalCountAsync(from, to, HttpContext.RequestAborted) > ExcelFile.MaxRows)
+            int total = await _auditRepository.GetTotalCountAsync(from, to, HttpContext.RequestAborted);
+
+            if (total == 0)
+                return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "There are no audit entries to export for that range.");
+
+            if (total > ExcelFile.MaxRows)
                 return Problem(statusCode: StatusCodes.Status400BadRequest, detail: $"That range holds more than {ExcelFile.MaxRows:N0} entries. Narrow it and try again.");
 
             PagedResult<AuditEntryItem> entriesPage = await _auditRepository.FindAllAsync(from, to, 1, ExcelFile.MaxRows, HttpContext.RequestAborted);

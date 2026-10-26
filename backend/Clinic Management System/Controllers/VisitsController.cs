@@ -89,7 +89,12 @@ namespace Clinic_Management_System.Controllers
 
             doctorId = scope.DoctorId;
 
-            if (await _visitRepository.GetTotalCountAsync(doctorId, patientId, from, to, HttpContext.RequestAborted) > ExcelFile.MaxRows)
+            int total = await _visitRepository.GetTotalCountAsync(doctorId, patientId, from, to, HttpContext.RequestAborted);
+
+            if (total == 0)
+                return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "There are no visits to export for that range.");
+
+            if (total > ExcelFile.MaxRows)
                 return Problem(statusCode: StatusCodes.Status400BadRequest, detail: $"That range holds more than {ExcelFile.MaxRows:N0} visits. Narrow it and try again.");
 
             PagedResult<clsVisit.VisitItem> visitsPage = await _visitRepository.FindAllAsync(doctorId, patientId, from, to, 1, ExcelFile.MaxRows, HttpContext.RequestAborted);

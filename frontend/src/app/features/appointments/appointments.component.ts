@@ -6,6 +6,7 @@ import { formatDate } from '@angular/common';
 
 import { Observable } from 'rxjs';
 
+import { AuthService } from '@core/auth/service/auth.service';
 import { AppointmentService } from '@shared/services/appointment/appointment.service';
 import { VisitService } from '@shared/services/visit/visit.service';
 
@@ -46,6 +47,7 @@ import { rangeBetween } from '@core/utils/day.utils';
 })
 export class AppointmentsComponent {
   appointmentService = inject(AppointmentService);
+  authService = inject(AuthService);
   dialog = inject(MatDialog);
   route = inject(ActivatedRoute);
   router = inject(Router);

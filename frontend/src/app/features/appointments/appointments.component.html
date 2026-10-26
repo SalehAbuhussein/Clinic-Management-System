@@ -22,6 +22,6 @@
       <app-pagination [(page)]="page" [total]="total()" [pageSize]="perPage()" />
     }
   } @else {
-    <app-appointments-list-empty-state [day]="rangeLabel()" (book)="openBookingDialog()" />
+    <app-appointments-list-empty-state [day]="rangeLabel()" [canBook]="authService.isFrontDesk()" (book)="openBookingDialog()" />
   }
 }

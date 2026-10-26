@@ -15,7 +15,7 @@ export const routes: Routes = [
       {
         path: '',
         canActivate: [roleGuard],
-        data: { roles: ['Admin', 'Staff'] },
+        data: { roles: ['Admin', 'Staff', 'Doctor'] },
         loadComponent: () => import('./features/appointments/appointments.component').then(c => c.AppointmentsComponent),
       },
       {
