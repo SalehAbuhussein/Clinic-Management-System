@@ -3,7 +3,9 @@
 
   <div class="visits__controls">
     <app-date-range-picker [(from)]="from" [(to)]="to" />
-    <app-export-button path="/Visits/export" [filters]="exportFilters()" askForRange />
+    @if (total()) {
+      <app-export-button path="/Visits/export" [filters]="exportFilters()" askForRange />
+    }
   </div>
 </header>
 
