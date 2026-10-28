@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { disabled, form, FormField, maxLength, required } from '@angular/forms/signals';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
 import { MatButton } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -14,12 +14,12 @@ import { formatDate } from '@angular/common';
 import { PatientService } from '@shared/services/patient/patient.service';
 
 import { ApiError } from '@core/auth/types/auth.types';
-import { CreatePatientRequest, Patient, UpdatePatientRequest } from '@shared/services/patient/patient.types';
+import { CreatePatientRequest, Patient, PatientFormValue, UpdatePatientRequest } from '@shared/services/patient/patient.types';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    FormsModule,
+    FormField,
     MatButton,
     MatDatepickerModule,
     MatDialogActions,
@@ -40,7 +40,7 @@ import { CreatePatientRequest, Patient, UpdatePatientRequest } from '@shared/ser
   styleUrl: './patient-form-dialog.component.scss',
   templateUrl: './patient-form-dialog.component.html',
 })
-export class PatientFormDialogComponent implements OnInit {
+export class PatientFormDialogComponent {
   dialogRef = inject(MatDialogRef<PatientFormDialogComponent>);
   patientService = inject(PatientService);
   snackbar = inject(MatSnackBar);
@@ -49,63 +49,51 @@ export class PatientFormDialogComponent implements OnInit {
 
   readonly isEditing = !!this.existingPatient;
 
-  firstname = signal('');
-  midname = signal('');
-  thirdname = signal('');
-  lastname = signal('');
-  nationalNo = signal('');
-  phone = signal('');
-  gender = signal<boolean | null>(null);
-  dateOfBirth = signal<Date | null>(null);
-  emergencyContactName = signal('');
-  emergencyContactNumber = signal('');
+  model = signal<PatientFormValue>({
+    firstname: this.existingPatient?.firstname ?? '',
+    midname: this.existingPatient?.midname ?? '',
+    thirdname: this.existingPatient?.thirdname ?? '',
+    lastname: this.existingPatient?.lastname ?? '',
+    nationalNo: this.existingPatient?.nationalNo ?? '',
+    phone: this.existingPatient?.phone ?? '',
+    gender: this.existingPatient?.gender ?? null,
+    dateOfBirth: this.existingPatient?.dateOfBirth
+      ? new Date(this.existingPatient.dateOfBirth)
+      : null,
+    emergencyContactName: this.existingPatient?.emergencyContactName ?? '',
+    emergencyContactNumber: this.existingPatient?.emergencyContactNumber ?? '',
+  });
+
+  patientForm = form(this.model, (patient) => {
+    required(patient.firstname);
+    required(patient.midname);
+    required(patient.lastname);
+    required(patient.phone);
+    required(patient.gender);
+    required(patient.dateOfBirth);
+
+    maxLength(patient.firstname, 20);
+    maxLength(patient.midname, 20);
+    maxLength(patient.thirdname, 20);
+    maxLength(patient.lastname, 20);
+    maxLength(patient.nationalNo, 15);
+    maxLength(patient.phone, 15);
+    maxLength(patient.emergencyContactName, 50);
+    maxLength(patient.emergencyContactNumber, 30);
+
+    disabled(patient.nationalNo, {
+      when: () => this.isEditing ? 'The national number identifies the record.' : false,
+    });
+
+    if (!this.isEditing) {
+      required(patient.nationalNo);
+    }
+  });
 
   isSaving = signal(false);
   error = signal('');
 
-  canSave = computed(() => !!this.firstname().trim()
-    && !!this.midname().trim()
-    && !!this.lastname().trim()
-    && !!this.phone().trim()
-    && this.gender() !== null
-    && !!this.dateOfBirth()
-    && (this.isEditing || !!this.nationalNo().trim()));
-
-  /**
-   * Angular OnInit lifecycle method
-   */
-  ngOnInit(): void {
-    this.initComponent();
-  }
-
-  /**
-   * Everything the dialog needs before its first render.
-   */
-  initComponent(): void {
-    this.prefillFromExisting();
-  }
-
-  /**
-   * Fills the form from the patient being edited. Registering starts empty.
-   */
-  prefillFromExisting(): void {
-    const existing = this.existingPatient;
-
-    if (!existing) {
-      return;
-    }
-
-    this.firstname.set(existing.firstname ?? '');
-    this.midname.set(existing.midname ?? '');
-    this.thirdname.set(existing.thirdname ?? '');
-    this.lastname.set(existing.lastname ?? '');
-    this.nationalNo.set(existing.nationalNo ?? '');
-    this.phone.set(existing.phone ?? '');
-    this.gender.set(existing.gender);
-    this.dateOfBirth.set(existing.dateOfBirth ? new Date(`${existing.dateOfBirth}T00:00:00`) : null);
-    this.emergencyContactName.set(existing.emergencyContactName ?? '');
-    this.emergencyContactNumber.set(existing.emergencyContactNumber ?? '');
-  }
+  canSave = computed(() => this.patientForm().valid());
 
   /**
    * Submits the form. Which call it makes is the only thing the mode decides.
@@ -153,24 +141,28 @@ export class PatientFormDialogComponent implements OnInit {
   /**
    * The person fields both calls take.
    */
-  getPersonFields = (): UpdatePatientRequest => ({
-    firstname: this.firstname().trim(),
-    midname: this.midname().trim(),
-    thirdname: this.thirdname().trim() || undefined,
-    lastname: this.lastname().trim(),
-    phone: this.phone().trim(),
-    gender: this.gender()!,
-    dateOfBirth: formatDate(this.dateOfBirth()!, 'yyyy-MM-dd', 'en-US'),
-    emergencyContactName: this.emergencyContactName().trim() || undefined,
-    emergencyContactNumber: this.emergencyContactNumber().trim() || undefined,
-  })
+  getPersonFields = (): UpdatePatientRequest => {
+    const value = this.model();
+
+    return {
+      firstname: value.firstname.trim(),
+      midname: value.midname.trim(),
+      thirdname: value.thirdname.trim() || undefined,
+      lastname: value.lastname.trim(),
+      phone: value.phone.trim(),
+      gender: value.gender!,
+      dateOfBirth: formatDate(value.dateOfBirth!, 'yyyy-MM-dd', 'en-US'),
+      emergencyContactName: value.emergencyContactName.trim() || undefined,
+      emergencyContactNumber: value.emergencyContactNumber.trim() || undefined,
+    };
+  }
 
   /**
    * Build Create Patient Request Body
    */
   getCreateRequest = (): CreatePatientRequest => ({
     ...this.getPersonFields(),
-    nationalNo: this.nationalNo().trim(),
+    nationalNo: this.model().nationalNo.trim(),
   })
 
   /**
@@ -185,7 +177,9 @@ export class PatientFormDialogComponent implements OnInit {
    * @param verb What happened, for the confirmation.
    */
   finish = (verb: 'registered' | 'updated'): void => {
-    this.snackbar.open(`${this.firstname()} ${this.lastname()} ${verb}`, 'Dismiss', { duration: 5000 });
+    const value = this.model();
+
+    this.snackbar.open(value.firstname + ' ' + value.lastname + ' ' + verb, 'Dismiss', { duration: 5000 });
 
     this.dialogRef.close(true);
   }

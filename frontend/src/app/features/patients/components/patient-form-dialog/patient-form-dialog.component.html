@@ -4,32 +4,32 @@
   <div class="patient-form__row">
     <mat-form-field>
       <mat-label>First name</mat-label>
-      <input matInput maxlength="20" [(ngModel)]="firstname">
+      <input matInput [formField]="patientForm.firstname">
     </mat-form-field>
 
     <mat-form-field>
       <mat-label>Middle name</mat-label>
-      <input matInput maxlength="20" [(ngModel)]="midname">
+      <input matInput [formField]="patientForm.midname">
     </mat-form-field>
   </div>
 
   <div class="patient-form__row">
     <mat-form-field>
       <mat-label>Third name</mat-label>
-      <input matInput maxlength="20" [(ngModel)]="thirdname">
+      <input matInput [formField]="patientForm.thirdname">
       <mat-hint>Optional</mat-hint>
     </mat-form-field>
 
     <mat-form-field>
       <mat-label>Last name</mat-label>
-      <input matInput maxlength="20" [(ngModel)]="lastname">
+      <input matInput [formField]="patientForm.lastname">
     </mat-form-field>
   </div>
 
   <div class="patient-form__row">
     <mat-form-field>
       <mat-label>National number</mat-label>
-      <input matInput maxlength="15" [(ngModel)]="nationalNo" [disabled]="isEditing">
+      <input matInput [formField]="patientForm.nationalNo">
 
       @if (isEditing) {
         <mat-hint>Cannot be changed</mat-hint>
@@ -38,7 +38,7 @@
 
     <mat-form-field>
       <mat-label>Phone</mat-label>
-      <input matInput type="tel" maxlength="15" [(ngModel)]="phone">
+      <input matInput type="tel" [formField]="patientForm.phone">
     </mat-form-field>
   </div>
 
@@ -46,7 +46,7 @@
     <mat-form-field>
       <mat-label>Gender</mat-label>
 
-      <mat-select [ngModel]="gender()" (ngModelChange)="gender.set($event)">
+      <mat-select [formField]="patientForm.gender">
         <mat-option [value]="true">Male</mat-option>
         <mat-option [value]="false">Female</mat-option>
       </mat-select>
@@ -55,7 +55,7 @@
     <mat-form-field>
       <mat-label>Date of birth</mat-label>
 
-      <input matInput [matDatepicker]="picker" [(ngModel)]="dateOfBirth" readonly>
+      <input matInput [matDatepicker]="picker" [formField]="patientForm.dateOfBirth" readonly>
 
       <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
 
@@ -66,13 +66,13 @@
   <div class="patient-form__row">
     <mat-form-field>
       <mat-label>Emergency contact</mat-label>
-      <input matInput maxlength="50" [(ngModel)]="emergencyContactName">
+      <input matInput [formField]="patientForm.emergencyContactName">
       <mat-hint>Optional</mat-hint>
     </mat-form-field>
 
     <mat-form-field>
       <mat-label>Emergency phone</mat-label>
-      <input matInput type="tel" maxlength="30" [(ngModel)]="emergencyContactNumber">
+      <input matInput type="tel" [formField]="patientForm.emergencyContactNumber">
       <mat-hint>Optional</mat-hint>
     </mat-form-field>
   </div>

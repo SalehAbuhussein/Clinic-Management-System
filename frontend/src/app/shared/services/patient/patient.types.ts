@@ -14,7 +14,7 @@ export type Patient = {
   lastname: string | null;
   nationalNo: string | null;
   gender: boolean | null;
-  dateOfBirth: string | null;
+  dateOfBirth: string;
   phone: string | null;
   emergencyContactName: string | null;
   emergencyContactNumber: string | null;
@@ -35,3 +35,16 @@ export type CreatePatientRequest = {
 };
 
 export type UpdatePatientRequest = Omit<CreatePatientRequest, 'nationalNo'>;
+
+export type PatientFormValue = {
+  firstname: string;
+  midname: string;
+  thirdname: string;
+  lastname: string;
+  nationalNo: string;
+  phone: string;
+  gender: boolean | null;
+  dateOfBirth: Date | null;
+  emergencyContactName: string;
+  emergencyContactNumber: string;
+};
