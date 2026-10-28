@@ -6,3 +6,8 @@ export type VisitDetailData = {
   visit: Visit;
   readOnly?: boolean;
 };
+
+export type VisitEditFormValue = {
+  checkinTime: string;
+  notes: string;
+};

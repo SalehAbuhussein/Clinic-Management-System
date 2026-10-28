@@ -22,7 +22,7 @@ import { PaginationComponent } from '@shared/components/pagination/pagination.co
 import { PrescriptionDialogComponent } from './components/prescription-dialog/prescription-dialog.component';
 import { VisitDetailDialogComponent } from './components/visit-detail-dialog/visit-detail-dialog.component';
 import { VisitEditDialogComponent } from './components/visit-edit-dialog/visit-edit-dialog.component';
-import { VisitRowComponent } from './components/visit-row/visit-row.component';
+import { VisitCardComponent } from './components/visit-card/visit-card.component';
 
 import { ApiError } from '@core/auth/types/auth.types';
 import { ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.types';
@@ -31,7 +31,7 @@ import { VisitDetailAction } from './types/visits.types';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DateRangePickerComponent, ExportButtonComponent, MatIcon, MatProgressSpinner, PaginationComponent, VisitRowComponent],
+  imports: [DateRangePickerComponent, ExportButtonComponent, MatIcon, MatProgressSpinner, PaginationComponent, VisitCardComponent],
   selector: 'app-visits',
   styleUrl: './visits.component.scss',
   templateUrl: './visits.component.html',
@@ -60,10 +60,6 @@ export class VisitsComponent {
   exportFilters = computed(() => rangeBetween(this.from(), this.to()));
 
   visitsResource = this.visitService.getVisitResource(this.from, this.to, this.page);
-
-  visits = computed(() => this.visitsResource.value().items);
-  total = computed(() => this.visitsResource.value().total);
-  perPage = computed(() => this.visitsResource.value().perPage || 10);
 
   constructor() {
     effect(() => {
@@ -118,19 +114,19 @@ export class VisitsComponent {
       .subscribe((action: VisitDetailAction | undefined) => {
         switch (action) {
           case 'diagnose':
-            this.diagnoseVisit(visit);
+            this._diagnoseVisit(visit);
             break;
           case 'prescribe':
-            this.prescribeVisit(visit);
+            this._prescribeVisit(visit);
             break;
           case 'edit':
-            this.editVisit(visit);
+            this._editVisit(visit);
             break;
           case 'checkout':
-            this.checkoutVisit(visit);
+            this._checkoutVisit(visit);
             break;
           case 'delete':
-            this.deleteVisit(visit);
+            this._deleteVisit(visit);
             break;
         }
       });
@@ -142,7 +138,7 @@ export class VisitsComponent {
    *
    * @param visit The row that was picked.
    */
-  diagnoseVisit = (visit: Visit) => {
+  _diagnoseVisit = (visit: Visit) => {
     this.dialog.open(DiagnosisDialogComponent, { width: '480px', data: visit })
       .afterClosed()
       .subscribe((saved: boolean | undefined) => {
@@ -160,7 +156,7 @@ export class VisitsComponent {
    *
    * @param visit The row that was picked.
    */
-  prescribeVisit = (visit: Visit) => {
+  _prescribeVisit = (visit: Visit) => {
     this.dialog.open(PrescriptionDialogComponent, { width: '880px', data: visit })
       .afterClosed()
       .subscribe((saved: boolean | undefined) => {
@@ -177,7 +173,7 @@ export class VisitsComponent {
    *
    * @param visit The row that was picked.
    */
-  editVisit = (visit: Visit) => {
+  _editVisit = (visit: Visit) => {
     this.dialog.open(VisitEditDialogComponent, { width: '480px', data: visit })
       .afterClosed()
       .subscribe((saved: boolean | undefined) => {
@@ -195,39 +191,42 @@ export class VisitsComponent {
    *
    * @param visit The row that was picked.
    */
-  checkoutVisit = (visit: Visit) => this.confirmThen(
-    {
-      title: `Check out ${visit.patientName}?`,
-      message: 'This closes and locks the visit. Nothing on it can be changed afterwards.',
-      confirmLabel: 'Check out',
-    },
-    this.visitService.checkoutVisit(visit.id),
-    'Visit checked out',
-  );
+  _checkoutVisit = (visit: Visit) => {
+    return this.confirmThen(
+      {
+        title: `Check out ${visit.patientName}?`,
+        message: 'This closes and locks the visit. Nothing on it can be changed afterwards.',
+        confirmLabel: 'Check out',
+      },
+      this.visitService.checkoutVisit(visit.id),
+      'Visit checked out',
+    )
+  }
 
   /**
    * Remove a visit that should not have been opened.
    *
    * @param visit The row that was picked.
    */
-  deleteVisit = (visit: Visit) => this.confirmThen(
-    {
-      title: `Delete ${visit.patientName}'s visit?`,
-      message: 'The record goes for good. The appointment stays marked attended, so correct that separately if it was a mistake.',
-      confirmLabel: 'Delete visit',
-      dismissLabel: 'Keep visit',
-      destructive: true,
-    },
-    this.visitService.deleteVisit(visit.id),
-    'Visit deleted',
-  );
+  _deleteVisit = (visit: Visit) => {
+    this.confirmThen(
+      {
+        title: `Delete ${visit.patientName}'s visit?`,
+        message: 'The record goes for good. The appointment stays marked attended, so correct that separately if it was a mistake.',
+        confirmLabel: 'Delete visit',
+        dismissLabel: 'Keep visit',
+        destructive: true,
+      },
+      this.visitService.deleteVisit(visit.id),
+      'Visit deleted',
+    )
+  }
 
   /**
    * Asks before a change, then runs it and refreshes the list.
    *
    * @param data What the dialog should say.
-   * @param request The call to make once confirmed. Cold, so nothing is sent
-   * until the subscribe below.
+   * @param request The call to make once confirmed. Cold, so nothing is sent until the subscribe below.
    * @param message What to say when it succeeds.
    */
   confirmThen(data: ConfirmDialogData, request: Observable<void>, message: string): void {

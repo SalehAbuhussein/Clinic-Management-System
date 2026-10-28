@@ -7,11 +7,11 @@ import { Visit } from '@shared/services/visit/visit.types';
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DatePipe, MatIcon],
-  selector: 'app-visit-row',
-  styleUrl: './visit-row.component.scss',
-  templateUrl: './visit-row.component.html',
+  selector: 'app-visit-card',
+  styleUrl: './visit-card.component.scss',
+  templateUrl: './visit-card.component.html',
 })
-export class VisitRowComponent {
+export class VisitCardComponent {
   visit = input.required<Visit>();
 
   open = output<Visit>();

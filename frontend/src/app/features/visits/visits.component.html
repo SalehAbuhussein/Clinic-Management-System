@@ -1,36 +1,40 @@
+@let items = visitsResource.value().items;
+@let total = visitsResource.value().total;
+@let perPage = visitsResource.value().perPage;
+@let isLoading = visitsResource.isLoading();
+@let error = visitsResource.error();
+
 <header class="visits__header">
   <h1 class="visits__title">{{ rangeLabel() }}</h1>
 
   <div class="visits__controls">
     <app-date-range-picker [(from)]="from" [(to)]="to" />
-    @if (total()) {
+    @if (total) {
       <app-export-button path="/Visits/export" [filters]="exportFilters()" askForRange />
     }
   </div>
 </header>
 
-@if (visitsResource.isLoading()) {
+@if (isLoading) {
   <p class="visits__state" role="status">
     <mat-progress-spinner diameter="20" mode="indeterminate" />
     Loading visits…
   </p>
-} @else if (visitsResource.error(); as error) {
+} @else if (error) {
   <p class="visits__state visits__state--error" role="alert">
     <mat-icon>error</mat-icon>
     {{ error.message }}
   </p>
 } @else {
-  @let list = visits();
-
-  @if (list.length) {
+  @if (items.length) {
     <div class="visits__list">
-      @for (visit of list; track visit.id) {
-        <app-visit-row [visit]="visit" (open)="openVisit($event)" />
+      @for (visit of items; track visit.id) {
+        <app-visit-card [visit]="visit" (open)="openVisit($event)" />
       }
     </div>
 
-    @if (total() > perPage()) {
-      <app-pagination [(page)]="page" [total]="total()" [pageSize]="perPage()" />
+    @if (total > perPage) {
+      <app-pagination [(page)]="page" [total]="total" [pageSize]="perPage" />
     }
   } @else {
     <p class="visits__state">
