@@ -113,7 +113,7 @@ export class VisitsComponent {
    * @param visit The row that was picked.
    */
   openVisit = (visit: Visit) => {
-    this.dialog.open(VisitDetailDialogComponent, { width: '520px', data: visit })
+    this.dialog.open(VisitDetailDialogComponent, { width: '520px', data: { visit } })
       .afterClosed()
       .subscribe((action: VisitDetailAction | undefined) => {
         switch (action) {

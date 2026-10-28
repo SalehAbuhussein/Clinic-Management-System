@@ -83,7 +83,7 @@
 </div>
 
 <div class="visit-detail__actions" matDialogActions>
-  @if (isOpen()) {
+  @if (isOpen() && !readOnly) {
     @if (authService.isFrontDesk()) {
       <button class="visit-detail__danger" matButton type="button" [matDialogClose]="'delete'">Delete</button>
     }

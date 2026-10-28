@@ -10,7 +10,7 @@ import { DiagnosisService } from '@shared/services/diagnosis/diagnosis.service';
 import { PrescriptionService } from '@shared/services/prescription/prescription.service';
 
 import { ApiError } from '@core/auth/types/auth.types';
-import { Visit } from '@shared/services/visit/visit.types';
+import { VisitDetailData } from '@features/visits/types/visits.types';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,7 +24,10 @@ export class VisitDetailDialogComponent {
   diagnosisService = inject(DiagnosisService);
   prescriptionService = inject(PrescriptionService);
 
-  visit = inject<Visit>(MAT_DIALOG_DATA);
+  data = inject<VisitDetailData>(MAT_DIALOG_DATA);
+
+  visit = this.data.visit;
+  readOnly = this.data.readOnly ?? false;
 
   diagnosisResource = this.diagnosisService.getDiagnosisResource(() => this.visit.id);
   prescriptionResource = this.prescriptionService.getPrescriptionResource(() => this.visit.id);
@@ -46,7 +49,5 @@ export class VisitDetailDialogComponent {
   isLoadingPrescription = this.prescriptionResource.isLoading;
   prescriptionError = computed(() => (this.prescriptionResource.error() as ApiError | undefined)?.message ?? '');
 
-  /** Checking out locks the visit, and the API then refuses every change. */
   isOpen = computed(() => !this.visit.checkoutTime);
-
 }

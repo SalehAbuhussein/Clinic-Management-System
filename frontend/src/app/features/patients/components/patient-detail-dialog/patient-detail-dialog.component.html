@@ -73,7 +73,7 @@
           <ul class="patient-detail__visit-list">
             @for (visit of visits; track visit.id) {
               <li>
-                <button class="patient-detail__visit" type="button" (click)="openVisit(visit.id)">
+                <button class="patient-detail__visit" type="button" (click)="openVisit(visit)">
                   <span class="patient-detail__visit-when">{{ visit.checkinTime | date: 'd MMM y, HH:mm' }}</span>
                   <span class="patient-detail__visit-doctor">{{ visit.doctorName }}</span>
 

@@ -1,18 +1,19 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle } from '@angular/material/dialog';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
-import { Router } from '@angular/router';
 
 import { AuthService } from '@core/auth/service/auth.service';
 import { PatientService } from '@shared/services/patient/patient.service';
 import { VisitService } from '@shared/services/visit/visit.service';
 
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
+import { VisitDetailDialogComponent } from '@features/visits/components/visit-detail-dialog/visit-detail-dialog.component';
 
 import { Patient } from '@shared/services/patient/patient.types';
+import { Visit } from '@shared/services/visit/visit.types';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,9 +24,8 @@ import { Patient } from '@shared/services/patient/patient.types';
 })
 export class PatientDetailDialogComponent {
   authService = inject(AuthService);
-  dialogRef = inject(MatDialogRef<PatientDetailDialogComponent>);
+  dialog = inject(MatDialog);
   patientService = inject(PatientService);
-  router = inject(Router);
   visitService = inject(VisitService);
 
   patientData = inject<Patient>(MAT_DIALOG_DATA);
@@ -40,12 +40,11 @@ export class PatientDetailDialogComponent {
   patientResource = this.patientService.getPatientByIdResource(this.patientData.id);
 
   /**
-   * Open visit page
+   * Open Visit dialog in read only mode
    *
-   * @param visitId The visit that was picked.
+   * @param visit The visit that was picked.
    */
-  openVisit(visitId: number): void {
-    this.dialogRef.close();
-    this.router.navigate(['/dashboard/visits'], { queryParams: { visitId } });
+  openVisit(visit: Visit): void {
+    this.dialog.open(VisitDetailDialogComponent, { width: '520px', data: { visit, readOnly: true } });
   }
 }
