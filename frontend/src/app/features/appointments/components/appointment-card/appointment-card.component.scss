@@ -1,21 +1,21 @@
 :host {
   display: block;
 
-  --status-scheduled-accent: light-dark(#2c5aa8, #9ec1ff);
-  --status-scheduled-container: light-dark(#dee7f7, #1e3559);
-  --status-scheduled-on: light-dark(#0e2a52, #d6e3ff);
+  --status-scheduled-accent: light-dark(#2f5cab, #adc6ff);
+  --status-scheduled-container: light-dark(#d8e2ff, #0a4491);
+  --status-scheduled-on: light-dark(#001a42, #d8e2ff);
 
-  --status-attended-accent: light-dark(#1b6b3f, #7fd69e);
-  --status-attended-container: light-dark(#b8f0cb, #00512a);
-  --status-attended-on: light-dark(#00210f, #b8f0cb);
+  --status-attended-accent: light-dark(#1c6c40, #8ad7a1);
+  --status-attended-container: light-dark(#a5f4bc, #00522c);
+  --status-attended-on: light-dark(#00210e, #a5f4bc);
 
-  --status-not-attended-accent: light-dark(#79747e, #948f99);
-  --status-not-attended-container: light-dark(#e8e6ea, #2e2c33);
-  --status-not-attended-on: light-dark(#4a464f, #cac5cf);
+  --status-not-attended-accent: light-dark(#615d66, #cbc4cf);
+  --status-not-attended-container: light-dark(#e7e0eb, #49454e);
+  --status-not-attended-on: light-dark(#1d1a22, #e7e0eb);
 
   --status-cancelled-accent: light-dark(#ba1a1a, #ffb4ab);
-  --status-cancelled-container: light-dark(#ffdad6, #93000a);
-  --status-cancelled-on: light-dark(#410002, #ffdad6);
+  --status-cancelled-container: light-dark(#ffdad5, #930009);
+  --status-cancelled-on: light-dark(#410002, #ffdad5);
 }
 
 .appointment {

@@ -1,5 +1,11 @@
-/** 0 Scheduled, 1 Attended, 2 No-show, 3 Cancelled, as the API stores them. */
-export type AppointmentStatus = 0 | 1 | 2 | 3;
+export const AppointmentStatus = {
+  Scheduled: 0,
+  Attended: 1,
+  NoShow: 2,
+  Cancelled: 3,
+} as const;
+
+export type AppointmentStatus = typeof AppointmentStatus[keyof typeof AppointmentStatus];
 
 export type AppointmentFilters = {
   doctorId?: number;
@@ -39,8 +45,6 @@ export type CreateAppointmentRequest = {
   endAt: string;
   notes?: string;
 };
-
-export type CreateDoctorAppoinmentResponse = AppointmentCard;
 
 export type RescheduleAppointmentRequest = {
   startAt: string;

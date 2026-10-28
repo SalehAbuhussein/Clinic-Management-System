@@ -6,9 +6,6 @@ import { MatFormField, MatLabel } from '@angular/material/form-field';
 
 import { RangePreset } from './date-range-picker.types';
 
-/**
- * Picks the days a screen covers, either from a preset or by hand.
- */
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, MatButtonToggle, MatButtonToggleGroup, MatDatepickerModule, MatFormField, MatLabel],

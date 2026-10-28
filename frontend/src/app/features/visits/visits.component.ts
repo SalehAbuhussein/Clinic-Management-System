@@ -11,8 +11,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { VisitService } from '@shared/services/visit/visit.service';
 
-import { rangeBetween } from '@core/utils/day.utils';
-import { pageFromUrl } from '@core/utils/url-state.utils';
+import { dateFromUrl, pageFromUrl } from '@core/utils/url-state.utils';
+import { rangeBetween, toIsoDate } from '@core/utils/day.utils';
 
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { DateRangePickerComponent } from '@shared/components/date-range-picker/date-range-picker.component';
@@ -43,11 +43,11 @@ export class VisitsComponent {
   snackbar = inject(MatSnackBar);
   visitService = inject(VisitService);
 
-  from = signal(this.dateFromUrl('from'));
-  to = signal(this.dateFromUrl('to'));
+  from = signal(dateFromUrl(this.route, 'from'));
+  to = signal(dateFromUrl(this.route, 'to'));
 
-  rangeKey = computed(() => `${this.asParam(this.from())}_${this.asParam(this.to())}`);
-  isOneDay = computed(() => this.asParam(this.from()) === this.asParam(this.to()));
+  rangeKey = computed(() => `${toIsoDate(this.from())}_${toIsoDate(this.to())}`);
+  isOneDay = computed(() => toIsoDate(this.from()) === toIsoDate(this.to()));
   rangeLabel = computed(() => this.isOneDay()
     ? formatDate(this.from(), 'EEEE d MMMM', 'en-US')
     : `${formatDate(this.from(), 'd MMM', 'en-US')} to ${formatDate(this.to(), 'd MMM', 'en-US')}`);
@@ -68,7 +68,7 @@ export class VisitsComponent {
   constructor() {
     effect(() => {
       this.router.navigate([], {
-        queryParams: { from: this.asParam(this.from()), to: this.asParam(this.to()), page: this.page() },
+        queryParams: { from: toIsoDate(this.from()), to: toIsoDate(this.to()), page: this.page() },
         relativeTo: this.route,
         replaceUrl: true,
       });
@@ -103,23 +103,6 @@ export class VisitsComponent {
       error: (error: ApiError) => this.snackbar.open(error.message, 'Dismiss', { duration: 8000 }),
     });
   }
-
-
-  /**
-   * Reads one end of the range. A date with no time parses as UTC, so the
-   * midnight is spelled out to keep it local.
-   *
-   * @param key Which query parameter to read.
-   * @returns That day, or today when the URL does not say.
-   */
-  dateFromUrl(key: 'from' | 'to'): Date {
-    const value = this.route.snapshot.queryParamMap.get(key);
-    const day = value ? new Date(`${value}T00:00:00`) : null;
-
-    return day && !Number.isNaN(day.getTime()) ? day : new Date();
-  }
-
-  asParam = (day: Date) => formatDate(day, 'yyyy-MM-dd', 'en-US');
 
   /**
    * Show everything on a visit, and act on whatever the dialog closes with.

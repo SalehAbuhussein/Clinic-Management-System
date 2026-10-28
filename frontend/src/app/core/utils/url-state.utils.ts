@@ -34,6 +34,21 @@ export function pageFromUrl(route: ActivatedRoute): number {
 }
 
 /**
+ * Reads one end of a date range off the query string. A date with no time
+ * parses as UTC, so the midnight is spelled out to keep it local.
+ *
+ * @param route The screen's route.
+ * @param key Which query parameter to read.
+ * @returns That day, or today when the URL does not say.
+ */
+export function dateFromUrl(route: ActivatedRoute, key: 'from' | 'to'): Date {
+  const value = route.snapshot.queryParamMap.get(key);
+  const day = value ? new Date(`${value}T00:00:00`) : null;
+
+  return day && !Number.isNaN(day.getTime()) ? day : new Date();
+}
+
+/**
  * Mirrors a screen's filters and page into the query string, so a reload or a
  * shared link reopens the same view.
  *

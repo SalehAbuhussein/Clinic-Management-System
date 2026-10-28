@@ -6,7 +6,7 @@ import { MatIcon } from '@angular/material/icon';
 
 import { AuthService } from '@core/auth/service/auth.service';
 
-import { AppointmentCard } from '@shared/services/appointment/appointment.types';
+import { AppointmentCard, AppointmentStatus } from '@shared/services/appointment/appointment.types';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -20,20 +20,19 @@ export class AppointmentDetailDialogComponent {
 
   appointment = inject<AppointmentCard>(MAT_DIALOG_DATA);
 
-  /** Only a scheduled appointment can still be checked in, moved or called off. */
-  isScheduled = computed(() => this.appointment.status === 0);
+  isScheduled = computed(() => this.appointment.status === AppointmentStatus.Scheduled);
 
   /**
    * The wording and icon for the four appointment statuses. `default` covers
-   * 0 Scheduled and anything the API adds later.
+   * Scheduled and anything the API adds later.
    */
   status = computed(() => {
     switch (this.appointment.status) {
-      case 1:
+      case AppointmentStatus.Attended:
         return { label: 'Attended', icon: 'check_circle' };
-      case 2:
+      case AppointmentStatus.NoShow:
         return { label: 'No-show', icon: 'person_off' };
-      case 3:
+      case AppointmentStatus.Cancelled:
         return { label: 'Cancelled', icon: 'cancel' };
       default:
         return { label: 'Scheduled', icon: 'schedule' };

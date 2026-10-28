@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
 import { DatePipe } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
 
-import { AppointmentCard } from '@shared/services/appointment/appointment.types';
+import { AppointmentCard, AppointmentStatus } from '@shared/services/appointment/appointment.types';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -12,6 +12,8 @@ import { AppointmentCard } from '@shared/services/appointment/appointment.types'
   templateUrl: './appointment-card.component.html',
 })
 export class AppointmentCardComponent {
+  readonly Status = AppointmentStatus;
+
   item = input.required<AppointmentCard>();
 
   open = output<AppointmentCard>();
@@ -22,11 +24,11 @@ export class AppointmentCardComponent {
    *
    * The two colours always come from the same role pair, so the label is
    * guaranteed to contrast with its own background in both themes.
-   * `default` covers 0 Scheduled and anything the API adds later.
+   * `default` covers Scheduled and anything the API adds later.
    */
   status = computed(() => {
     switch (this.item().status) {
-      case 1:
+      case AppointmentStatus.Attended:
         return {
           label: 'Attended',
           icon: 'check_circle',
@@ -34,7 +36,7 @@ export class AppointmentCardComponent {
           container: 'var(--status-attended-container)',
           onContainer: 'var(--status-attended-on)',
         };
-      case 2:
+      case AppointmentStatus.NoShow:
         return {
           label: 'No-show',
           icon: 'person_off',
@@ -42,7 +44,7 @@ export class AppointmentCardComponent {
           container: 'var(--status-not-attended-container)',
           onContainer: 'var(--status-not-attended-on)',
         };
-      case 3:
+      case AppointmentStatus.Cancelled:
         return {
           label: 'Cancelled',
           icon: 'cancel',

@@ -3,8 +3,8 @@
   type="button"
   (click)="open.emit(item())"
   [style.--card-accent]="status().accent"
-  [class.appointment--not-attended]="item().status === 2"
-  [class.appointment--cancelled]="item().status === 3">
+  [class.appointment--not-attended]="item().status === Status.NoShow"
+  [class.appointment--cancelled]="item().status === Status.Cancelled">
   <span class="appointment__time">{{ item().startAt | date: 'h:mm a' }}</span>
 
   <span class="appointment__who">

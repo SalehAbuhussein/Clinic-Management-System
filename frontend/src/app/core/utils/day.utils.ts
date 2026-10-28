@@ -1,3 +1,5 @@
+import { formatDate } from '@angular/common';
+
 /**
  * The half-open instant range covering one local day, as UTC.
  *
@@ -51,5 +53,13 @@ export const isMidnight = (moment: Date) => moment.getHours() === 0 && moment.ge
  * @param exclusiveEnd The range's end.
  * @returns The day before it.
  */
-export const lastDayOf = (exclusiveEnd: Date) =>
-  new Date(exclusiveEnd.getFullYear(), exclusiveEnd.getMonth(), exclusiveEnd.getDate() - 1);
+export const lastDayOf = (exclusiveEnd: Date) => new Date(exclusiveEnd.getFullYear(), exclusiveEnd.getMonth(), exclusiveEnd.getDate() - 1);
+
+/**
+ * A day as both the URL and the API spell it, built from local date parts so
+ * the calendar day survives a timezone behind UTC.
+ *
+ * @param day Any moment; the time of day is ignored.
+ * @returns That day as `yyyy-MM-dd`.
+ */
+export const toIsoDate = (day: Date) => formatDate(day, 'yyyy-MM-dd', 'en-US');
