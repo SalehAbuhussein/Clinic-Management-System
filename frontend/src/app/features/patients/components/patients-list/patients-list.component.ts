@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 
 import { Patient } from '@shared/services/patient/patient.types';
 
-import { PatientCardComponent } from '../patient-card/patient-card.component';
+import { PatientCardComponent } from '@features/patients/components/patient-card/patient-card.component';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,

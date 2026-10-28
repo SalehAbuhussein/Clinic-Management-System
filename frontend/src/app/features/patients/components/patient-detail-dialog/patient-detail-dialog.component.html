@@ -1,4 +1,8 @@
-<h2 class="patient-detail__title" matDialogTitle>{{ row.fullname }}</h2>
+@let visits = visitsResource.value().items;
+@let visitsTotal = visitsResource.value().total;
+@let visitsPerPage = visitsResource.value().perPage;
+
+<h2 class="patient-detail__title" matDialogTitle>{{ patientData.fullname }}</h2>
 
 <div class="patient-detail__content" matDialogContent>
   @if (isLoading()) {
@@ -58,10 +62,10 @@
           <mat-icon>error</mat-icon>
           {{ visitsError.message }}
         </p>
-      } @else if (visits(); as history) {
-        @if (history.length) {
+      } @else if (visits) {
+        @if (visits.length) {
           <ul class="patient-detail__visit-list">
-            @for (visit of history; track visit.id) {
+            @for (visit of visits; track visit.id) {
               <li>
                 <button class="patient-detail__visit" type="button" (click)="openVisit(visit.id)">
                   <span class="patient-detail__visit-when">{{ visit.checkinTime | date: 'd MMM y, HH:mm' }}</span>
@@ -77,8 +81,8 @@
             }
           </ul>
 
-          @if (visitsTotal() > visitsPerPage()) {
-            <app-pagination [(page)]="visitsPage" [total]="visitsTotal()" [pageSize]="visitsPerPage()" />
+          @if (visitsTotal > visitsPerPage) {
+            <app-pagination [(page)]="visitsPage" [total]="visitsTotal" [pageSize]="visitsPerPage" />
           }
         } @else {
           <p class="patient-detail__state">No visits yet.</p>

@@ -13,19 +13,13 @@ export class PatientCardComponent {
 
   open = output<Patient>();
 
-  /**
-   * The first letter of the first two names, which is all the avatar shows.
-   * Empty when the API sent no name, so the circle stays blank rather than
-   * printing something misleading.
-   */
-  initials = computed(() => (this.patient().fullname ?? '')
+  avatarInitials = computed(() => (this.patient().fullname ?? '')
     .split(' ')
     .filter(Boolean)
     .slice(0, 2)
-    .map((part) => part[0].toUpperCase())
+    .map((name) => name[0].toUpperCase())
     .join(''));
 
-  /** The emergency contact, or a note that there isn't one. */
   emergencyContact = computed(() => {
     const name = this.patient().emergencyContactName;
 

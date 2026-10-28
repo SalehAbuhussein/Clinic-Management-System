@@ -1,5 +1,3 @@
-import { PagedResult } from '@core/types/api.types';
-
 export type PatientFilters = {
   fullname?: string;
   phone?: string;
@@ -22,8 +20,6 @@ export type Patient = {
   emergencyContactNumber: string | null;
   personID: number;
 };
-
-export type GetPatientsResponse = PagedResult<Patient>;
 
 export type CreatePatientRequest = {
   firstname: string;

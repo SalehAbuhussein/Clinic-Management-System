@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
 import { MatButton } from '@angular/material/button';
@@ -29,28 +29,22 @@ export class PatientDetailDialogComponent implements OnInit {
   router = inject(Router);
   visitService = inject(VisitService);
 
-  /** The row that was picked. It carries the list's columns and nothing more. */
-  row = inject<Patient>(MAT_DIALOG_DATA);
+  patientData = inject<Patient>(MAT_DIALOG_DATA);
 
-  /** The whole record, which only the single-patient endpoint returns. */
   patient = signal<Patient | null>(null);
-
   isLoading = signal(true);
   error = signal('');
-
-  /** The history is fetched only once someone asks for it. */
   showVisits = signal(false);
   visitsPage = signal(1);
 
   visitsResource = this.visitService.getPatientVisitResource(
-    () => this.showVisits() ? this.row.id : null,
+    () => this.showVisits() ? this.patientData.id : null,
     this.visitsPage,
   );
 
-  visits = computed(() => this.visitsResource.value().items);
-  visitsTotal = computed(() => this.visitsResource.value().total);
-  visitsPerPage = computed(() => this.visitsResource.value().perPage || 10);
-
+  /**
+   * Angular onInit lifecycle method
+   */
   ngOnInit(): void {
     this.initComponent();
   }
@@ -63,11 +57,10 @@ export class PatientDetailDialogComponent implements OnInit {
   }
 
   /**
-   * Reads the full record. The list returns a name and a phone, so the national
-   * number, gender and date of birth have to come from here.
+   * Load patient data using patient data id
    */
   loadPatient(): void {
-    this.patientService.getPatient(this.row.id).subscribe({
+    this.patientService.getPatient(this.patientData.id).subscribe({
       next: (found) => {
         this.patient.set(found);
         this.isLoading.set(false);
@@ -80,9 +73,7 @@ export class PatientDetailDialogComponent implements OnInit {
   }
 
   /**
-   * Opens one of the patient's visits on the visits screen, which owns every
-   * action a visit has. The dialog closes first, because the page behind it
-   * is about to change.
+   * Open visit page
    *
    * @param visitId The visit that was picked.
    */
