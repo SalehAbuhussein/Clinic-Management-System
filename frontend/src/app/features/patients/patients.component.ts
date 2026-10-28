@@ -14,7 +14,6 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { AuthService } from '@core/auth/service/auth.service';
 import { PatientService } from '@shared/services/patient/patient.service';
 
-import { pageFromUrl } from '@core/utils/url-state.utils';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { ExportButtonComponent } from '@shared/components/export-button/export-button.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
@@ -26,6 +25,8 @@ import { ApiError } from '@core/auth/types/auth.types';
 import { ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.types';
 import { Patient, PatientFilters } from '@shared/services/patient/patient.types';
 import { PatientDetailAction } from './types/patients.types';
+
+import { pageFromUrl } from '@core/utils/url-state.utils';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -67,17 +68,16 @@ export class PatientsComponent {
    * string compares equal to itself and the duplicate dies here.
    */
   debouncedFullname = toSignal(
-    toObservable(this.fullname).pipe(debounceTime(300), distinctUntilChanged()),
+    toObservable(this.fullname).pipe(debounceTime(500), distinctUntilChanged()),
     { initialValue: this.fullname() },
   );
 
   debouncedPhone = toSignal(
-    toObservable(this.phone).pipe(debounceTime(300), distinctUntilChanged()),
+    toObservable(this.phone).pipe(debounceTime(500), distinctUntilChanged()),
     { initialValue: this.phone() },
   );
 
-  /** A computed only re-runs when a dependency really changed, so this object
-   * is built once per actual search rather than once per emission. */
+  // this object is built once per actual search rather than once per emission.
   filters = computed(() => ({ fullname: this.debouncedFullname().trim(), phone: this.debouncedPhone().trim() }));
 
   page = linkedSignal<PatientFilters, number>({
@@ -90,10 +90,6 @@ export class PatientsComponent {
     phone: this.filters().phone,
     page: this.page(),
   }));
-
-  patients = computed(() => this.patientsResource.value().items);
-  total = computed(() => this.patientsResource.value().total);
-  perPage = computed(() => this.patientsResource.value().perPage || 10);
 
   isSearching = computed(() => !!this.filters().fullname || !!this.filters().phone);
 
@@ -112,32 +108,24 @@ export class PatientsComponent {
   }
 
   /**
-   * Show everything on a patient, and act on whatever the dialog closes with.
-   *
-   * Both actions open another dialog, so the detail closes first rather than
-   * stacking two on top of each other.
+   * Open Patient details
    *
    * @param patient The row that was picked.
    */
-  openPatient = (patient: Patient) => {
+  openPatientDetails = (patient: Patient) => {
     this.dialog.open(PatientDetailDialogComponent, { width: '480px', data: patient })
       .afterClosed()
-      .subscribe((action: PatientDetailAction | undefined) => {
+      .subscribe((action?: PatientDetailAction) => {
         switch (action) {
           case 'edit':
-            this.editPatient(patient);
+            this._editPatient(patient);
             break;
           case 'delete':
-            this.deletePatient(patient);
+            this._deletePatient(patient);
             break;
         }
       });
   }
-
-  /**
-   * Registers a patient, then shows them in the list.
-   */
-  openNewPatientDialog = () => this.openFormDialog(null);
 
   /**
    * Edits a patient. The row carries only the list's columns, so the dialog is
@@ -145,28 +133,11 @@ export class PatientsComponent {
    *
    * @param patient The row that was picked.
    */
-  editPatient = (patient: Patient) => {
+  _editPatient = (patient: Patient) => {
     this.patientService.getPatient(patient.id).subscribe({
-      next: (full) => this.openFormDialog(full),
+      next: (full) => this.openNewPatientDialog(full),
       error: (error: ApiError) => this.snackbar.open(error.message, 'Dismiss', { duration: 8000 }),
     });
-  }
-
-  /**
-   * Opens the form and refreshes the list when it saved.
-   *
-   * @param patient The patient to edit, or null to register one.
-   */
-  openFormDialog = (patient: Patient | null) => {
-    this.dialog.open(PatientFormDialogComponent, { width: '560px', data: patient })
-      .afterClosed()
-      .subscribe((saved: boolean | undefined) => {
-        if (!saved) {
-          return;
-        }
-
-        this.patientsResource.reload();
-      });
   }
 
   /**
@@ -174,7 +145,7 @@ export class PatientsComponent {
    *
    * @param patient The row that was picked.
    */
-  deletePatient = (patient: Patient) => {
+  _deletePatient = (patient: Patient) => {
     this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
@@ -199,6 +170,23 @@ export class PatientsComponent {
         error: (error: ApiError) => this.snackbar.open(error.message, 'Dismiss', { duration: 8000 }),
       });
     });
+  }
+
+  /**
+   * Opens the form and refreshes the list when it saved.
+   *
+   * @param patient The patient to edit, or null to register one.
+   */
+  openNewPatientDialog = (patient: Patient | null = null) => {
+    this.dialog.open(PatientFormDialogComponent, { width: '560px', data: patient })
+      .afterClosed()
+      .subscribe((saved: boolean | undefined) => {
+        if (!saved) {
+          return;
+        }
+
+        this.patientsResource.reload();
+      });
   }
 
   /**

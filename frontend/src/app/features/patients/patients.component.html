@@ -1,8 +1,12 @@
+@let items = patientsResource.value().items;
+@let total = patientsResource.value().total;
+@let perPage = patientsResource.value().perPage;
+
 <header class="patients__header">
   <h1 class="patients__title">Patients</h1>
 
   <div class="patients__actions">
-    @if (total()) {
+    @if (total) {
       <app-export-button path="/Patients/export" [filters]="filters()" rangeLabel="Registered between" askForRange />
     }
 
@@ -44,12 +48,10 @@
     Could not load the patient list.
   </p>
 } @else {
-  @let list = patients();
+  @if (items.length) {
+    <app-patients-list [data]="items" (open)="openPatientDetails($event)" />
 
-  @if (list.length) {
-    <app-patients-list [data]="list" (open)="openPatient($event)" />
-
-    <app-pagination [(page)]="page" [total]="total()" [pageSize]="perPage()" />
+    <app-pagination [(page)]="page" [total]="total" [pageSize]="perPage" />
   } @else {
     <p class="patients__state">
       <mat-icon>person_search</mat-icon>

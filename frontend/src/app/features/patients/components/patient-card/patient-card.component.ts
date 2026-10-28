@@ -4,11 +4,11 @@ import { Patient } from '@shared/services/patient/patient.types';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
-  selector: 'app-patient-row',
-  styleUrl: './patient-row.component.scss',
-  templateUrl: './patient-row.component.html',
+  selector: 'app-patient-card',
+  styleUrl: './patient-card.component.scss',
+  templateUrl: './patient-card.component.html',
 })
-export class PatientRowComponent {
+export class PatientCardComponent {
   patient = input.required<Patient>();
 
   open = output<Patient>();
