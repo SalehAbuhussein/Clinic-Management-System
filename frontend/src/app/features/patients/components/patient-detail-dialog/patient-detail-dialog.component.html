@@ -1,40 +1,46 @@
 @let visits = visitsResource.value().items;
 @let visitsTotal = visitsResource.value().total;
 @let visitsPerPage = visitsResource.value().perPage;
+@let visitsLoading = visitsResource.isLoading();
+@let visitsError = visitsResource.error();
+
+@let patient = patientResource.value();
+@let patientError = patientResource.error();
+@let patientLoading = patientResource.isLoading();
 
 <h2 class="patient-detail__title" matDialogTitle>{{ patientData.fullname }}</h2>
 
 <div class="patient-detail__content" matDialogContent>
-  @if (isLoading()) {
+  @if (patientLoading) {
     <p class="patient-detail__state" role="status">
       <mat-progress-spinner diameter="18" mode="indeterminate" />
       Loading…
     </p>
-  } @else if (error(); as message) {
+  } @else if (patientError) {
     <p class="patient-detail__state patient-detail__state--error" role="alert">
       <mat-icon>error</mat-icon>
-      {{ message }}
+      {{ patientError.message }}
     </p>
-  } @else if (patient(); as found) {
+  } @else if (patient) {
     <dl class="patient-detail__facts">
       <dt>National number</dt>
-      <dd>{{ found.nationalNo }}</dd>
+      <dd>{{ patient.nationalNo }}</dd>
 
       <dt>Phone</dt>
-      <dd>{{ found.phone }}</dd>
+      <dd>{{ patient.phone }}</dd>
 
       <dt>Gender</dt>
-      <dd>{{ found.gender ? 'Male' : 'Female' }}</dd>
+      <dd>{{ patient.gender ? 'Male' : 'Female' }}</dd>
 
       <dt>Date of birth</dt>
-      <dd>{{ found.dateOfBirth | date: 'd MMM y' }}</dd>
+      <dd>{{ patient.dateOfBirth | date: 'd MMM y' }}</dd>
 
       <dt>Emergency contact</dt>
       <dd>
-        @if (found.emergencyContactName) {
-          {{ found.emergencyContactName }}
-          @if (found.emergencyContactNumber) {
-            , {{ found.emergencyContactNumber }}
+        @if (patient.emergencyContactName) {
+          {{ patient.emergencyContactName }}
+          @if (patient.emergencyContactNumber) {
+            , {{ patient.emergencyContactNumber }}
           }
         } @else {
           None on file
@@ -52,12 +58,12 @@
     } @else {
       <h3 class="patient-detail__visits-title">Visits</h3>
 
-      @if (visitsResource.isLoading()) {
+      @if (visitsLoading) {
         <p class="patient-detail__state" role="status">
           <mat-progress-spinner diameter="18" mode="indeterminate" />
           Loading visits…
         </p>
-      } @else if (visitsResource.error(); as visitsError) {
+      } @else if (visitsError) {
         <p class="patient-detail__state patient-detail__state--error" role="alert">
           <mat-icon>error</mat-icon>
           {{ visitsError.message }}
@@ -102,6 +108,6 @@
   <button matButton type="button" matDialogClose>Close</button>
 
   @if (authService.isFrontDesk()) {
-    <button matButton="filled" type="button" [disabled]="isLoading()" [matDialogClose]="'edit'">Edit patient</button>
+    <button matButton="filled" type="button" [disabled]="patientLoading" [matDialogClose]="'edit'">Edit patient</button>
   }
 </div>

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
 import { MatButton } from '@angular/material/button';
@@ -12,7 +12,6 @@ import { VisitService } from '@shared/services/visit/visit.service';
 
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
 
-import { ApiError } from '@core/auth/types/auth.types';
 import { Patient } from '@shared/services/patient/patient.types';
 
 @Component({
@@ -22,7 +21,7 @@ import { Patient } from '@shared/services/patient/patient.types';
   styleUrl: './patient-detail-dialog.component.scss',
   templateUrl: './patient-detail-dialog.component.html',
 })
-export class PatientDetailDialogComponent implements OnInit {
+export class PatientDetailDialogComponent {
   authService = inject(AuthService);
   dialogRef = inject(MatDialogRef<PatientDetailDialogComponent>);
   patientService = inject(PatientService);
@@ -31,9 +30,6 @@ export class PatientDetailDialogComponent implements OnInit {
 
   patientData = inject<Patient>(MAT_DIALOG_DATA);
 
-  patient = signal<Patient | null>(null);
-  isLoading = signal(true);
-  error = signal('');
   showVisits = signal(false);
   visitsPage = signal(1);
 
@@ -41,36 +37,7 @@ export class PatientDetailDialogComponent implements OnInit {
     () => this.showVisits() ? this.patientData.id : null,
     this.visitsPage,
   );
-
-  /**
-   * Angular onInit lifecycle method
-   */
-  ngOnInit(): void {
-    this.initComponent();
-  }
-
-  /**
-   * Everything the dialog needs before its first render.
-   */
-  initComponent(): void {
-    this.loadPatient();
-  }
-
-  /**
-   * Load patient data using patient data id
-   */
-  loadPatient(): void {
-    this.patientService.getPatient(this.patientData.id).subscribe({
-      next: (found) => {
-        this.patient.set(found);
-        this.isLoading.set(false);
-      },
-      error: (error: ApiError) => {
-        this.isLoading.set(false);
-        this.error.set(error.message);
-      },
-    });
-  }
+  patientResource = this.patientService.getPatientByIdResource(this.patientData.id);
 
   /**
    * Open visit page
