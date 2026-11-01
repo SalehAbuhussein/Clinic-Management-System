@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatIcon } from '@angular/material/icon';
@@ -10,8 +10,8 @@ import { AuditService } from '@shared/services/audit/audit.service';
 import { dayRange } from '@core/utils/day.utils';
 import { pageFromUrl, syncUrl } from '@core/utils/url-state.utils';
 
-import { ExportButtonComponent } from '@shared/components/export-button/export-button.component';
 import { AuditDetailDialogComponent } from './components/audit-detail-dialog/audit-detail-dialog.component';
+import { ExportButtonComponent } from '@shared/components/export-button/export-button.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
 
 import { MatDialog } from '@angular/material/dialog';
@@ -31,11 +31,6 @@ export class AuditComponent {
   route = inject(ActivatedRoute);
   router = inject(Router);
 
-  /**
-   * What each action reads as on screen, and the icon beside it. The API
-   * stores the key, so an action added later shows its raw name rather than
-   * breaking the row.
-   */
   readonly ACTION_WORDING: Record<string, ActionWording> = {
     LoginSucceeded: { label: 'signed in', icon: 'login' },
     LoginFailed: { label: 'failed to sign in', icon: 'gpp_maybe' },
@@ -52,10 +47,7 @@ export class AuditComponent {
   readonly PRESETS: readonly AuditPreset[] = ['1', '7', '30', 'all'];
 
   preset = signal<AuditPreset>(this.presetFromUrl());
-  /**
-   * Back to the first page whenever the range changes, whoever changed it, but
-   * the URL's page on the first run so a reload lands where it left off.
-   */
+
   page = linkedSignal<AuditPreset, number>({
     source: this.preset,
     computation: (_, previous) => previous ? 1 : pageFromUrl(this.route),
@@ -76,29 +68,9 @@ export class AuditComponent {
     return dayRange(firstDay).from;
   });
 
-  /**
-   * The range the URL asked for. Anything else is ignored rather than trusted,
-   * because an unknown preset would parse to NaN and the window would collapse
-   * to an invalid date.
-   *
-   * @returns A range the screen knows, defaulting to the last seven days.
-   */
-  presetFromUrl(): AuditPreset {
-    const asked = this.route.snapshot.queryParamMap.get('preset') as AuditPreset | null;
-
-    return asked && this.PRESETS.includes(asked) ? asked : '7';
-  }
-
   exportFilters = computed(() => ({ from: this.from() }));
 
   auditResource = this.auditService.getAuditResource(() => ({ from: this.from(), page: this.page() }));
-
-  total = computed(() => this.auditResource.value().total);
-  perPage = computed(() => this.auditResource.value().perPage || 10);
-
-  constructor() {
-    syncUrl(this.router, this.route, () => ({ preset: this.preset(), page: this.page() }));
-  }
 
   /**
    * The rows as the template renders them: the stored action replaced by its
@@ -109,6 +81,10 @@ export class AuditComponent {
     ...(this.ACTION_WORDING[entry.action] ?? { label: entry.action, icon: 'help' }),
     actor: entry.actorName || 'Someone unidentified',
   })));
+
+  constructor() {
+    syncUrl(this.router, this.route, () => ({ preset: this.preset(), page: this.page() }));
+  }
 
   /**
    * Show everything stored about one entry, including the target and the raw
@@ -128,5 +104,18 @@ export class AuditComponent {
    */
   selectPreset(preset: AuditPreset): void {
     this.preset.set(preset);
+  }
+
+  /**
+   * The range the URL asked for. Anything else is ignored rather than trusted,
+   * because an unknown preset would parse to NaN and the window would collapse
+   * to an invalid date.
+   *
+   * @returns A range the screen knows, defaulting to the last seven days.
+   */
+  presetFromUrl(): AuditPreset {
+    const asked = this.route.snapshot.queryParamMap.get('preset') as AuditPreset | null;
+
+    return asked && this.PRESETS.includes(asked) ? asked : '7';
   }
 }

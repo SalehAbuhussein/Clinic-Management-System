@@ -1,3 +1,9 @@
+@let isLoading = auditResource.isLoading();
+@let error = auditResource.error();
+@let result = auditResource.value();
+@let perPage = result.perPage || 10;
+@let rows = entries();
+
 <header class="audit__header">
   <h1 class="audit__title">Audit</h1>
 
@@ -12,27 +18,25 @@
     <mat-button-toggle value="all">All</mat-button-toggle>
   </mat-button-toggle-group>
 
-  @if (total()) {
+  @if (result.total) {
     <app-export-button path="/Audit/export" [filters]="exportFilters()" askForRange />
   }
 </header>
 
-@if (auditResource.isLoading()) {
+@if (isLoading) {
   <p class="audit__state" role="status">
     <mat-progress-spinner diameter="20" mode="indeterminate" />
     Loading the trail…
   </p>
-} @else if (auditResource.error(); as error) {
+} @else if (error) {
   <p class="audit__state audit__state--error" role="alert">
     <mat-icon>error</mat-icon>
     {{ error.message }}
   </p>
 } @else {
-  @let list = entries();
-
-  @if (list.length) {
+  @if (rows.length) {
     <div class="audit__list">
-      @for (entry of list; track entry.id) {
+      @for (entry of rows; track entry.id) {
         <button class="entry" type="button" (click)="openDetail(entry)">
           <span class="entry__badge">
             <mat-icon>{{ entry.icon }}</mat-icon>
@@ -53,8 +57,8 @@
       }
     </div>
 
-    @if (total() > perPage()) {
-      <app-pagination [(page)]="page" [total]="total()" [pageSize]="perPage()" />
+    @if (result.total > perPage) {
+      <app-pagination [(page)]="page" [total]="result.total" [pageSize]="perPage" />
     }
   } @else {
     <p class="audit__state">
