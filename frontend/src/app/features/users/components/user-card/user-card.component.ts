@@ -6,21 +6,16 @@ import { User } from '@shared/services/user/user.types';
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MatIcon],
-  selector: 'app-user-row',
-  styleUrl: './user-row.component.scss',
-  templateUrl: './user-row.component.html',
+  selector: 'app-user-card',
+  styleUrl: './user-card.component.scss',
+  templateUrl: './user-card.component.html',
 })
-export class UserRowComponent {
+export class UserCardComponent {
   user = input.required<User>();
 
   open = output<User>();
 
-  /**
-   * The first letter of the first two names, which is all the avatar shows.
-   * Empty when the API sent no name, so the circle stays blank rather than
-   * printing something misleading.
-   */
-  initials = computed(() => (this.user().fullname ?? '')
+  avatarInitials = computed(() => (this.user().fullname ?? '')
     .split(' ')
     .filter(Boolean)
     .slice(0, 2)

@@ -1,3 +1,8 @@
+@let items = usersResource.value().items;
+@let total = usersResource.value().total;
+@let perPage = usersResource.value().perPage || 10;
+@let error = usersResource.error();
+
 <header class="users__header">
   <h1 class="users__title">Users</h1>
 
@@ -14,23 +19,21 @@
     <mat-progress-spinner diameter="20" mode="indeterminate" />
     Loading users…
   </p>
-} @else if (usersResource.error(); as error) {
+} @else if (error) {
   <p class="users__state users__state--error" role="alert">
     <mat-icon>error</mat-icon>
     {{ error.message }}
   </p>
 } @else {
-  @let list = users();
-
-  @if (list.length) {
+  @if (items.length) {
     <div class="users__list">
-      @for (user of list; track user.id) {
-        <app-user-row [user]="user" (open)="openUser($event)" />
+      @for (user of items; track user.id) {
+        <app-user-card [user]="user" (open)="openUser($event)" />
       }
     </div>
 
-    @if (total() > perPage()) {
-      <app-pagination [(page)]="page" [total]="total()" [pageSize]="perPage()" />
+    @if (total > perPage) {
+      <app-pagination [(page)]="page" [total]="total" [pageSize]="perPage" />
     }
   } @else {
     <p class="users__state">

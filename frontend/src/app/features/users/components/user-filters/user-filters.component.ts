@@ -6,8 +6,8 @@ import { MatIconButton } from '@angular/material/button';
 import { MatInput } from '@angular/material/input';
 import { MatOption, MatSelect } from '@angular/material/select';
 
+import { UserFilterField } from '@features/users/types/users.types';
 import { UserFilters } from '@shared/services/user/user.types';
-import { UserFilterField } from '../../types/users.types';
 
 /**
  * Filters the user list by one field at a time.

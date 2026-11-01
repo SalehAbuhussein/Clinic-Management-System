@@ -2,7 +2,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, linkedSignal, signal } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
@@ -19,7 +19,7 @@ import { PaginationComponent } from '@shared/components/pagination/pagination.co
 import { UserDetailDialogComponent } from './components/user-detail-dialog/user-detail-dialog.component';
 import { UserFormDialogComponent } from './components/user-form-dialog/user-form-dialog.component';
 import { UserFiltersComponent } from './components/user-filters/user-filters.component';
-import { UserRowComponent } from './components/user-row/user-row.component';
+import { UserCardComponent } from './components/user-card/user-card.component';
 
 import { ApiError } from '@core/auth/types/auth.types';
 import { ConfirmDialogData } from '@shared/components/confirm-dialog/confirm-dialog.types';
@@ -28,7 +28,7 @@ import { UserDetailAction } from './types/users.types';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatButton, MatIcon, MatProgressSpinner, PaginationComponent, UserFiltersComponent, UserRowComponent],
+  imports: [MatButton, MatIcon, MatProgressSpinner, PaginationComponent, UserFiltersComponent, UserCardComponent],
   selector: 'app-users',
   styleUrl: './users.component.scss',
   templateUrl: './users.component.html',
@@ -42,15 +42,6 @@ export class UsersComponent {
 
   filters = signal<UserFilters>(filtersFromUrl(this.route));
 
-  /**
-   * The filters, held back until typing pauses. Signals carry no notion of
-   * time, so the delay is an RxJS operator and the value crosses back.
-   *
-   * Signals compare by reference, so every keystroke and every change of the
-   * field dropdown hands over a fresh object. Comparing the contents stops a
-   * dropdown change on an empty box from refetching a list that would come
-   * back identical.
-   */
   debouncedFilters = toSignal(
     toObservable(this.filters).pipe(
       debounceTime(300),
@@ -59,18 +50,12 @@ export class UsersComponent {
     { initialValue: this.filters() },
   );
 
-  // Resets to the first page on a new search, but takes the URL's page on the
-  // first run so a reload or a shared link lands where it left off.
   page = linkedSignal<UserFilters, number>({
     source: this.debouncedFilters,
     computation: (_, previous) => previous ? 1 : pageFromUrl(this.route),
   });
 
   usersResource = this.userService.getUserResource(() => ({ ...this.debouncedFilters(), page: this.page() }));
-
-  users = computed(() => this.usersResource.value().items);
-  total = computed(() => this.usersResource.value().total);
-  perPage = computed(() => this.usersResource.value().perPage || 10);
 
   constructor() {
     syncUrl(this.router, this.route, () => ({ ...this.filters(), page: this.page() }));
