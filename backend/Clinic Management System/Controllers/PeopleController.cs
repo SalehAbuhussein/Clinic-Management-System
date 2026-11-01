@@ -119,7 +119,6 @@ namespace Clinic_Management_System.Controllers
             person.Phone = request.Phone;
             person.Gender = request.Gender!.Value;
             person.DateOfBirth = request.DateOfBirth!.Value;
-            person.ProfileImage = request.ProfileImage;
 
             if (!person.IsValid())
                 return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "Check the name, phone and date of birth.");

@@ -24,7 +24,5 @@ namespace Clinic_Management_System.DTOs.Models.People
         [Required]
         [DateOfBirth]
         public DateOnly? DateOfBirth { get; set; }
-        [MaxLength(255)]
-        public string? ProfileImage { get; set; }
     }
 }

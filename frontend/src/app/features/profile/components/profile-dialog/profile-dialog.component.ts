@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { MatAnchor, MatButton } from '@angular/material/button';
 import { MatDatepickerToggle, MatDatepicker, MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
@@ -54,8 +54,21 @@ export class ProfileDialogComponent {
 
   isLoading = signal(true);
   isSaving = signal(false);
+  isSavingImage = signal(false);
   showUserInfo = signal(false);
   error = signal('');
+
+  maxImageBytes = 2 * 1024 * 1024;
+
+  imageFileName = signal<string | null>(null);
+
+  imageUrl = computed(() => this.profileService.imageUrlOf(this.imageFileName()));
+
+  avatarInitials = computed(() => {
+    const { firstname, lastname } = this.profileModel();
+
+    return `${firstname.charAt(0)}${lastname.charAt(0)}`.toUpperCase();
+  });
 
   profileModel = signal<ProfileData>({
     firstname: '',
@@ -133,6 +146,8 @@ export class ProfileDialogComponent {
           dateOfBirth: new Date(`${profile.dateOfBirth}T00:00:00`),
         }));
 
+        this.imageFileName.set(profile.profileImage);
+
         this.isLoading.set(false);
       },
       error: (error: ApiError) => {
@@ -193,6 +208,74 @@ export class ProfileDialogComponent {
       this.authService.changePassword(userId, { currentPassword, newPassword: password }),
       'Password changed',
     );
+  }
+
+  /**
+   * Sends the picked file and keeps the name the API stored it under.
+   *
+   * The input is cleared either way, so picking the same file again still
+   * raises a change event. The size is checked here only to say something
+   * useful: the API refuses an oversized body with a bare 413.
+   *
+   * @param event The file input's change event.
+   */
+  chooseImage = (event: Event): void => {
+    const input = event.target as HTMLInputElement;
+    const image = input.files?.[0];
+
+    input.value = '';
+
+    const userId = this.currentUserId();
+
+    if (!image || !userId) {
+      return;
+    }
+
+    if (image.size > this.maxImageBytes) {
+      this.error.set('That picture is larger than 2 MB. Pick a smaller one.');
+      return;
+    }
+
+    this.isSavingImage.set(true);
+    this.error.set('');
+
+    this.profileService.uploadProfileImage(userId, image).subscribe({
+      next: (fileName) => {
+        this.imageFileName.set(fileName);
+        this.isSavingImage.set(false);
+        this.snackbar.open('Picture updated', 'Dismiss', { duration: 4000 });
+      },
+      error: (error: ApiError) => {
+        this.isSavingImage.set(false);
+        this.error.set(error.message);
+      },
+    });
+  }
+
+  /**
+   * Clears the picture. The stored file goes with it, so there is nothing to
+   * undo and the button is worth a confirm only if that ever stops being cheap.
+   */
+  removeImage = (): void => {
+    const userId = this.currentUserId();
+
+    if (!userId) {
+      return;
+    }
+
+    this.isSavingImage.set(true);
+    this.error.set('');
+
+    this.profileService.removeProfileImage(userId).subscribe({
+      next: () => {
+        this.imageFileName.set(null);
+        this.isSavingImage.set(false);
+      },
+      error: (error: ApiError) => {
+        this.isSavingImage.set(false);
+        this.error.set(error.message);
+      },
+    });
   }
 
   /**

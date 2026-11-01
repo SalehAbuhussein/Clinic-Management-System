@@ -134,6 +134,7 @@ builder.Services.AddScoped<IPrescriptionItemRepository, PrescriptionItemReposito
 builder.Services.AddScoped<IPersonRepository, PersonRepository>();
 builder.Services.AddScoped<IWorkingDayRepository, WorkingDayRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IProfileImageStore, ProfileImageStore>();
 
 builder.Services.AddProblemDetails(options =>
     options.CustomizeProblemDetails = context =>
@@ -300,6 +301,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseStaticFiles();
 
 app.UseCors("ClinicApiCorsPolicy");
 

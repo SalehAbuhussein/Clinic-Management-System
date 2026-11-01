@@ -14,6 +14,40 @@
     </p>
   }
 
+  <section class="avatar-section" [hidden]="isLoading()">
+    <div class="avatar">
+      @if (imageUrl(); as url) {
+        <img class="avatar__picture" [src]="url" alt="Your profile picture">
+      } @else {
+        <span class="avatar__initials">{{ avatarInitials() }}</span>
+      }
+    </div>
+
+    <div class="avatar__actions">
+      <button type="button" matButton [disabled]="isSavingImage()" (click)="filePicker.click()">
+        @if (isSavingImage()) {
+          <mat-progress-spinner class="spinner" diameter="18" mode="indeterminate" />
+        }
+
+        {{ imageFileName() ? 'Change photo' : 'Add photo' }}
+      </button>
+
+      @if (imageFileName()) {
+        <button type="button" matButton [disabled]="isSavingImage()" (click)="removeImage()">Remove</button>
+      }
+
+      <p class="note">JPEG, PNG or WebP, up to 2 MB.</p>
+    </div>
+
+    <input
+      #filePicker
+      hidden
+      type="file"
+      accept="image/jpeg,image/png,image/webp"
+      (change)="chooseImage($event)"
+    >
+  </section>
+
   <section class="form-section" [hidden]="isLoading()">
     <h3 class="form-title">Person Information</h3>
 

@@ -34,7 +34,6 @@ export type CreateDoctorBody = {
   phone: string;
   gender: boolean;
   dateOfBirth: string;
-  profileImage?: string;
   specialization: string;
   medicalSchool: string;
   graduationYear: number;
@@ -50,7 +49,6 @@ export type UpdateDoctorBody = {
   phone: string;
   gender: boolean;
   dateOfBirth: string;
-  profileImage?: string;
   specialization: string;
   medicalSchool: string;
   graduationYear: number;

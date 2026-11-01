@@ -27,5 +27,4 @@ export type UpdatePersonRequest = {
   phone: string;
   gender: boolean;
   dateOfBirth: string;
-  profileImage?: string;
 };

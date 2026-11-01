@@ -102,10 +102,10 @@ export class ApiService {
    * Sends a POST request.
    *
    * @param path Route below /api.
-   * @param body Request payload.
+   * @param body Request payload, or a FormData when the route takes a file.
    * @returns The created resource, or void when the API answers 201 with no body.
    */
-  post<T>(path: string, body: Params): Observable<T | null> {
+  post<T>(path: string, body: Params | FormData): Observable<T | null> {
     return this.httpClient.post<T>(`${this._baseUrl}${path}`, body, { observe: 'response' }).pipe(map(this.extractBody));
   }
 

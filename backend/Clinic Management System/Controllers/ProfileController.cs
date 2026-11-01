@@ -2,7 +2,9 @@ using Clinic_Business.Entities;
 using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.People;
 using Clinic_Management_System.DTOs.Models.Profile;
+using Clinic_Management_System.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
@@ -15,11 +17,17 @@ namespace Clinic_Management_System.Controllers
     {
         private readonly IPersonRepository _personRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IProfileImageStore _profielImageStore;
 
-        public ProfileController(IPersonRepository personRepository, IUserRepository userRepository)
+        public ProfileController(
+            IPersonRepository personRepository,
+            IUserRepository userRepository,
+            IProfileImageStore profielImageStore
+        )
         {
             _personRepository = personRepository;
             _userRepository = userRepository;
+            _profielImageStore = profielImageStore;
         }
 
         [HttpGet("{id}", Name = "GetProfile")]
@@ -33,7 +41,6 @@ namespace Clinic_Management_System.Controllers
         )
         {
             clsUser? user = await _userRepository.FindByIdAsync(id);
-
             if (user == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"User with id {id} not found!");
 
@@ -91,7 +98,6 @@ namespace Clinic_Management_System.Controllers
             person.Phone = request.Phone;
             person.Gender = request.Gender!.Value;
             person.DateOfBirth = request.DateOfBirth!.Value;
-            person.ProfileImage = request.ProfileImage;
 
             if (!person.IsValid())
                 return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "Check the name, phone and date of birth.");
@@ -100,6 +106,87 @@ namespace Clinic_Management_System.Controllers
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The profile could not be saved.");
+        }
+
+        [HttpPost("{id}/image", Name = "UploadProfileImage")]
+        [RequestSizeLimit(ProfileImageStore.MaxBytes)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<string>> UploadProfileImage(
+            [Range(1, int.MaxValue)] int id,
+            IFormFile image,
+            [FromServices] IAuthorizationService authorizationService,
+            CancellationToken cancellationToken
+        )
+        {
+            clsUser? user = await _userRepository.FindByIdAsync(id);
+            if (user != null)
+            {
+                AuthorizationResult authorization = await authorizationService.AuthorizeAsync(User, user, "ManageAccount");
+                if (!authorization.Succeeded)
+                {
+                    return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"User with id {id} not found!");
+                }
+            } else
+            {
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"User with id {id} not found!");
+            }
+
+            string? newFileName = await _profielImageStore.SaveAsync(image, cancellationToken);
+            if (newFileName == null)
+            {
+                return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "That file is not valid image file.");
+            }
+
+            clsPerson person = user.PersonInfo;
+            string? oldFileName = person.ProfileImage;
+
+            person.ProfileImage = newFileName;
+
+            if (!await _personRepository.UpdateAsync(person))
+            {
+                _profielImageStore.Delete(newFileName);
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The picture could not be saved.");
+            }
+
+            _profielImageStore.Delete(oldFileName);
+
+            return Ok(newFileName);
+        }
+    
+        [HttpDelete("{id}/image", Name = "RemoveProfileImage")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult> RemoveProfileImage(
+            [Range(1, int.MaxValue)] int id,
+            [FromServices] IAuthorizationService authorizationService
+        )
+        {
+            clsUser? user = await _userRepository.FindByIdAsync(id);
+            if (user == null)
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"User with id {id} not found!");
+
+            AuthorizationResult authorization = await authorizationService.AuthorizeAsync(User, user, "ManageAccount");
+            if (!authorization.Succeeded)
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"User with id {id} not found!");
+
+            clsPerson person = user.PersonInfo;
+            string? oldFileName = person.ProfileImage;
+
+            if (oldFileName == null)
+                return NoContent();
+
+            person.ProfileImage = null;
+
+            if (!await _personRepository.UpdateAsync(person))
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The picture could not be removed.");
+
+            _profielImageStore.Delete(oldFileName);
+
+            return NoContent();
         }
     }
 }

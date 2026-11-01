@@ -117,7 +117,6 @@ namespace Clinic_Management_System.Controllers
             newDoctor.UserInfo.PersonInfo.Gender = addDoctorDTO.Gender!.Value;
             newDoctor.UserInfo.PersonInfo.DateOfBirth = addDoctorDTO.DateOfBirth!.Value;
             newDoctor.UserInfo.PersonInfo.NationalNo = addDoctorDTO.NationalNo;
-            newDoctor.UserInfo.PersonInfo.ProfileImage = addDoctorDTO.ProfileImage;
             newDoctor.UserInfo.Email = addDoctorDTO.Email;
             newDoctor.UserInfo.PasswordHash = BCrypt.Net.BCrypt.HashPassword(addDoctorDTO.Password);
 
@@ -171,7 +170,6 @@ namespace Clinic_Management_System.Controllers
             person.Phone = updatedDoctor.Phone;
             person.Gender = updatedDoctor.Gender!.Value;
             person.DateOfBirth = updatedDoctor.DateOfBirth!.Value;
-            person.ProfileImage = updatedDoctor.ProfileImage;
 
             if (await doctor.UpdateAsync())
                 return NoContent();

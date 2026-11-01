@@ -31,4 +31,38 @@ export class ProfileService {
   updateProfile = (userId: number, body: UpdateProfileRequest) => {
     return this.apiService.put(`/Profile/${userId}`, body);
   }
+
+  /**
+   * Replaces an account's picture, and answers with the name the file was
+   * stored under. The previous file is deleted once the new name is recorded,
+   * so an account never keeps more than one.
+   *
+   * @param userId The account.
+   * @param image The chosen file. The API reads the type from the bytes and
+   * refuses anything that is not a JPEG, PNG or WebP.
+   */
+  uploadProfileImage = (userId: number, image: File) => {
+    const body = new FormData();
+    body.append('image', image);
+
+    return this.apiService.post<string>(`/Profile/${userId}/image`, body);
+  }
+
+  /**
+   * Clears an account's picture, and deletes the stored file.
+   *
+   * @param userId The account.
+   */
+  removeProfileImage = (userId: number) => {
+    return this.apiService.delete(`/Profile/${userId}/image`);
+  }
+
+  /**
+   * Where a stored picture is served from. The API answers with the bare file
+   * name, because the column holds the name and the origin belongs to whoever
+   * is showing it.
+   *
+   * @param fileName What the profile carries, which is null until one is uploaded.
+   */
+  imageUrlOf = (fileName: string | null) => fileName ? `/uploads/profiles/${fileName}` : null;
 }
