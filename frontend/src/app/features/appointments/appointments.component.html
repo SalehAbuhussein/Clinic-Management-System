@@ -1,6 +1,6 @@
-@let itemsList = appointments().items;
-@let total = appointments().total;
-@let perPage = appointments().perPage;
+@let itemsList = appointmentsResource.value().items;
+@let total = appointmentsResource.value().total;
+@let perPage = appointmentsResource.value().perPage;
 
 <header class="appointments__header">
   <h1 class="appointments__title">{{ rangeLabel() }}</h1>

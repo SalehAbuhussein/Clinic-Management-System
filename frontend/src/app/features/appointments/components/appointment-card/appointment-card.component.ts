@@ -18,15 +18,7 @@ export class AppointmentCardComponent {
 
   open = output<AppointmentCard>();
 
-  /**
-   * Everything the chip needs for the four appointment statuses: its wording,
-   * its icon, and the container pair it paints with.
-   *
-   * The two colours always come from the same role pair, so the label is
-   * guaranteed to contrast with its own background in both themes.
-   * `default` covers Scheduled and anything the API adds later.
-   */
-  status = computed(() => {
+  statusChip = computed(() => {
     switch (this.item().status) {
       case AppointmentStatus.Attended:
         return {

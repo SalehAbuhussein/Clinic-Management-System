@@ -22,11 +22,7 @@ export class AppointmentDetailDialogComponent {
 
   isScheduled = computed(() => this.appointment.status === AppointmentStatus.Scheduled);
 
-  /**
-   * The wording and icon for the four appointment statuses. `default` covers
-   * Scheduled and anything the API adds later.
-   */
-  status = computed(() => {
+  statusChip = computed(() => {
     switch (this.appointment.status) {
       case AppointmentStatus.Attended:
         return { label: 'Attended', icon: 'check_circle' };

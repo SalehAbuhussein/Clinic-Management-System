@@ -2,7 +2,7 @@
   class="appointment"
   type="button"
   (click)="open.emit(item())"
-  [style.--card-accent]="status().accent"
+  [style.--card-accent]="statusChip().accent"
   [class.appointment--not-attended]="item().status === Status.NoShow"
   [class.appointment--cancelled]="item().status === Status.Cancelled">
   <span class="appointment__time">{{ item().startAt | date: 'h:mm a' }}</span>
@@ -14,9 +14,9 @@
 
   <span
     class="appointment__status"
-    [style.--status-container]="status().container"
-    [style.--status-on-container]="status().onContainer">
-    <mat-icon>{{ status().icon }}</mat-icon>
-    {{ status().label }}
+    [style.--status-container]="statusChip().container"
+    [style.--status-on-container]="statusChip().onContainer">
+    <mat-icon>{{ statusChip().icon }}</mat-icon>
+    {{ statusChip().label }}
   </span>
 </button>

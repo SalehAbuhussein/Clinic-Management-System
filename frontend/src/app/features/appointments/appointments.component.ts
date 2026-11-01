@@ -69,7 +69,6 @@ export class AppointmentsComponent {
   });
 
   appointmentsResource = this.appointmentService.getAppointmentsInRangeResource(this.from, this.to, this.page);
-  appointments = computed(() => this.appointmentsResource.value());
   exportFilters = computed(() => rangeBetween(this.from(), this.to()));
 
   constructor() {
