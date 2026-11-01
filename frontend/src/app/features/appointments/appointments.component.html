@@ -1,6 +1,8 @@
 @let itemsList = appointmentsResource.value().items;
 @let total = appointmentsResource.value().total;
 @let perPage = appointmentsResource.value().perPage;
+@let error = appointmentsResource.error();
+@let isLoading = appointmentsResource.isLoading();
 
 <header class="appointments__header">
   <h1 class="appointments__title">{{ rangeLabel() }}</h1>
@@ -13,10 +15,10 @@
   </div>
 </header>
 
-@if (appointmentsResource.isLoading()) {
+@if (isLoading) {
   <p class="appointments__state" role="status">Loading appointments…</p>
   <app-appointment-card-shimmer />
-} @else if (appointmentsResource.error(); as error) {
+} @else if (error) {
   <app-appointments-list-error-state [message]="error.message" (retry)="appointmentsResource.reload()" />
 } @else {
   @if (itemsList.length) {
