@@ -15,7 +15,9 @@ export class DiagnosisService {
    *
    * @param visitId The visit.
    */
-  getDiagnosis = (visitId: number) => this.apiService.get<Diagnosis>(`/Visits/${visitId}/diagnosis`);
+  getDiagnosis = (visitId: number) => {
+    return this.apiService.get<Diagnosis>(`/Visits/${visitId}/diagnosis`);
+  }
 
   /**
    * The same diagnosis as reactive state, for a screen that only reads it.
@@ -23,7 +25,9 @@ export class DiagnosisService {
    * @param visitId Returns the visit.
    * @returns The resource holding the diagnosis.
    */
-  getDiagnosisResource = (visitId: () => number) => this.apiService.getResource<Diagnosis>(() => `/Visits/${visitId()}/diagnosis`);
+  getDiagnosisResource = (visitId: () => number) => {
+    return this.apiService.getResource<Diagnosis>(() => `/Visits/${visitId()}/diagnosis`);
+  }
 
   /**
    * Write the visit's first diagnosis. Answers 409 if one already exists.
@@ -31,7 +35,9 @@ export class DiagnosisService {
    * @param visitId The visit.
    * @param body The diagnosis and its notes.
    */
-  createDiagnosis = (visitId: number, body: DiagnosisRequest) => this.apiService.post<Diagnosis>(`/Visits/${visitId}/diagnosis`, body);
+  createDiagnosis = (visitId: number, body: DiagnosisRequest) => {
+    return this.apiService.post<Diagnosis>(`/Visits/${visitId}/diagnosis`, body);
+  }
 
   /**
    * Correct the visit's diagnosis. Refused once the visit is checked out.
@@ -39,5 +45,7 @@ export class DiagnosisService {
    * @param visitId The visit.
    * @param body The diagnosis and its notes.
    */
-  updateDiagnosis = (visitId: number, body: DiagnosisRequest) => this.apiService.put(`/Visits/${visitId}/diagnosis`, body);
+  updateDiagnosis = (visitId: number, body: DiagnosisRequest) => {
+    return this.apiService.put(`/Visits/${visitId}/diagnosis`, body);
+  }
 }

@@ -14,7 +14,9 @@ export class PersonService {
    * @param filters Returns the query parameters.
    * @returns The resource holding the page.
    */
-  getPersonResource = (filters: () => PersonFilters = () => ({})) => this.apiService.getPagedResource<Person>('/People', filters);
+  getPersonResource = (filters: () => PersonFilters = () => ({})) => {
+    return this.apiService.getPagedResource<Person>('/People', filters);
+  }
 
   /**
    * Correct someone's details. The API refuses another admin's.
@@ -22,7 +24,9 @@ export class PersonService {
    * @param id The person.
    * @param body The replacement details. The national number cannot change.
    */
-  updatePerson = (id: number, body: UpdatePersonRequest) => this.apiService.put(`/People/${id}`, body);
+  updatePerson = (id: number, body: UpdatePersonRequest) => {
+    return this.apiService.put(`/People/${id}`, body);
+  }
 
   /**
    * Remove a person. The API refuses one that a user or a patient belongs to,
@@ -30,5 +34,7 @@ export class PersonService {
    *
    * @param id The person.
    */
-  deletePerson = (id: number) => this.apiService.delete(`/People/${id}`);
+  deletePerson = (id: number) => {
+    return this.apiService.delete(`/People/${id}`);
+  }
 }

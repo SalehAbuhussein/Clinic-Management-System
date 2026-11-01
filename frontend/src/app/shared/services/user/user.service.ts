@@ -14,7 +14,9 @@ export class UserService {
    * @param filters Returns the query parameters.
    * @returns The resource holding the page.
    */
-  getUserResource = (filters: () => UserFilters = () => ({})) => this.apiService.getPagedResource<User>('/Users', filters);
+  getUserResource = (filters: () => UserFilters = () => ({})) => {
+    return this.apiService.getPagedResource<User>('/Users', filters);
+  }
 
   /**
    * Create an account. It starts as Staff whatever the clinic means it to be,
@@ -22,7 +24,9 @@ export class UserService {
    *
    * @param body The person and their credentials.
    */
-  createUser = (body: CreateUserRequest) => this.apiService.post<void>('/Users', body);
+  createUser = (body: CreateUserRequest) => {
+    return this.apiService.post<void>('/Users', body);
+  }
 
   /**
    * Change an account's email or role.
@@ -30,7 +34,9 @@ export class UserService {
    * @param id The user.
    * @param body The new email and role.
    */
-  updateUser = (id: number, body: UpdateUserRequest) => this.apiService.put(`/Users/${id}`, body);
+  updateUser = (id: number, body: UpdateUserRequest) => {
+    return this.apiService.put(`/Users/${id}`, body);
+  }
 
   /**
    * Switch an account off. The API refuses if it is the caller's own, because
@@ -38,12 +44,16 @@ export class UserService {
    *
    * @param id The user.
    */
-  deactivateUser = (id: number) => this.apiService.patch(`/Users/${id}/deactivate`);
+  deactivateUser = (id: number) => {
+    return this.apiService.patch(`/Users/${id}/deactivate`);
+  }
 
   /**
    * Switch an account back on.
    *
    * @param id The user.
    */
-  activateUser = (id: number) => this.apiService.patch(`/Users/${id}/activate`);
+  activateUser = (id: number) => {
+    return this.apiService.patch(`/Users/${id}/activate`);
+  }
 }

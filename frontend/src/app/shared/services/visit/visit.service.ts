@@ -20,8 +20,9 @@ export class VisitService {
    * @param page Returns the page to show.
    * @returns The resource holding the page.
    */
-  getVisitResource = (from: () => Date, to: () => Date, page: () => number) =>
-    this.apiService.getPagedResource<Visit>('/Visits', () => ({ ...rangeBetween(from(), to()), page: page() }));
+  getVisitResource = (from: () => Date, to: () => Date, page: () => number) => {
+    return this.apiService.getPagedResource<Visit>('/Visits', () => ({ ...rangeBetween(from(), to()), page: page() }));
+  }
 
   /**
    * One patient's visits, newest first. A doctor gets only their own visits
@@ -32,10 +33,12 @@ export class VisitService {
    * @param page Returns the page to show.
    * @returns The resource holding the page.
    */
-  getPatientVisitResource = (patientId: () => number | null, page: () => number) => this.apiService.getPagedResource<Visit>(
-    () => patientId() === null ? null : '/Visits',
-    () => ({ patientId: patientId(), page: page() }),
-  );
+  getPatientVisitResource = (patientId: () => number | null, page: () => number) => {
+    return this.apiService.getPagedResource<Visit>(
+      () => patientId() === null ? null : '/Visits',
+      () => ({ patientId: patientId(), page: page() }),
+    );
+  }
 
   /**
    * One visit. The appointment rows carry a `visitId`, so this is how a screen
@@ -43,7 +46,9 @@ export class VisitService {
    *
    * @param id The visit.
    */
-  getVisit = (id: number) => this.apiService.get<Visit>(`/Visits/${id}`);
+  getVisit = (id: number) => {
+    return this.apiService.get<Visit>(`/Visits/${id}`);
+  }
 
   /**
    * Open a visit for an appointment. The API also flips the appointment to
@@ -56,7 +61,9 @@ export class VisitService {
    * @param appointmentId The appointment the patient arrived for.
    * @returns The new visit, carrying the id nothing else can look up.
    */
-  checkIn = (appointmentId: number) => this.apiService.post<Visit>('/Visits', { appointmentId });
+  checkIn = (appointmentId: number) => {
+    return this.apiService.post<Visit>('/Visits', { appointmentId });
+  }
 
   /**
    * Correct an open visit. Only the arrival time and the notes can change; the
@@ -66,7 +73,9 @@ export class VisitService {
    * @param id The visit.
    * @param body The corrected arrival time and notes.
    */
-  updateVisit = (id: number, body: { checkinTime: string, notes?: string }) => this.apiService.put(`/Visits/${id}`, body);
+  updateVisit = (id: number, body: { checkinTime: string, notes?: string }) => {
+    return this.apiService.put(`/Visits/${id}`, body);
+  }
 
   /**
    * Close a visit. The API refuses until the visit has a diagnosis, which only
@@ -75,7 +84,9 @@ export class VisitService {
    *
    * @param id The visit.
    */
-  checkoutVisit = (id: number) => this.apiService.patch(`/Visits/${id}/checkout`);
+  checkoutVisit = (id: number) => {
+    return this.apiService.patch(`/Visits/${id}/checkout`);
+  }
 
   /**
    * Remove a visit that should never have been opened. A checked-out visit is
@@ -83,5 +94,7 @@ export class VisitService {
    *
    * @param id The visit.
    */
-  deleteVisit = (id: number) => this.apiService.delete(`/Visits/${id}`);
+  deleteVisit = (id: number) => {
+    return this.apiService.delete(`/Visits/${id}`);
+  }
 }

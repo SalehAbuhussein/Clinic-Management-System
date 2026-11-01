@@ -14,7 +14,9 @@ export class LeaveService {
    * @param filters
    * @returns
    */
-  getLeavesResource = (filters: () => LeaveFilters = () => ({})) => this.apiService.getPagedResource<Leave>("/Leaves", filters);
+  getLeavesResource = (filters: () => LeaveFilters = () => ({})) => {
+    return this.apiService.getPagedResource<Leave>("/Leaves", filters);
+  }
 
   /**
    * Create Leave

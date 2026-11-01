@@ -15,7 +15,9 @@ export class MedicineService {
    * @param filters Returns the query parameters; `name` matches either name.
    * @returns The resource holding the page.
    */
-  getMedicineResource = (filters: () => MedicineFilters = () => ({})) => this.apiService.getPagedResource<Medicine>('/Medicines', filters);
+  getMedicineResource = (filters: () => MedicineFilters = () => ({})) => {
+    return this.apiService.getPagedResource<Medicine>('/Medicines', filters);
+  }
 
   /**
    * Medicines matching what the user is typing, for the prescription
@@ -25,14 +27,18 @@ export class MedicineService {
    * @param term The search text, already debounced and trimmed.
    * @returns The resource holding the matches.
    */
-  searchMedicineResource = (term: () => string) => this.apiService.getPagedResource<Medicine>(() => (term() ? '/Medicines' : null), () => ({ name: term() }));
+  searchMedicineResource = (term: () => string) => {
+    return this.apiService.getPagedResource<Medicine>(() => (term() ? '/Medicines' : null), () => ({ name: term() }));
+  }
 
   /**
    * Add a medicine so it can be prescribed.
    *
    * @param body The RxCUI, the names, the form and the strength.
    */
-  createMedicine = (body: CreateMedicineRequest) => this.apiService.post<Medicine>('/Medicines', body);
+  createMedicine = (body: CreateMedicineRequest) => {
+    return this.apiService.post<Medicine>('/Medicines', body);
+  }
 
   /**
    * Correct a medicine. Prescriptions name a medicine by id and read its
@@ -42,12 +48,16 @@ export class MedicineService {
    * @param id The medicine.
    * @param body The replacement details. The RxCUI cannot change.
    */
-  updateMedicine = (id: number, body: UpdateMedicineRequest) => this.apiService.put(`/Medicines/${id}`, body);
+  updateMedicine = (id: number, body: UpdateMedicineRequest) => {
+    return this.apiService.put(`/Medicines/${id}`, body);
+  }
 
   /**
    * Remove a medicine. The API refuses one that any prescription names.
    *
    * @param id The medicine.
    */
-  deleteMedicine = (id: number) => this.apiService.delete(`/Medicines/${id}`);
+  deleteMedicine = (id: number) => {
+    return this.apiService.delete(`/Medicines/${id}`);
+  }
 }

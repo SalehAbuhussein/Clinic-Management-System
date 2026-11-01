@@ -14,14 +14,18 @@ export class DoctorService {
    * @param filters Returns the query parameters; defaults to no filter at all.
    * @returns The resource holding the doctor list.
    */
-  getDoctorResource = (filters: () => DoctorFilters = () => ({})) => this.apiService.getPagedResource<Doctor>('/Doctors', filters);
+  getDoctorResource = (filters: () => DoctorFilters = () => ({})) => {
+    return this.apiService.getPagedResource<Doctor>('/Doctors', filters);
+  }
 
   /**
    * One doctor.
    *
    * @param id The doctor.
    */
-  getDoctor = (id: number) => this.apiService.get<Doctor>(`/Doctors/${id}`);
+  getDoctor = (id: number) => {
+    return this.apiService.get<Doctor>(`/Doctors/${id}`);
+  }
 
   /**
    * Add a doctor. This also creates their person record and their login, so
@@ -29,7 +33,9 @@ export class DoctorService {
    *
    * @param body The person, their credentials and their qualifications.
    */
-  createDoctor = (body: CreateDoctorBody) => this.apiService.post<Doctor>('/Doctors', body);
+  createDoctor = (body: CreateDoctorBody) => {
+    return this.apiService.post<Doctor>('/Doctors', body);
+  }
 
   /**
    * Correct a doctor's details. The national number, the email and the
@@ -38,7 +44,9 @@ export class DoctorService {
    * @param id The doctor.
    * @param body The replacement details.
    */
-  updateDoctor = (id: number, body: UpdateDoctorBody) => this.apiService.put(`/Doctors/${id}`, body);
+  updateDoctor = (id: number, body: UpdateDoctorBody) => {
+    return this.apiService.put(`/Doctors/${id}`, body);
+  }
 
   /**
    * Remove a doctor outright. The API refuses one whose account is already
@@ -47,5 +55,7 @@ export class DoctorService {
    *
    * @param id The doctor.
    */
-  deleteDoctor = (id: number) => this.apiService.delete(`/Doctors/${id}`);
+  deleteDoctor = (id: number) => {
+    return this.apiService.delete(`/Doctors/${id}`);
+  }
 }

@@ -14,7 +14,9 @@ export class ProfileService {
    *
    * @param userId The account.
    */
-  getProfile = (userId: number) => this.apiService.get<Profile>(`/Profile/${userId}`);
+  getProfile = (userId: number) => {
+    return this.apiService.get<Profile>(`/Profile/${userId}`);
+  }
 
   /**
    * Correct an account's details. The API allows your own, and an admin may
@@ -26,5 +28,7 @@ export class ProfileService {
    * @param userId The account, which `getProfile` returns for your own.
    * @param body The replacement details.
    */
-  updateProfile = (userId: number, body: UpdateProfileRequest) => this.apiService.put(`/Profile/${userId}`, body);
+  updateProfile = (userId: number, body: UpdateProfileRequest) => {
+    return this.apiService.put(`/Profile/${userId}`, body);
+  }
 }

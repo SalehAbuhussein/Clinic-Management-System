@@ -20,7 +20,9 @@ export class AppointmentService {
    * @param filters Returns the query parameters; defaults to no filter at all.
    * @returns The resource holding the appointment list.
    */
-  getAppointmentResource = (filters: () => AppointmentFilters = () => ({})) => this.apiService.getPagedResource<AppointmentCard>('/Appointments', filters);
+  getAppointmentResource = (filters: () => AppointmentFilters = () => ({})) => {
+    return this.apiService.getPagedResource<AppointmentCard>('/Appointments', filters);
+  }
 
   /**
    * Appointments across a range of days.

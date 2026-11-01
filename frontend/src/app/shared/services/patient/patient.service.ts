@@ -14,7 +14,9 @@ export class PatientService {
    * @param filters Returns the query parameters; defaults to no filter at all.
    * @returns The resource holding the patient list.
    */
-  getPatientResource = (filters: () => PatientFilters = () => ({})) => this.apiService.getPagedResource<Patient>('/Patients', filters);
+  getPatientResource = (filters: () => PatientFilters = () => ({})) => {
+    return this.apiService.getPagedResource<Patient>('/Patients', filters);
+  }
 
   /**
    * Patients matching what the user is typing, for the booking autocomplete.

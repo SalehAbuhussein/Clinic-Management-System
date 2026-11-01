@@ -15,5 +15,7 @@ export class AuditService {
    * @param filters Returns the query parameters.
    * @returns The resource holding the page.
    */
-  getAuditResource = (filters: () => AuditFilters = () => ({})) => this.apiService.getPagedResource<AuditEntry>('/Audit', filters);
+  getAuditResource = (filters: () => AuditFilters = () => ({})) => {
+    return this.apiService.getPagedResource<AuditEntry>('/Audit', filters);
+  }
 }

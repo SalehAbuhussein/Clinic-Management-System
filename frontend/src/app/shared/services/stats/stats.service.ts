@@ -21,9 +21,11 @@ export class StatsService {
    * it, because the range the API wants is half-open.
    * @returns The resource holding the stats.
    */
-  getStatsResource = (from: () => Date, to: () => Date) => this.apiService.getResource<Stats>('/Stats', () => ({
-    todayFrom: dayRange(new Date()).from,
-    from: dayRange(from()).from,
-    to: dayRange(to()).to,
-  }));
+  getStatsResource = (from: () => Date, to: () => Date) => {
+    return this.apiService.getResource<Stats>('/Stats', () => ({
+      todayFrom: dayRange(new Date()).from,
+      from: dayRange(from()).from,
+      to: dayRange(to()).to,
+    }));
+  }
 }

@@ -21,9 +21,11 @@ export class PrescriptionService {
    *
    * @param visitId The visit.
    */
-  getPrescription = (visitId: number) => this.apiService
-    .get<PagedResult<PrescriptionItem>>(`/Visits/${visitId}/prescription`)
-    .pipe(map((page) => page.items));
+  getPrescription = (visitId: number) => {
+    return this.apiService
+      .get<PagedResult<PrescriptionItem>>(`/Visits/${visitId}/prescription`)
+      .pipe(map((page) => page.items));
+  }
 
   /**
    * The same prescription as reactive state, for a screen that only reads it.
@@ -31,7 +33,9 @@ export class PrescriptionService {
    * @param visitId Returns the visit.
    * @returns The resource holding the lines.
    */
-  getPrescriptionResource = (visitId: () => number) => this.apiService.getPagedResource<PrescriptionItem>(() => `/Visits/${visitId()}/prescription`);
+  getPrescriptionResource = (visitId: () => number) => {
+    return this.apiService.getPagedResource<PrescriptionItem>(() => `/Visits/${visitId()}/prescription`);
+  }
 
   /**
    * Write the visit's first prescription. Answers 409 if one already exists.
@@ -39,7 +43,9 @@ export class PrescriptionService {
    * @param visitId The visit.
    * @param body Every line, at least one.
    */
-  createPrescription = (visitId: number, body: PrescriptionRequest) => this.apiService.post(`/Visits/${visitId}/prescription`, body);
+  createPrescription = (visitId: number, body: PrescriptionRequest) => {
+    return this.apiService.post(`/Visits/${visitId}/prescription`, body);
+  }
 
   /**
    * Replace the whole prescription. The API runs a MERGE scoped to the visit,
@@ -49,5 +55,7 @@ export class PrescriptionService {
    * @param visitId The visit.
    * @param body Every line that should survive, at least one.
    */
-  updatePrescription = (visitId: number, body: PrescriptionRequest) => this.apiService.put(`/Visits/${visitId}/prescription`, body);
+  updatePrescription = (visitId: number, body: PrescriptionRequest) => {
+    return this.apiService.put(`/Visits/${visitId}/prescription`, body);
+  }
 }

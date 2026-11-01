@@ -20,16 +20,22 @@ export class WorkingDaysService {
    * @param date Any day.
    * @returns The clinic's row for that weekday, or undefined before the list loads.
    */
-  findByDate = (date: Date): WorkingDay | undefined => this.workingDays().find((day) => day.workingDay.toLowerCase() === this.DAY_NAMES[date.getDay()]);
+  findByDate = (date: Date): WorkingDay | undefined => {
+    return this.workingDays().find((day) => day.workingDay.toLowerCase() === this.DAY_NAMES[date.getDay()]);
+  }
 
   /**
    * @param date Any day.
    * @returns Whether the clinic opens then.
    */
-  isWorkingDay = (date: Date): boolean => this.findByDate(date)?.isWorkingDay ?? true;
+  isWorkingDay = (date: Date): boolean => {
+    return this.findByDate(date)?.isWorkingDay ?? true;
+  }
 
   /**
    * Refetch working days from API
    */
-  reload = () => this.workingDaysResource.reload();
+  reload = () => {
+    return this.workingDaysResource.reload();
+  }
 }
