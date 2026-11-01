@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
-import { LeaveCardComponent } from '../leave-card/leave-card.component';
+import { LeaveCardComponent } from '@features/leaves/components/leave-card/leave-card.component';
 
 import { Leave } from '@shared/services/leave/leave.types';
 
