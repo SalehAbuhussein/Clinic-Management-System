@@ -19,6 +19,7 @@ namespace Clinic_Management_System.Controllers
         private readonly IVisitRepository _visitRepository;
         private readonly IDiagnosisRepository _diagnosisRepository;
         private readonly IDoctorRepository _doctorRepository;
+        private readonly IAuthorizationService _authorizationService;
         private readonly ILogger<VisitsController> _logger;
 
         public VisitsController(
@@ -26,12 +27,14 @@ namespace Clinic_Management_System.Controllers
             IVisitRepository visitRepository,
             IDiagnosisRepository diagnosisRepository,
             IDoctorRepository doctorRepository,
+            IAuthorizationService authorizationService,
             ILogger<VisitsController> logger)
         {
             _appointmentRepository = appointmentRepository;
             _visitRepository = visitRepository;
             _diagnosisRepository = diagnosisRepository;
             _doctorRepository = doctorRepository;
+            _authorizationService = authorizationService;
             _logger = logger;
         }
 
@@ -112,7 +115,7 @@ namespace Clinic_Management_System.Controllers
             new("Notes", v => v.Notes),
         ];
 
-        [Authorize(Roles = "Admin,Staff")]
+        [Authorize(Roles = "Admin,Staff,Doctor")]
         [HttpGet("{id}", Name = "GetVisitByID")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -121,6 +124,10 @@ namespace Clinic_Management_System.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<VisitDTO>> GetVisitByID([Range(1, int.MaxValue)] int id)
         {
+            var authResult = await _authorizationService.AuthorizeAsync(User, id, "ViewVisitRecord");
+            if (!authResult.Succeeded)
+                return Problem(statusCode: StatusCodes.Status403Forbidden, detail: "You do not have permission to do that.");
+
             clsVisit? visit = await _visitRepository.FindByIdAsync(id);
             if (visit == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Visit with id {id} not found");
