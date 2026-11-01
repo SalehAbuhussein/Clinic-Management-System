@@ -495,3 +495,9 @@ yarn-error.log*
 
 # Safety net: user secrets live outside the repo, but never commit one that strays in
 **/secrets.json
+
+# Editor and tooling droppings
+.vscode/
+.impeccable/
+.angulardoc.json
+PRODUCT.md

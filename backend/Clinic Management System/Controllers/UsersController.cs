@@ -106,8 +106,8 @@ namespace Clinic_Management_System.Controllers
             if (previousRole == "Doctor" && updatedUserDTO.Role is not null && updatedUserDTO.Role != previousRole)
                 return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "Delete them from the Doctors screen before changing their role.");
 
-            user.Email = updatedUserDTO.Email; // TODO Check if the email is assigned to another user to return error
-            user.Role = updatedUserDTO.Role ?? user.Role; // TODO: Check who really can change the role
+            user.Email = updatedUserDTO.Email;
+            user.Role = updatedUserDTO.Role ?? user.Role;
             user.Active = updatedUserDTO.Active ?? user.Active;
 
             int? adminId = CurrentUserId();
