@@ -1,8 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { formatDate } from '@angular/common';
+import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
 import { MatButton } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
 import { MatError, MatFormField, MatHint, MatLabel } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
@@ -10,6 +9,7 @@ import { MatOption, MatSelect } from '@angular/material/select';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { disabled, email, form, FormField, max, maxLength, min, minLength, readonly, required } from '@angular/forms/signals';
+import { formatDate } from '@angular/common';
 
 import { Observable } from 'rxjs';
 
@@ -17,7 +17,7 @@ import { DoctorService } from '@shared/services/doctor/doctor.service';
 
 import { ApiError } from '@core/auth/types/auth.types';
 import { Doctor } from '@shared/services/doctor/doctor.types';
-import { DoctorFormData } from '../../types/doctors.types';
+import { DoctorFormData } from '@features/doctors/types/doctors.types';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,

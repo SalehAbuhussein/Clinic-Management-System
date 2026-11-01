@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, linkedSignal, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -29,6 +29,13 @@ import { DoctorDetailAction } from './types/doctors.types';
   styleUrl: './doctors.component.scss',
   templateUrl: './doctors.component.html',
 })
+/**
+ * The doctor list, with the three dialogs that act on a row.
+ *
+ * The filters and the page live in the query string, so a reload or a shared
+ * link lands on the same list, and typing is held back before it reaches
+ * either the URL or the API.
+ */
 export class DoctorsComponent {
   dialog = inject(MatDialog);
   doctorService = inject(DoctorService);
@@ -38,11 +45,6 @@ export class DoctorsComponent {
 
   filters = signal<DoctorFilters>(filtersFromUrl(this.route));
 
-  /**
-   * The filters, held back until typing pauses. Comparing the contents stops a
-   * change of the field dropdown on an empty box from refetching a list that
-   * would come back identical.
-   */
   debouncedFilters = toSignal(
     toObservable(this.filters).pipe(
       debounceTime(300),
@@ -51,18 +53,12 @@ export class DoctorsComponent {
     { initialValue: this.filters() },
   );
 
-  // Back to the first page on a new search, but the URL's page on the first
-  // run, so a reload or a shared link lands where it left off.
   page = linkedSignal<DoctorFilters, number>({
     source: this.debouncedFilters,
     computation: (_, previous) => previous ? 1 : pageFromUrl(this.route),
   });
 
   doctorsResource = this.doctorService.getDoctorResource(() => ({ ...this.debouncedFilters(), page: this.page() }));
-
-  doctors = computed(() => this.doctorsResource.value().items);
-  total = computed(() => this.doctorsResource.value().total);
-  perPage = computed(() => this.doctorsResource.value().perPage || 10);
 
   constructor() {
     syncUrl(this.router, this.route, () => ({ ...this.filters(), page: this.page() }));
@@ -100,9 +96,9 @@ export class DoctorsComponent {
   }
 
   /**
-   * Opens the form in whichever mode the caller wants and refreshes on a save.
+   * Shows one doctor, and hands over to the form when the dialog asks to edit.
    *
-   * @param doctor The row being edited, or null to add one.
+   * @param doctor The row that was picked.
    */
   openDetail(doctor: Doctor): void {
     this.dialog.open(DoctorDetailDialogComponent, { width: '440px', data: doctor })
@@ -114,6 +110,11 @@ export class DoctorsComponent {
       });
   }
 
+  /**
+   * Opens the form in whichever mode the caller wants and refreshes on a save.
+   *
+   * @param doctor The row being edited, or null to add one.
+   */
   openForm(doctor: Doctor | null): void {
     this.dialog.open(DoctorFormDialogComponent, { width: '640px', maxWidth: '100vw', data: doctor })
       .afterClosed()

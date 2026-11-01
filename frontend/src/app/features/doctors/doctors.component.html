@@ -1,3 +1,9 @@
+@let list = doctorsResource.value().items;
+@let isLoading = doctorsResource.isLoading();
+@let error = doctorsResource.error();
+@let total = doctorsResource.value().total;
+@let perPage = doctorsResource.value().perPage || 10;
+
 <header class="doctors__header">
   <h1 class="doctors__title">Doctors</h1>
 
@@ -9,19 +15,17 @@
 
 <app-doctor-filters [(filters)]="filters" />
 
-@if (doctorsResource.isLoading()) {
+@if (isLoading) {
   <p class="doctors__state" role="status">
     <mat-progress-spinner diameter="20" mode="indeterminate" />
     Loading doctors…
   </p>
-} @else if (doctorsResource.error(); as error) {
+} @else if (error) {
   <p class="doctors__state doctors__state--error" role="alert">
     <mat-icon>error</mat-icon>
     {{ error.message }}
   </p>
 } @else {
-  @let list = doctors();
-
   @if (list.length) {
     <div class="doctors__list">
       @for (doctor of list; track doctor.id) {
@@ -50,8 +54,8 @@
       }
     </div>
 
-    @if (total() > perPage()) {
-      <app-pagination [(page)]="page" [total]="total()" [pageSize]="perPage()" />
+    @if (total > perPage) {
+      <app-pagination [(page)]="page" [total]="total" [pageSize]="perPage" />
     }
   } @else {
     <p class="doctors__state">
