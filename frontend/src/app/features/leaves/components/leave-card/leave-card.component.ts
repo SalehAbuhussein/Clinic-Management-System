@@ -1,14 +1,20 @@
-import { isMidnight, lastDayOf } from '@core/utils/day.utils';
-
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
-import { formatDate } from '@angular/common';
 
 import { AuthService } from '@core/auth/service/auth.service';
 
-import { Leave } from '@shared/services/leave/leave.types';
+import { Leave, LeaveStatus } from '@shared/services/leave/leave.types';
 
+import { formatDay, formatTime, isMidnight, lastDayOf } from '@core/utils/day.utils';
+
+/**
+ * One leave request in the list.
+ *
+ * A whole-day leave is stored midnight to midnight with the end exclusive, so
+ * the last day shown is the day before `to`. Anything else is part of a single
+ * day and reads as clock times, which a date-only format would lose.
+ */
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MatButton, MatIcon],
@@ -25,27 +31,23 @@ export class LeaveCardComponent {
   approve = output<Leave>();
   reject = output<Leave>();
 
-  /** Two letters for the circle. The full name sits beside it. */
-  initials = computed(() => {
-    const parts = this.item().fullname.trim().split(/\s+/).filter(Boolean);
+  avatarInitials = computed(() => this.item().fullname
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((name) => name[0].toUpperCase())
+    .join(''));
 
-    return parts.length ? `${parts[0][0]}${parts.at(-1)![0]}`.toUpperCase() : '?';
-  });
-
-  /**
-   * Everything the chip needs for the three leave statuses, painted from a
-   * Material container pair so the label contrasts with it in both themes.
-   */
-  status = computed(() => {
+  statusChip = computed(() => {
     switch (this.item().status) {
-      case 1:
+      case LeaveStatus.Approved:
         return {
           label: 'Approved',
           icon: 'check_circle',
           container: 'var(--mat-sys-tertiary-container)',
           onContainer: 'var(--mat-sys-on-tertiary-container)',
         };
-      case 2:
+      case LeaveStatus.Rejected:
         return {
           label: 'Rejected',
           icon: 'cancel',
@@ -62,41 +64,20 @@ export class LeaveCardComponent {
     }
   });
 
-  /** Only an admin decides, and only while the request is still pending. */
-  canDecide = computed(() => this.item().status === 0 && this.authService.isAdmin());
+  canDecide = computed(() => this.item().status === LeaveStatus.Pending && this.authService.isAdmin());
 
-  /**
-   * When the leave falls, read the way it was asked for.
-   *
-   * A whole-day leave is stored midnight to midnight with the end exclusive,
-   * so the last day shown is the day before `to`. Anything else is part of a
-   * single day and reads as clock times, which is the distinction a date-only
-   * format would lose.
-   */
-  when = computed(() => {
+  periodLabel = computed(() => {
     const from = new Date(this.item().from);
     const to = new Date(this.item().to);
 
     if (!isMidnight(from) || !isMidnight(to)) {
-      return `${this.asDate(from)}, ${this.asTime(from)} to ${this.asTime(to)}`;
+      return `${formatDay(from)}, ${formatTime(from)} to ${formatTime(to)}`;
     }
 
     const lastDay = lastDayOf(to);
 
-    return this.asDate(from) === this.asDate(lastDay)
-      ? this.asDate(from)
-      : `${this.asDate(from)} to ${this.asDate(lastDay)}`;
+    return formatDay(from) === formatDay(lastDay)
+      ? formatDay(from)
+      : `${formatDay(from)} to ${formatDay(lastDay)}`;
   });
-
-  /**
-   * @param date Any moment.
-   * @returns Its day, written out.
-   */
-  asDate = (date: Date): string => formatDate(date, 'd MMM y', 'en-US');
-
-  /**
-   * @param date Any moment.
-   * @returns Its clock time.
-   */
-  asTime = (date: Date): string => formatDate(date, 'HH:mm', 'en-US');
 }

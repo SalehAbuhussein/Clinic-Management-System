@@ -2,16 +2,16 @@
 
 <article class="leave-card">
   <button class="leave-card__open" type="button" (click)="open.emit(leave)">
-    <span class="leave-card__avatar" aria-hidden="true">{{ initials() }}</span>
+    <span class="leave-card__avatar" aria-hidden="true">{{ avatarInitials() }}</span>
 
     <span class="leave-card__body">
       <span class="leave-card__name">{{ leave.fullname }}</span>
-      <span class="leave-card__when">{{ when() }}</span>
+      <span class="leave-card__when">{{ periodLabel() }}</span>
     </span>
 
-    <span class="leave-card__status" [style.background-color]="status().container" [style.color]="status().onContainer">
-      <mat-icon class="leave-card__status-icon">{{ status().icon }}</mat-icon>
-      {{ status().label }}
+    <span class="leave-card__status" [style.background-color]="statusChip().container" [style.color]="statusChip().onContainer">
+      <mat-icon class="leave-card__status-icon">{{ statusChip().icon }}</mat-icon>
+      {{ statusChip().label }}
     </span>
   </button>
 

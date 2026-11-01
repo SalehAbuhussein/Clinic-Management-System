@@ -30,7 +30,7 @@ import { LeaveDetailAction } from './types/leaves.types';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [LeaveFiltersComponent, 
+  imports: [LeaveFiltersComponent,
     ExportButtonComponent,
     LeavesListComponent,
     MatButton,
@@ -52,11 +52,6 @@ export class LeavesComponent {
 
   filters = signal<LeaveFilters>(filtersFromUrl(this.route));
 
-  /**
-   * The filters, held back until typing pauses. Comparing the contents stops a
-   * change of the field dropdown on an empty box from refetching a list that
-   * would come back identical.
-   */
   debouncedFilters = toSignal(
     toObservable(this.filters).pipe(
       debounceTime(300),
@@ -65,18 +60,12 @@ export class LeavesComponent {
     { initialValue: this.filters() },
   );
 
-  // Back to the first page on a new search, but the URL's page on the first
-  // run, so a reload or a shared link lands where it left off.
   page = linkedSignal<LeaveFilters, number>({
     source: this.debouncedFilters,
     computation: (_, previous) => previous ? 1 : pageFromUrl(this.route),
   });
 
   leavesResource = this.leaveService.getLeavesResource(() => ({ ...this.debouncedFilters(), page: this.page() }));
-
-  leaves = computed(() => this.leavesResource.value().items);
-  total = computed(() => this.leavesResource.value().total);
-  perPage = computed(() => this.leavesResource.value().perPage || 10);
 
   constructor() {
     syncUrl(this.router, this.route, () => ({ ...this.filters(), page: this.page() }));
@@ -126,15 +115,17 @@ export class LeavesComponent {
    *
    * @param leave The request being decided.
    */
-  approveLeave = (leave: Leave) => this.decide(
-    {
-      title: 'Approve this leave?',
-      message: `${leave.fullname} cannot be booked for those days once this is approved, and the request can no longer be edited.`,
-      confirmLabel: 'Approve',
-    },
-    this.leaveService.approveLeave(leave.id),
-    'Leave approved',
-  );
+  approveLeave = (leave: Leave) => {
+    return this.decide(
+      {
+        title: 'Approve this leave?',
+        message: `${leave.fullname} cannot be booked for those days once this is approved, and the request can no longer be edited.`,
+        confirmLabel: 'Approve',
+      },
+      this.leaveService.approveLeave(leave.id),
+      'Leave approved',
+    );
+  }
 
   /**
    * Turn a request down. Those days stay bookable, and the requester may file
@@ -142,15 +133,17 @@ export class LeavesComponent {
    *
    * @param leave The request being decided.
    */
-  rejectLeave = (leave: Leave) => this.decide(
-    {
-      title: 'Reject this leave?',
-      message: `${leave.fullname} stays bookable for those days. They can request them again.`,
-      confirmLabel: 'Reject',
-    },
-    this.leaveService.rejectLeave(leave.id),
-    'Leave rejected',
-  );
+  rejectLeave = (leave: Leave) => {
+    return this.decide(
+      {
+        title: 'Reject this leave?',
+        message: `${leave.fullname} stays bookable for those days. They can request them again.`,
+        confirmLabel: 'Reject',
+      },
+      this.leaveService.rejectLeave(leave.id),
+      'Leave rejected',
+    );
+  }
 
   /**
    * Asks, runs the decision, then refreshes the list.

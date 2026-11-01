@@ -2,16 +2,16 @@
 
 <div class="leave-detail__content" matDialogContent>
   <span class="leave-detail__status">
-    <mat-icon>{{ status.icon }}</mat-icon>
-    {{ status.label }}
+    <mat-icon>{{ statusBadge.icon }}</mat-icon>
+    {{ statusBadge.label }}
   </span>
 
   <dl class="leave-detail__facts">
     <dt>From</dt>
-    <dd>{{ from | date: wholeDays ? 'EEEE d MMMM y' : 'EEEE d MMMM y, HH:mm' }}</dd>
+    <dd>{{ startsAt | date: coversWholeDays ? 'EEEE d MMMM y' : 'EEEE d MMMM y, HH:mm' }}</dd>
 
     <dt>To</dt>
-    <dd>{{ to | date: wholeDays ? 'EEEE d MMMM y' : 'EEEE d MMMM y, HH:mm' }}</dd>
+    <dd>{{ endsAt | date: coversWholeDays ? 'EEEE d MMMM y' : 'EEEE d MMMM y, HH:mm' }}</dd>
 
     @if (leave.reason) {
       <dt>Reason</dt>

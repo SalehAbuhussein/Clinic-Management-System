@@ -12,6 +12,8 @@ import { formatDate } from '@angular/common';
 
 import { LeaveService } from '@shared/services/leave/leave.service';
 
+import { atTime, startOfDay } from '@core/utils/day.utils';
+
 import { ApiError } from '@core/auth/types/auth.types';
 import { CreateLeaveRequest } from '@shared/services/leave/leave.types';
 import { LeaveRequestData } from '@features/leaves/types/leaves.types';
@@ -56,44 +58,43 @@ export class RequestLeaveDialogComponent {
     endTime: '13:00',
     reason: '',
   });
-  leaveForm = form(this.leaveModel, (schema) => {
-    readonly(schema.day);
-    readonly(schema.from);
-    readonly(schema.to);
+  leaveForm = form(this.leaveModel, (leave) => {
+    readonly(leave.day);
+    readonly(leave.from);
+    readonly(leave.to);
 
-    hidden(schema.day, { when: ({ valueOf }) => valueOf(schema.mode) !== 'day' });
-    hidden(schema.startTime, { when: ({ valueOf }) => valueOf(schema.mode) !== 'day' });
-    hidden(schema.endTime, { when: ({ valueOf }) => valueOf(schema.mode) !== 'day' });
-    hidden(schema.from, { when: ({ valueOf }) => valueOf(schema.mode) !== 'range' });
-    hidden(schema.to, { when: ({ valueOf }) => valueOf(schema.mode) !== 'range' });
+    hidden(leave.day, { when: ({ valueOf }) => valueOf(leave.mode) !== 'day' });
+    hidden(leave.startTime, { when: ({ valueOf }) => valueOf(leave.mode) !== 'day' });
+    hidden(leave.endTime, { when: ({ valueOf }) => valueOf(leave.mode) !== 'day' });
+    hidden(leave.from, { when: ({ valueOf }) => valueOf(leave.mode) !== 'range' });
+    hidden(leave.to, { when: ({ valueOf }) => valueOf(leave.mode) !== 'range' });
 
-    required(schema.day);
-    required(schema.startTime);
+    required(leave.day);
+    required(leave.startTime);
 
-    required(schema.endTime);
-    validate(schema.endTime, ({ valueOf }) => valueOf(schema.endTime) <= valueOf(schema.startTime)
+    required(leave.endTime);
+    validate(leave.endTime, ({ valueOf }) => valueOf(leave.endTime) <= valueOf(leave.startTime)
       ? { kind: 'endBeforeStart', message: 'The end time must come after the start time' }
       : null);
 
-    required(schema.from);
+    required(leave.from);
 
-    required(schema.to);
-    validate(schema.to, ({ valueOf }) => {
-      const from = valueOf(schema.from);
-      const to = valueOf(schema.to);
+    required(leave.to);
+    validate(leave.to, ({ valueOf }) => {
+      const from = valueOf(leave.from);
+      const to = valueOf(leave.to);
 
       return from && to && to < from
         ? { kind: 'endBeforeStart', message: 'The last day cannot come before the first' }
         : null;
     });
 
-    required(schema.reason);
-    maxLength(schema.reason, 255);
+    required(leave.reason);
+    maxLength(leave.reason, 255);
   });
 
   isSingleDay = computed(() => this.leaveModel().mode === 'day');
 
-  /** How the hint reads a range back, so nobody has to count the days themselves. */
   dayCount = computed(() => {
     const { from, to } = this.leaveModel();
 
@@ -101,14 +102,13 @@ export class RequestLeaveDialogComponent {
       return 0;
     }
 
-    return Math.round((this.midnight(to).getTime() - this.midnight(from).getTime()) / 86_400_000) + 1;
+    return Math.round((startOfDay(to).getTime() - startOfDay(from).getTime()) / 86_400_000) + 1;
   });
 
-  /** The same, in hours, for a part-day request. */
   hourCount = computed(() => {
     const { day, startTime, endTime } = this.leaveModel();
-    const reference = day ?? new Date();
-    const hours = (this.at(reference, endTime).getTime() - this.at(reference, startTime).getTime()) / 3_600_000;
+    const chosenDay = day ?? new Date();
+    const hours = (atTime(chosenDay, endTime).getTime() - atTime(chosenDay, startTime).getTime()) / 3_600_000;
 
     return hours > 0 ? hours : 0;
   });
@@ -119,7 +119,9 @@ export class RequestLeaveDialogComponent {
    *
    * @param mode The newly picked mode.
    */
-  setMode = (mode: LeaveRequestData['mode']): void => this.leaveModel.update((model) => ({ ...model, mode }));
+  setMode = (mode: LeaveRequestData['mode']): void => {
+    this.leaveModel.update((model) => ({ ...model, mode }));
+  }
 
   /**
    * Sends the request, then closes so the screen can refresh its list.
@@ -171,8 +173,8 @@ export class RequestLeaveDialogComponent {
     const { day, startTime, endTime } = this.leaveModel();
 
     return {
-      from: this.at(day!, startTime),
-      to: this.at(day!, endTime),
+      from: atTime(day!, startTime),
+      to: atTime(day!, endTime),
     };
   }
 
@@ -187,8 +189,8 @@ export class RequestLeaveDialogComponent {
   getRangeWindow = (): { from: Date, to: Date } => {
     const { from, to } = this.leaveModel();
 
-    const start = this.midnight(from!);
-    const end = this.midnight(to!);
+    const start = startOfDay(from!);
+    const end = startOfDay(to!);
 
     end.setDate(end.getDate() + 1);
 
@@ -212,22 +214,5 @@ export class RequestLeaveDialogComponent {
   fail = (error: ApiError): void => {
     this.isSaving.set(false);
     this.error.set(error.message);
-  }
-
-  /**
-   * @param date Any moment.
-   * @returns That day's local midnight, with the time of day dropped.
-   */
-  midnight = (date: Date): Date => new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-  /**
-   * @param day The day to land on.
-   * @param time A wall clock `HH:mm`.
-   * @returns That clock time on that day, locally.
-   */
-  at = (day: Date, time: string): Date => {
-    const [hours, minutes] = time.split(':').map(Number);
-
-    return new Date(day.getFullYear(), day.getMonth(), day.getDate(), hours, minutes);
   }
 }

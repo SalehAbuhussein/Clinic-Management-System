@@ -1,5 +1,10 @@
-/** 0 Pending, 1 Approved, 2 Rejected, as the API stores them. */
-export type LeaveStatus = 0 | 1 | 2;
+export const LeaveStatus = {
+  Pending: 0,
+  Approved: 1,
+  Rejected: 2,
+} as const;
+
+export type LeaveStatus = typeof LeaveStatus[keyof typeof LeaveStatus];
 
 export type Leave = {
   id: number;

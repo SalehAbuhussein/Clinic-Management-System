@@ -1,8 +1,14 @@
+@let items = leavesResource.value().items;
+@let total = leavesResource.value().total;
+@let perPage = leavesResource.value().perPage;
+@let isLoading = leavesResource.isLoading();
+@let error = leavesResource.error();
+
 <div class="leaves-container">
   <header class="leaves-header">
     <h1 class="leaves-title">Leaves</h1>
 
-    @if (total()) {
+    @if (total) {
       <app-export-button path="/Leaves/export" askForRange />
     }
 
@@ -16,28 +22,26 @@
 
 <app-leave-filters [(filters)]="filters" />
 
-  @if (leavesResource.isLoading()) {
+  @if (isLoading) {
     <p class="leaves-state" role="status">
       <mat-progress-spinner diameter="20" mode="indeterminate" />
       Loading leaves…
     </p>
-  } @else if (leavesResource.error(); as error) {
+  } @else if (error) {
     <p class="leaves-state leaves-state--error" role="alert">
       <mat-icon>error</mat-icon>
       {{ error.message }}
     </p>
   } @else {
-    @let list = leaves();
-
-    @if (list.length) {
+    @if (items.length) {
       <app-leaves-list
-        [items]="list"
+        [items]="items"
         (open)="openLeaveDetailsDialog($event)"
         (approve)="approveLeave($event)"
         (reject)="rejectLeave($event)" />
 
-      @if (total() > perPage()) {
-        <app-pagination [(page)]="page" [total]="total()" [pageSize]="perPage()" />
+      @if (total > perPage) {
+        <app-pagination [(page)]="page" [total]="total" [pageSize]="perPage" />
       }
     } @else {
       <p class="leaves-empty">

@@ -6,9 +6,16 @@ import { MatIcon } from '@angular/material/icon';
 
 import { AuthService } from '@core/auth/service/auth.service';
 
-import { Leave } from '@shared/services/leave/leave.types';
+import { Leave, LeaveStatus } from '@shared/services/leave/leave.types';
 import { isMidnight, lastDayOf } from '@core/utils/day.utils';
 
+/**
+ * Shows one leave request, and offers an admin the decision on a pending one.
+ *
+ * A whole-day range is stored half-open, ending on the following midnight, so
+ * `endsAt` steps back a day before it is shown and the clock times are left
+ * out entirely.
+ */
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DatePipe, MatButton, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle, MatIcon],
@@ -21,30 +28,25 @@ export class LeaveDetailDialogComponent {
 
   leave = inject<Leave>(MAT_DIALOG_DATA);
 
-  readonly wholeDays = isMidnight(new Date(this.leave.from)) && isMidnight(new Date(this.leave.to));
+  readonly coversWholeDays = isMidnight(new Date(this.leave.from)) && isMidnight(new Date(this.leave.to));
 
-  readonly from = new Date(this.leave.from);
+  readonly startsAt = new Date(this.leave.from);
 
-  /**
-   * The stored end is midnight of the day after, so a whole-day leave has to
-   * step back one day to name the last day it actually covers. A part-day
-   * leave keeps its real end, which is a time on the same day.
-   */
-  readonly to = this.wholeDays ? lastDayOf(new Date(this.leave.to)) : new Date(this.leave.to);
+  readonly endsAt = this.coversWholeDays ? lastDayOf(new Date(this.leave.to)) : new Date(this.leave.to);
 
-  readonly isPending = this.leave.status === 0;
+  readonly isPending = this.leave.status === LeaveStatus.Pending;
 
-  readonly status = this.statusOf(this.leave.status);
+  readonly statusBadge = this.badgeFor(this.leave.status);
 
   /**
-   * @param status The leave's status byte.
+   * @param status The leave's status as the API stores it.
    * @returns How to label and illustrate it.
    */
-  statusOf(status: number) {
+  badgeFor(status: LeaveStatus) {
     switch (status) {
-      case 1:
+      case LeaveStatus.Approved:
         return { label: 'Approved', icon: 'check_circle' };
-      case 2:
+      case LeaveStatus.Rejected:
         return { label: 'Rejected', icon: 'cancel' };
       default:
         return { label: 'Pending', icon: 'schedule' };
