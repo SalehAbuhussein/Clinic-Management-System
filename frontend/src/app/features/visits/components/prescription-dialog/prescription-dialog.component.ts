@@ -17,19 +17,8 @@ import { MedicineSelectorInputComponent } from '../medicine-selector-input/medic
 import { ApiError } from '@core/auth/types/auth.types';
 import { Medicine } from '@shared/services/medicine/medicine.types';
 import { PrescriptionItem, PrescriptionRequest } from '@shared/services/prescription/prescription.types';
+import { PrescriptionLine } from '@features/visits/types/visits.types';
 import { Visit } from '@shared/services/visit/visit.types';
-
-/**
- * One editable line. The key is what @for tracks, so removing a line does not
- * shuffle the values of the ones below it.
- */
-export type PrescriptionLine = {
-  key: number;
-  medicine: Medicine | null;
-  dosage: string;
-  frequency: string;
-  duration: string;
-};
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
