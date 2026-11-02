@@ -24,6 +24,7 @@ export type Doctor = {
   graduationYear: number;
   personID: number;
   active: boolean;
+  profileImage: string | null;
 };
 export type CreateDoctorBody = {
   firstname: string;

@@ -13,6 +13,7 @@ export type Leave = {
   to: string;
   reason: string;
   status: LeaveStatus;
+  profileImage: string | null;
 };
 
 export type LeaveFilters = Partial<{

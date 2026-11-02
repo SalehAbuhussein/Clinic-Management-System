@@ -56,8 +56,8 @@
   flex: 1;
   font: inherit;
   gap: 12px;
-  grid-template-columns: 1fr auto auto;
-  min-inline-size: 0;
+  grid-template-columns: 40px 1fr auto auto;
+  min-width: 0;
   padding: 10px 14px;
   text-align: start;
 
@@ -132,7 +132,7 @@
 
 @media (width < 600px) {
   .doctor__open {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 40px 1fr auto;
   }
 
   .doctor__actions {

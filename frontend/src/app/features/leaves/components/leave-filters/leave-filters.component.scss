@@ -7,11 +7,11 @@
 }
 
 .leave-filters__value {
-  inline-size: 200px;
+  width: 200px;
 }
 
 @media (width < 600px) {
   .leave-filters__value {
-    inline-size: 100%;
+    width: 100%;
   }
 }

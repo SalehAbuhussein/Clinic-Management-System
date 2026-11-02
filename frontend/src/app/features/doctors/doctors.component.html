@@ -31,6 +31,8 @@
       @for (doctor of list; track doctor.id) {
         <article class="doctor" [class.doctor--inactive]="!doctor.active">
           <button class="doctor__open" type="button" (click)="openDetail(doctor)">
+            <app-avatar [fileName]="doctor.profileImage" [name]="doctor.fullname ?? ''" />
+
             <span class="doctor__who">
               <span class="doctor__name">{{ doctor.fullname }}</span>
               <span class="doctor__school">{{ doctor.medicalSchool }} · {{ doctor.graduationYear }}</span>

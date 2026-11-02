@@ -2,7 +2,7 @@
 
 <article class="leave-card">
   <button class="leave-card__open" type="button" (click)="open.emit(leave)">
-    <span class="leave-card__avatar" aria-hidden="true">{{ avatarInitials() }}</span>
+    <app-avatar class="leave-card__avatar" [fileName]="leave.profileImage" [name]="leave.fullname" />
 
     <span class="leave-card__body">
       <span class="leave-card__name">{{ leave.fullname }}</span>

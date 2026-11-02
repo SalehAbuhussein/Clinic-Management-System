@@ -9,5 +9,6 @@ namespace Clinic_Management_System.DTOs.Models.Users
         public string Email { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
         public bool Active { get; set; }
+        public string? ProfileImage { get; set; }
     }
 }

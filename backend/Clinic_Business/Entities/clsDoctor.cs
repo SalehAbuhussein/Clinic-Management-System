@@ -65,7 +65,8 @@ namespace Clinic_Business.Entities
             string MedicalSchool,
             ushort GraduationYear,
             int PersonID,
-            bool Active);
+            bool Active,
+            string? ProfileImage);
 
         public static async Task<PagedResult<DoctorItem>> FindAllAsync(string? fullname = null, string? specialization = null, bool? active = null, int pageNumber = 1, int pageSize = 10)
         {
@@ -86,7 +87,8 @@ namespace Clinic_Business.Entities
                 row.Field<string>("MedicalSchool") ?? string.Empty,
                 Convert.ToUInt16(row.Field<short>("GraduationYear")),
                 row.Field<int>("PersonID"),
-                row.Field<bool>("Active")
+                row.Field<bool>("Active"),
+                row.Field<string>("ProfileImage")
             )).ToList();
 
             int total = 0;

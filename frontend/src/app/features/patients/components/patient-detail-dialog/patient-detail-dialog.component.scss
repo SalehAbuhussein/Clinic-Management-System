@@ -61,9 +61,9 @@
   font: inherit;
   gap: 12px;
   grid-template-columns: auto 1fr auto;
-  inline-size: 100%;
   padding: 8px 12px;
   text-align: start;
+  width: 100%;
 
   &:hover {
     background-color: var(--mat-sys-surface-container);

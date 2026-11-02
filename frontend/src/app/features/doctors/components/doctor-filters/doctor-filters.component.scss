@@ -7,16 +7,16 @@
 }
 
 .doctor-filters__field {
-  inline-size: 170px;
+  width: 170px;
 }
 
 .doctor-filters__value {
-  inline-size: 260px;
+  width: 260px;
 }
 
 @media (width < 600px) {
   .doctor-filters__field,
   .doctor-filters__value {
-    inline-size: 100%;
+    width: 100%;
   }
 }

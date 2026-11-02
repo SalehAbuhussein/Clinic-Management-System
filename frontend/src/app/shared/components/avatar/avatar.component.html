@@ -1,0 +1,5 @@
+@if (imageUrl(); as url) {
+  <img class="avatar__picture" [src]="url" [alt]="name()">
+} @else {
+  <span aria-hidden="true">{{ initials() }}</span>
+}

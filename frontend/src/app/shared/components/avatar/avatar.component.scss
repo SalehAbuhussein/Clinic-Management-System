@@ -1,0 +1,19 @@
+:host {
+  align-items: center;
+  background-color: var(--mat-sys-primary-container);
+  border-radius: 50%;
+  color: var(--mat-sys-on-primary-container);
+  display: flex;
+  flex: none;
+  font: var(--mat-sys-label-large);
+  height: var(--avatar-size, 40px);
+  justify-content: center;
+  overflow: hidden;
+  width: var(--avatar-size, 40px);
+}
+
+.avatar__picture {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}

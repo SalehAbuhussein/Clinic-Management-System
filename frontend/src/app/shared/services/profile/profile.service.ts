@@ -19,6 +19,20 @@ export class ProfileService {
   }
 
   /**
+   * An account's record as reactive state, for a screen that keeps showing it
+   * rather than reading it once.
+   *
+   * @param userId Returns the account, or null while there is no signed-in one.
+   */
+  getProfileResource = (userId: () => number | null) => {
+    return this.apiService.getResource<Profile>(() => {
+      const id = userId();
+
+      return id ? `/Profile/${id}` : null;
+    });
+  }
+
+  /**
    * Correct an account's details. The API allows your own, and an admin may
    * also correct a doctor's or a staff member's, but never another admin's.
    *

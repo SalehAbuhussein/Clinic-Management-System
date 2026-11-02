@@ -4,6 +4,8 @@ import { MatIcon } from '@angular/material/icon';
 
 import { AuthService } from '@core/auth/service/auth.service';
 
+import { AvatarComponent } from '@shared/components/avatar/avatar.component';
+
 import { Leave, LeaveStatus } from '@shared/services/leave/leave.types';
 
 import { formatDay, formatTime, isMidnight, lastDayOf } from '@core/utils/day.utils';
@@ -17,7 +19,7 @@ import { formatDay, formatTime, isMidnight, lastDayOf } from '@core/utils/day.ut
  */
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatButton, MatIcon],
+  imports: [AvatarComponent, MatButton, MatIcon],
   selector: 'app-leave-card',
   styleUrl: './leave-card.component.scss',
   templateUrl: './leave-card.component.html',
@@ -30,13 +32,6 @@ export class LeaveCardComponent {
   open = output<Leave>();
   approve = output<Leave>();
   reject = output<Leave>();
-
-  avatarInitials = computed(() => this.item().fullname
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((name) => name[0].toUpperCase())
-    .join(''));
 
   statusChip = computed(() => {
     switch (this.item().status) {

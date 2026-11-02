@@ -47,7 +47,8 @@ namespace Clinic_Management_System.Controllers
                     MedicalSchool = doctor.MedicalSchool,
                     GraduationYear = doctor.GraduationYear,
                     PersonID = doctor.PersonID,
-                    Active = doctor.Active
+                    Active = doctor.Active,
+                    ProfileImage = doctor.ProfileImage
                 }).ToList();
 
             return Ok(new PagedResult<DoctorDTO>(doctorsList, doctorsPage.Page, doctorsPage.PerPage, doctorsPage.Total));
@@ -88,7 +89,8 @@ namespace Clinic_Management_System.Controllers
                 Specialization = doctor.Specialization,
                 GraduationYear = doctor.GraduationYear,
                 PersonID = user.PersonID ?? 0,
-                Active = user.Active
+                Active = user.Active,
+                ProfileImage = person.ProfileImage
             };
 
             return Ok(doctorDTO);

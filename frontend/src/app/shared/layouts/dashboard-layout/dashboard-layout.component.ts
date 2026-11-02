@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFabButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
@@ -8,12 +8,15 @@ import { ActivatedRoute, Router, RouterLink, RouterLinkActive, RouterOutlet } fr
 
 import { AuthService } from '@core/auth/service/auth.service';
 
+import { AvatarComponent } from '@shared/components/avatar/avatar.component';
+import { ProfileService } from '@shared/services/profile/profile.service';
+
 import { BookAppointmentDialogComponent } from '@features/book-appointment/components/book-appointment-dialog/book-appointment-dialog.component';
 import { ProfileDialogComponent } from '@features/profile/components/profile-dialog/profile-dialog.component';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, MatFabButton, MatIcon, MatNavList, MatListItem, MatListItemIcon, MatListItemTitle],
+  imports: [AvatarComponent, RouterLink, RouterLinkActive, RouterOutlet, MatFabButton, MatIcon, MatNavList, MatListItem, MatListItemIcon, MatListItemTitle],
   selector: 'app-dashboard-layout',
   styleUrl: './dashboard-layout.component.scss',
   templateUrl: './dashboard-layout.component.html',
@@ -21,9 +24,18 @@ import { ProfileDialogComponent } from '@features/profile/components/profile-dia
 export class DashboardLayoutComponent {
   authService = inject(AuthService);
   dialog = inject(MatDialog);
+  profileService = inject(ProfileService);
   router = inject(Router);
   route = inject(ActivatedRoute);
   snackbar = inject(MatSnackBar);
+
+  profile = this.profileService.getProfileResource(this.authService.userId);
+
+  profileName = computed(() => {
+    const profile = this.profile.value();
+
+    return profile ? `${profile.firstname} ${profile.lastname}` : '';
+  });
 
   constructor() {
     const denied = this.route.snapshot.queryParamMap.get('denied');
@@ -58,6 +70,6 @@ export class DashboardLayoutComponent {
     this.dialog.open(ProfileDialogComponent, {
       width: '800px',
       maxWidth: '100vw'
-    });
+    }).afterClosed().subscribe(() => this.profile.reload());
   }
 }

@@ -8,5 +8,6 @@
         public DateTimeOffset To { get; set; }
         public string Reason { get; set; } = string.Empty;
         public byte Status { get; set; }
+        public string? ProfileImage { get; set; }
     }
 }

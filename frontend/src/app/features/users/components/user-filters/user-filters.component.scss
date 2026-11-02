@@ -7,16 +7,16 @@
 }
 
 .user-filters__field {
-  inline-size: 150px;
+  width: 150px;
 }
 
 .user-filters__value {
-  inline-size: 260px;
+  width: 260px;
 }
 
 @media (width < 600px) {
   .user-filters__field,
   .user-filters__value {
-    inline-size: 100%;
+    width: 100%;
   }
 }

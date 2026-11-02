@@ -20,5 +20,6 @@ namespace Clinic_Management_System.DTOs.Models.Doctors
         public ushort GraduationYear { get; set; }
         public int PersonID { get; set; }
         public bool Active { get; set; }
+        public string? ProfileImage { get; set; }
     }
 }

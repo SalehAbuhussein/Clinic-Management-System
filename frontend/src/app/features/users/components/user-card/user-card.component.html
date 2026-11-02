@@ -1,5 +1,5 @@
 <button class="user" type="button" [class.user--inactive]="!user().active" (click)="open.emit(user())">
-  <span class="user__avatar" aria-hidden="true">{{ avatarInitials() }}</span>
+  <app-avatar class="user__avatar" [fileName]="user().profileImage" [name]="user().fullname" />
 
   <span class="user__who">
     <span class="user__name">{{ user().fullname }}</span>

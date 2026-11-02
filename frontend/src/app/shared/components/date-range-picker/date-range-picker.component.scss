@@ -6,7 +6,7 @@
 }
 
 .range__dates {
-  inline-size: 240px;
+  width: 240px;
 
   input {
     cursor: pointer;
@@ -15,6 +15,6 @@
 
 @media (width < 600px) {
   .range__dates {
-    inline-size: 100%;
+    width: 100%;
   }
 }

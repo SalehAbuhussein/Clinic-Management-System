@@ -47,6 +47,7 @@ namespace Clinic_Management_System.Controllers
                 To = item.EndAt,
                 Reason = item.Reason,
                 Status = item.Status,
+                ProfileImage = item.ProfileImage,
             }).ToList();
 
             return Ok(new PagedResult<LeaveDTO>(itemsDTO, page, perPage, leavesPage.Total));
@@ -111,7 +112,8 @@ namespace Clinic_Management_System.Controllers
                 To = leave.EndAt,
                 Reason = leave.Reason,
                 Status = leave.Status,
-                Fullname = leave.UserInfo.PersonInfo.Fullname
+                Fullname = leave.UserInfo.PersonInfo.Fullname,
+                ProfileImage = leave.UserInfo.PersonInfo.ProfileImage
             });
         }
 
@@ -155,7 +157,8 @@ namespace Clinic_Management_System.Controllers
                     To = leave.EndAt,
                     Reason= leave.Reason,
                     Status = leave.Status,
-                    Fullname = user.PersonInfo.Fullname
+                    Fullname = user.PersonInfo.Fullname,
+                    ProfileImage = user.PersonInfo.ProfileImage
                 });
             }
 

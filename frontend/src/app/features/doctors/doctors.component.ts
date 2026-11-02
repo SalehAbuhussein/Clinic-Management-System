@@ -12,6 +12,7 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { filtersFromUrl, pageFromUrl, syncUrl } from '@core/utils/url-state.utils';
 import { DoctorService } from '@shared/services/doctor/doctor.service';
 
+import { AvatarComponent } from '@shared/components/avatar/avatar.component';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { DoctorDetailDialogComponent } from './components/doctor-detail-dialog/doctor-detail-dialog.component';
 import { DoctorFiltersComponent } from './components/doctor-filters/doctor-filters.component';
@@ -24,7 +25,7 @@ import { DoctorDetailAction } from './types/doctors.types';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DoctorFiltersComponent, MatButton, MatIcon, MatProgressSpinner, PaginationComponent],
+  imports: [AvatarComponent, DoctorFiltersComponent, MatButton, MatIcon, MatProgressSpinner, PaginationComponent],
   selector: 'app-doctors',
   styleUrl: './doctors.component.scss',
   templateUrl: './doctors.component.html',

@@ -52,7 +52,7 @@ namespace Clinic_Business.Entities
             UserInfo = new clsUser();
         }
 
-        public record LeaveItem(int Id, string Fullname, DateTimeOffset StartAt, DateTimeOffset EndAt, string Reason, byte Status)
+        public record LeaveItem(int Id, string Fullname, DateTimeOffset StartAt, DateTimeOffset EndAt, string Reason, byte Status, string? ProfileImage)
         {
             public string StatusText => Status switch
             {
@@ -82,7 +82,8 @@ namespace Clinic_Business.Entities
                 row.Field<DateTimeOffset>("StartAt"),
                 row.Field<DateTimeOffset>("EndAt"),
                 row.Field<string>("Reason") ?? string.Empty,
-                row.Field<byte>("Status")
+                row.Field<byte>("Status"),
+                row.Field<string>("ProfileImage")
             )).ToList();
 
             int total = 0;

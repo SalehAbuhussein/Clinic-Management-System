@@ -65,7 +65,8 @@ namespace Clinic_Business.Entities
                 row.Field<string>("Fullname") ?? string.Empty,
                 row.Field<string>("Email") ?? string.Empty,
                 row.Field<string>("Role") ?? string.Empty,
-                row.Field<bool>("Active")
+                row.Field<bool>("Active"),
+                row.Field<string>("ProfileImage")
             )).ToList();
 
             int total = 0;
@@ -195,6 +196,6 @@ namespace Clinic_Business.Entities
 
         private bool _HasCredintals() => !string.IsNullOrEmpty(PasswordHash) && !string.IsNullOrEmpty(Email);
 
-        public record UserItem(int Id, string Fullname, string Email, string Role, bool Active);
+        public record UserItem(int Id, string Fullname, string Email, string Role, bool Active, string? ProfileImage);
     }
 }

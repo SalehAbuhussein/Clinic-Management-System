@@ -14,9 +14,9 @@
   font: inherit;
   gap: 12px;
   grid-template-columns: 40px 1fr auto;
-  inline-size: 100%;
   padding: 10px 14px;
   text-align: start;
+  width: 100%;
 
   &:hover {
     background-color: var(--mat-sys-surface-container-low);
@@ -31,13 +31,13 @@
 .patient__avatar {
   align-items: center;
   background-color: var(--mat-sys-primary-container);
-  block-size: 40px;
   border-radius: 50%;
   color: var(--mat-sys-on-primary-container);
   display: flex;
   font: var(--mat-sys-label-large);
-  inline-size: 40px;
+  height: 40px;
   justify-content: center;
+  width: 40px;
 }
 
 .patient__who {

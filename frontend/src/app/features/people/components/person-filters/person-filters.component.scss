@@ -7,16 +7,16 @@
 }
 
 .person-filters__field {
-  inline-size: 170px;
+  width: 170px;
 }
 
 .person-filters__value {
-  inline-size: 260px;
+  width: 260px;
 }
 
 @media (width < 600px) {
   .person-filters__field,
   .person-filters__value {
-    inline-size: 100%;
+    width: 100%;
   }
 }

@@ -130,7 +130,11 @@
 
     <mat-nav-list class="dashboard-side__nav dashboard-side__footer">
       <button class="dashboard-side__link" type="button" mat-list-item (click)="openProfileDialog($event)">
-        <mat-icon class="dashboard-side__icon" matListItemIcon>account_circle</mat-icon>
+        <app-avatar
+          class="dashboard-side__avatar"
+          matListItemIcon
+          [fileName]="profile.value()?.profileImage ?? null"
+          [name]="profileName()" />
         <span class="dashboard-side__label" matListItemTitle>Profile</span>
       </button>
 

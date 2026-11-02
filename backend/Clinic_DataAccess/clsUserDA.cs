@@ -74,7 +74,8 @@ namespace Clinic_DataAccess
 	                Fullname = CONCAT_WS(' ', P.Firstname, P.Midname, P.Thirdname, P.Lastname),
 	                U.Email,
 	                U.Role,
-	                U.Active
+	                U.Active,
+	                P.ProfileImage
                 FROM Users U
                 INNER JOIN People P ON U.PersonID = P.PersonID";
 

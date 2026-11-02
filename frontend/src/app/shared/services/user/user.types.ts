@@ -6,6 +6,7 @@ export type User = {
   email: string;
   role: Role;
   active: boolean;
+  profileImage: string | null;
 };
 
 export type CreateUserRequest = {

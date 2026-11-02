@@ -44,6 +44,7 @@ namespace Clinic_Management_System.Controllers
                     Email = user.Email,
                     Active = user.Active,
                     Role = user.Role,
+                    ProfileImage = user.ProfileImage,
                 }).ToList();
 
             return Ok(new PagedResult<UserDTO>(usersList, usersPage.Page, usersPage.PerPage, usersPage.Total));
@@ -70,6 +71,7 @@ namespace Clinic_Management_System.Controllers
                 Fullname = user.PersonInfo?.Fullname ?? "",
                 Role = user.Role,
                 Active = user.Active,
+                ProfileImage = user.PersonInfo?.ProfileImage,
             };
 
             return Ok(userDTO);
