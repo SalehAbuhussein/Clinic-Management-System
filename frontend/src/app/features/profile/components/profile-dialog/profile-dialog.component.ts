@@ -9,7 +9,6 @@ import { MatSelect, MatOption } from '@angular/material/select';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { disabled, form, FormField, maxLength, minLength, readonly, required, validate } from '@angular/forms/signals';
-import { formatDate } from '@angular/common';
 
 import { Observable, of, switchMap } from 'rxjs';
 
@@ -20,6 +19,8 @@ import { ProfileService } from '@shared/services/profile/profile.service';
 
 import { ApiError } from '@core/auth/types/auth.types';
 import { ProfileData } from '@features/profile/types/profile.types';
+
+import { fromIsoDate, toIsoDate } from '@core/utils/day.utils';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -137,7 +138,7 @@ export class ProfileDialogComponent {
           nationalNo: profile.nationalNo,
           phone: profile.phone,
           gender: profile.gender,
-          dateOfBirth: new Date(`${profile.dateOfBirth}T00:00:00`),
+          dateOfBirth: fromIsoDate(profile.dateOfBirth),
         }));
 
         this.imageFileName.set(profile.profileImage);
@@ -176,7 +177,7 @@ export class ProfileDialogComponent {
         lastname: value.lastname.trim(),
         phone: value.phone.trim(),
         gender: value.gender!,
-        dateOfBirth: formatDate(value.dateOfBirth!, 'yyyy-MM-dd', 'en-US'),
+        dateOfBirth: toIsoDate(value.dateOfBirth!),
       }).pipe(switchMap(() => this.imageRequest(userId))),
       'Profile saved',
     );

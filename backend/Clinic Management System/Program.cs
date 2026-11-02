@@ -197,6 +197,25 @@ builder.Services.AddRateLimiter(options =>
         });
     };
 
+    // Every profile picture write, whoever makes it. The global limiter counts
+    // these too, but 300 requests a minute is a lot of files to write and delete.
+    // The routes are all signed in, so the bucket is the account.
+    options.AddPolicy("ImageLimiter", httpContext =>
+    {
+        var caller = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? httpContext.Connection.RemoteIpAddress?.ToString()
+            ?? "unknown";
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: caller,
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            });
+    });
+
     // One bucket per caller per action, named "<ip>:<action>", e.g. "127.0.0.1:login".
     // Separate buckets matter: without them, five bad passwords also block the
     // refresh and logout calls, which signs the user out for getting a password wrong.

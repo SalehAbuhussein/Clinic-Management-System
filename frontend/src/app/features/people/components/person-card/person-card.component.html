@@ -1,0 +1,20 @@
+@let item = person();
+
+<article class="person">
+  <button class="person__open" type="button" (click)="open.emit(item)">
+    <span class="person__who">
+      <span class="person__name">
+        {{ item.firstname }} {{ item.midname }} {{ item.thirdname }} {{ item.lastname }}
+      </span>
+
+      <span class="person__detail">{{ item.phone }}</span>
+    </span>
+
+    <span class="person__national">{{ item.nationalNo }}</span>
+  </button>
+
+  <span class="person__actions">
+    <button matButton type="button" (click)="edit.emit(item)">Edit</button>
+    <button class="person__danger" matButton type="button" (click)="remove.emit(item)">Delete</button>
+  </span>
+</article>

@@ -9,7 +9,6 @@ import { MatOption, MatSelect } from '@angular/material/select';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { disabled, email, form, FormField, max, maxLength, min, minLength, readonly, required } from '@angular/forms/signals';
-import { formatDate } from '@angular/common';
 
 import { Observable } from 'rxjs';
 
@@ -18,6 +17,8 @@ import { DoctorService } from '@shared/services/doctor/doctor.service';
 import { ApiError } from '@core/auth/types/auth.types';
 import { Doctor } from '@shared/services/doctor/doctor.types';
 import { DoctorFormData } from '@features/doctors/types/doctors.types';
+
+import { fromIsoDate, toIsoDate } from '@core/utils/day.utils';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -66,7 +67,7 @@ export class DoctorFormDialogComponent {
     phone: this.existingDoctor?.phone ?? '',
     gender: this.existingDoctor?.gender ?? null,
     dateOfBirth: this.existingDoctor?.dateOfBirth
-      ? new Date(`${this.existingDoctor.dateOfBirth}T00:00:00`)
+      ? fromIsoDate(this.existingDoctor.dateOfBirth)
       : null,
     specialization: this.existingDoctor?.specialization ?? '',
     medicalSchool: this.existingDoctor?.medicalSchool ?? '',
@@ -148,7 +149,7 @@ export class DoctorFormDialogComponent {
       lastname: value.lastname.trim(),
       phone: value.phone.trim(),
       gender: value.gender!,
-      dateOfBirth: formatDate(value.dateOfBirth!, 'yyyy-MM-dd', 'en-US'),
+      dateOfBirth: toIsoDate(value.dateOfBirth!),
       specialization: value.specialization.trim(),
       medicalSchool: value.medicalSchool.trim(),
       graduationYear: value.graduationYear!,

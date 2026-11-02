@@ -6,6 +6,7 @@ using Clinic_Management_System.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.ComponentModel.DataAnnotations;
 
 namespace Clinic_Management_System.Controllers
@@ -17,17 +18,17 @@ namespace Clinic_Management_System.Controllers
     {
         private readonly IPersonRepository _personRepository;
         private readonly IUserRepository _userRepository;
-        private readonly IProfileImageStore _profielImageStore;
+        private readonly IProfileImageStore _profileImageStore;
 
         public ProfileController(
             IPersonRepository personRepository,
             IUserRepository userRepository,
-            IProfileImageStore profielImageStore
+            IProfileImageStore profileImageStore
         )
         {
             _personRepository = personRepository;
             _userRepository = userRepository;
-            _profielImageStore = profielImageStore;
+            _profileImageStore = profileImageStore;
         }
 
         [HttpGet("{id}", Name = "GetProfile")]
@@ -109,6 +110,7 @@ namespace Clinic_Management_System.Controllers
         }
 
         [HttpPost("{id}/image", Name = "UploadProfileImage")]
+        [EnableRateLimiting("ImageLimiter")]
         [RequestSizeLimit(ProfileImageStore.MaxBytes)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -134,7 +136,7 @@ namespace Clinic_Management_System.Controllers
                 return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"User with id {id} not found!");
             }
 
-            string? newFileName = await _profielImageStore.SaveAsync(image, cancellationToken);
+            string? newFileName = await _profileImageStore.SaveAsync(image, cancellationToken);
             if (newFileName == null)
             {
                 return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "That file is not valid image file.");
@@ -147,16 +149,17 @@ namespace Clinic_Management_System.Controllers
 
             if (!await _personRepository.UpdateAsync(person))
             {
-                _profielImageStore.Delete(newFileName);
+                _profileImageStore.Delete(newFileName);
                 return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The picture could not be saved.");
             }
 
-            _profielImageStore.Delete(oldFileName);
+            _profileImageStore.Delete(oldFileName);
 
             return NoContent();
         }
     
         [HttpDelete("{id}/image", Name = "RemoveProfileImage")]
+        [EnableRateLimiting("ImageLimiter")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -184,7 +187,7 @@ namespace Clinic_Management_System.Controllers
             if (!await _personRepository.UpdateAsync(person))
                 return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The picture could not be removed.");
 
-            _profielImageStore.Delete(oldFileName);
+            _profileImageStore.Delete(oldFileName);
 
             return NoContent();
         }

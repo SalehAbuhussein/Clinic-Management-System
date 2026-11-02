@@ -1,0 +1,89 @@
+:host {
+  display: block;
+}
+
+.medicine {
+  align-items: center;
+  background-color: var(--mat-sys-surface-container-lowest);
+  border-radius: var(--mat-sys-corner-medium);
+  box-shadow: var(--mat-sys-level1);
+  display: flex;
+  flex-wrap: wrap;
+  overflow: hidden;
+}
+
+.medicine__open {
+  align-items: center;
+  background: none;
+  border: 0;
+  color: var(--mat-sys-on-surface);
+  cursor: pointer;
+  display: grid;
+  flex: 1;
+  font: inherit;
+  gap: 12px;
+  grid-template-columns: 1fr auto;
+  min-width: 0;
+  padding: 10px 14px;
+  text-align: start;
+
+  &:hover {
+    background-color: var(--mat-sys-surface-container-low);
+  }
+
+  &:focus-visible {
+    outline-offset: 2px;
+    outline: 3px solid var(--mat-sys-primary);
+  }
+}
+
+.medicine__what {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.medicine__name {
+  font: var(--mat-sys-title-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.medicine__detail {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.medicine__rxcui {
+  background-color: var(--mat-sys-surface-container-high);
+  border-radius: var(--mat-sys-corner-full);
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-medium);
+  padding: 4px 12px;
+  white-space: nowrap;
+}
+
+.medicine__actions {
+  display: flex;
+  gap: 4px;
+  padding-inline-end: 14px;
+}
+
+.medicine__danger {
+  --mat-button-text-label-text-color: var(--mat-sys-error);
+}
+
+@media (width < 600px) {
+  .medicine {
+    grid-template-columns: 1fr auto;
+  }
+
+  .medicine__actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+}

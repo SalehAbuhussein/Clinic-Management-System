@@ -4,6 +4,7 @@ using Clinic_Management_System.DTOs.Models.People;
 using Clinic_Management_System.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.ComponentModel.DataAnnotations;
 using Clinic_Business.Entities;
 
@@ -131,6 +132,7 @@ namespace Clinic_Management_System.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpPost("{id}/image", Name = "UploadPersonImage")]
+        [EnableRateLimiting("ImageLimiter")]
         [RequestSizeLimit(ProfileImageStore.MaxBytes)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -171,6 +173,7 @@ namespace Clinic_Management_System.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}/image", Name = "RemovePersonImage")]
+        [EnableRateLimiting("ImageLimiter")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

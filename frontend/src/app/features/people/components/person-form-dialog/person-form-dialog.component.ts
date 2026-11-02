@@ -9,16 +9,18 @@ import { MatOption, MatSelect } from '@angular/material/select';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { disabled, form, FormField, maxLength, readonly, required } from '@angular/forms/signals';
-import { formatDate } from '@angular/common';
 
 import { Observable, of, switchMap } from 'rxjs';
 
-import { AvatarPickerComponent } from '@shared/components/avatar-picker/avatar-picker.component';
 import { PersonService } from '@shared/services/person/person.service';
+
+import { AvatarPickerComponent } from '@shared/components/avatar-picker/avatar-picker.component';
 
 import { ApiError } from '@core/auth/types/auth.types';
 import { Person } from '@shared/services/person/person.types';
 import { PersonFormData } from '@features/people/types/people.types';
+
+import { fromIsoDate, toIsoDate } from '@core/utils/day.utils';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -64,7 +66,7 @@ export class PersonFormDialogComponent {
     nationalNo: this.person.nationalNo,
     phone: this.person.phone,
     gender: this.person.gender,
-    dateOfBirth: new Date(`${this.person.dateOfBirth}T00:00:00`),
+    dateOfBirth: fromIsoDate(this.person.dateOfBirth),
   });
 
   personForm = form(this.personModel, (schema) => {
@@ -117,7 +119,7 @@ export class PersonFormDialogComponent {
       lastname: value.lastname.trim(),
       phone: value.phone.trim(),
       gender: value.gender!,
-      dateOfBirth: formatDate(value.dateOfBirth!, 'yyyy-MM-dd', 'en-US'),
+      dateOfBirth: toIsoDate(value.dateOfBirth!),
     }).pipe(switchMap(() => this.imageRequest())).subscribe({
       next: () => {
         this.snackbar.open('Person updated', 'Dismiss', { duration: 5000 });

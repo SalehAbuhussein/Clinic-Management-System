@@ -1,6 +1,8 @@
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { effect } from '@angular/core';
 
+import { fromIsoDate } from '@core/utils/day.utils';
+
 /**
  * The filters the screen was opened with, taken from the query string.
  *
@@ -43,7 +45,7 @@ export function pageFromUrl(route: ActivatedRoute): number {
  */
 export function dateFromUrl(route: ActivatedRoute, key: 'from' | 'to'): Date {
   const value = route.snapshot.queryParamMap.get(key);
-  const day = value ? new Date(`${value}T00:00:00`) : null;
+  const day = value ? fromIsoDate(value) : null;
 
   return day && !Number.isNaN(day.getTime()) ? day : new Date();
 }

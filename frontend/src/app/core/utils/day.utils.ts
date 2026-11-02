@@ -85,6 +85,18 @@ export const lastDayOf = (exclusiveEnd: Date) => new Date(exclusiveEnd.getFullYe
 export const toIsoDate = (day: Date) => formatDate(day, 'yyyy-MM-dd', 'en-US');
 
 /**
+ * The other direction, for a date the API sends back.
+ *
+ * `new Date('2026-05-09')` is read as UTC midnight, which is the evening
+ * before in any timezone behind UTC, so a birthday shows up a day early. The
+ * time has to be spelled out for the browser to read it locally.
+ *
+ * @param day A date as `yyyy-MM-dd`.
+ * @returns That day at local midnight.
+ */
+export const fromIsoDate = (day: string) => new Date(`${day}T00:00:00`);
+
+/**
  * @param day Any moment.
  * @returns Its calendar day written out, as `9 May 2026`.
  */

@@ -1,0 +1,23 @@
+@let item = medicine();
+
+<article class="medicine">
+  <button class="medicine__open" type="button" (click)="open.emit(item)">
+    <span class="medicine__what">
+      <span class="medicine__name">{{ item.genericname }}</span>
+
+      <span class="medicine__detail">
+        @if (item.brandname) {
+          {{ item.brandname }} ·
+        }
+        {{ item.form }} · {{ item.strength }}
+      </span>
+    </span>
+
+    <span class="medicine__rxcui">RxCUI {{ item.rxCUI }}</span>
+  </button>
+
+  <span class="medicine__actions">
+    <button matButton type="button" (click)="edit.emit(item)">Edit</button>
+    <button class="medicine__danger" matButton type="button" (click)="remove.emit(item)">Delete</button>
+  </span>
+</article>

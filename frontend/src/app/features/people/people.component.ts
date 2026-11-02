@@ -1,6 +1,5 @@
 import { ActivatedRoute, Router } from '@angular/router';
 import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal, signal } from '@angular/core';
-import { MatButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
@@ -15,6 +14,7 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confir
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
 import { PersonDetailDialogComponent } from './components/person-detail-dialog/person-detail-dialog.component';
 import { PersonFiltersComponent } from './components/person-filters/person-filters.component';
+import { PersonCardComponent } from './components/person-card/person-card.component';
 import { PersonFormDialogComponent } from './components/person-form-dialog/person-form-dialog.component';
 
 import { ApiError } from '@core/auth/types/auth.types';
@@ -25,7 +25,7 @@ import { filtersFromUrl, pageFromUrl, syncUrl } from '@core/utils/url-state.util
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [PersonFiltersComponent, MatButton, MatIcon, MatProgressSpinner, PaginationComponent],
+  imports: [PersonCardComponent, PersonFiltersComponent, MatIcon, MatProgressSpinner, PaginationComponent],
   selector: 'app-people',
   styleUrl: './people.component.scss',
   templateUrl: './people.component.html',

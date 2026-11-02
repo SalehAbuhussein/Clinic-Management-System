@@ -16,6 +16,7 @@ import { pageFromUrl, syncUrl } from '@core/utils/url-state.utils';
 import { MedicineService } from '@shared/services/medicine/medicine.service';
 
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
+import { MedicineCardComponent } from './components/medicine-card/medicine-card.component';
 import { MedicineDetailDialogComponent } from './components/medicine-detail-dialog/medicine-detail-dialog.component';
 import { MedicineFormDialogComponent } from './components/medicine-form-dialog/medicine-form-dialog.component';
 import { PaginationComponent } from '@shared/components/pagination/pagination.component';
@@ -26,7 +27,7 @@ import { MedicineDetailAction } from './types/medicines.types';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, MatButton, MatFormField, MatIcon, MatInput, MatLabel, MatPrefix, MatProgressSpinner, PaginationComponent],
+  imports: [FormsModule, MatButton, MatFormField, MatIcon, MatInput, MatLabel, MatPrefix, MatProgressSpinner, MedicineCardComponent, PaginationComponent],
   selector: 'app-medicines',
   styleUrl: './medicines.component.scss',
   templateUrl: './medicines.component.html',
