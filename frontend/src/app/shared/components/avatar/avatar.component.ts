@@ -22,7 +22,9 @@ export class AvatarComponent {
   fileName = input<string | null>(null);
   name = input('');
 
-  imageUrl = computed(() => this.profileService.imageUrlOf(this.fileName()));
+  src = input<string | null>(null);
+
+  imageUrl = computed(() => this.src() ?? this.profileService.imageUrlOf(this.fileName()));
 
   initials = computed(() => (this.name() ?? '')
     .split(' ')

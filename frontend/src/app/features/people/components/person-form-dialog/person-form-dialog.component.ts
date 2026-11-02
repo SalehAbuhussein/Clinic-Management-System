@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, viewChild } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
 import { MatButton } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -11,6 +11,9 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { disabled, form, FormField, maxLength, readonly, required } from '@angular/forms/signals';
 import { formatDate } from '@angular/common';
 
+import { Observable, of, switchMap } from 'rxjs';
+
+import { AvatarPickerComponent } from '@shared/components/avatar-picker/avatar-picker.component';
 import { PersonService } from '@shared/services/person/person.service';
 
 import { ApiError } from '@core/auth/types/auth.types';
@@ -20,6 +23,7 @@ import { PersonFormData } from '@features/people/types/people.types';
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    AvatarPickerComponent,
     FormField,
     MatButton,
     MatDatepickerModule,
@@ -46,6 +50,8 @@ export class PersonFormDialogComponent {
   personService = inject(PersonService);
   snackbar = inject(MatSnackBar);
   person = inject<Person>(MAT_DIALOG_DATA);
+
+  avatarPicker = viewChild.required(AvatarPickerComponent);
 
   isSaving = signal(false);
   error = signal('');
@@ -112,7 +118,7 @@ export class PersonFormDialogComponent {
       phone: value.phone.trim(),
       gender: value.gender!,
       dateOfBirth: formatDate(value.dateOfBirth!, 'yyyy-MM-dd', 'en-US'),
-    }).subscribe({
+    }).pipe(switchMap(() => this.imageRequest())).subscribe({
       next: () => {
         this.snackbar.open('Person updated', 'Dismiss', { duration: 5000 });
         this.dialogRef.close(true);
@@ -122,5 +128,23 @@ export class PersonFormDialogComponent {
         this.error.set(error.message);
       },
     });
+  }
+
+  /**
+   * The picture call this save should carry, if any.
+   */
+  imageRequest(): Observable<unknown> {
+    const picker = this.avatarPicker();
+    const image = picker.picked();
+
+    if (image) {
+      return this.personService.uploadImage(this.person.id, image);
+    }
+
+    if (picker.isCleared() && this.person.profileImage) {
+      return this.personService.removeImage(this.person.id);
+    }
+
+    return of(null);
   }
 }

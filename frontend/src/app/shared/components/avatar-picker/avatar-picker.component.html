@@ -1,0 +1,23 @@
+<app-avatar class="avatar-picker__avatar" [fileName]="shownFileName()" [name]="name()" [src]="previewUrl()" />
+
+<div class="avatar-picker__actions">
+  <button type="button" matButton [disabled]="disabled()" (click)="filePicker.click()">
+    {{ hasPicture() ? 'Change photo' : 'Add photo' }}
+  </button>
+
+  @if (hasPicture()) {
+    <button type="button" matButton [disabled]="disabled()" (click)="remove()">Remove</button>
+  }
+
+  <p class="avatar-picker__note">
+    {{ error() || 'JPEG, PNG or WebP, up to 2 MB. Saved with the rest of the form.' }}
+  </p>
+</div>
+
+<input
+  #filePicker
+  hidden
+  type="file"
+  accept="image/jpeg,image/png,image/webp"
+  (change)="choose($event)"
+>

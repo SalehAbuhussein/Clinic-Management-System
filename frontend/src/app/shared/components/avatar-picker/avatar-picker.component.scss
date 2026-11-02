@@ -1,0 +1,24 @@
+:host {
+  align-items: center;
+  display: flex;
+  gap: 20px;
+}
+
+.avatar-picker__avatar {
+  --avatar-size: 72px;
+  font: var(--mat-sys-title-medium);
+}
+
+.avatar-picker__actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.avatar-picker__note {
+  color: var(--mat-sys-on-surface-variant);
+  flex-basis: 100%;
+  font: var(--mat-sys-body-small);
+  margin: 0;
+}

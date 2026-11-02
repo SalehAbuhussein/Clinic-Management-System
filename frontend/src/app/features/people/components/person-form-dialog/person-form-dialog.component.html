@@ -8,6 +8,12 @@
 
 <form (submit)="savePerson($event)" novalidate>
   <div class="person-form__content" matDialogContent>
+    <app-avatar-picker
+      class="person-form__avatar"
+      [fileName]="person.profileImage"
+      [name]="person.firstname + ' ' + person.lastname"
+      [disabled]="isSaving()" />
+
     <div class="person-form__row">
       <mat-form-field>
         <mat-label>First name</mat-label>

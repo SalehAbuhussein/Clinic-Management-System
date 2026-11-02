@@ -1,6 +1,7 @@
 using Clinic_Business.Common;
 using Clinic_Business.Interfaces;
 using Clinic_Management_System.DTOs.Models.People;
+using Clinic_Management_System.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
@@ -14,11 +15,13 @@ namespace Clinic_Management_System.Controllers
     {
         private readonly IPersonRepository _personRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IProfileImageStore _profileImageStore;
 
-        public PeopleController(IPersonRepository personRepository, IUserRepository userRepository)
+        public PeopleController(IPersonRepository personRepository, IUserRepository userRepository, IProfileImageStore profileImageStore)
         {
             _personRepository = personRepository;
             _userRepository = userRepository;
+            _profileImageStore = profileImageStore;
         }
 
         [Authorize(Roles = "Admin")]
@@ -104,12 +107,9 @@ namespace Clinic_Management_System.Controllers
             [FromServices] IAuthorizationService authorizationService
         )
         {
-            clsPerson? person = await _personRepository.FindByIdAsync(id);
-            if (person == null)
-                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Person with id {id} not found!");
+            clsPerson? person = await _FindEditablePersonAsync(id, authorizationService);
 
-            clsUser? owner = await _userRepository.FindByPersonIDAsync(id);
-            if (owner != null && !(await authorizationService.AuthorizeAsync(User, owner, "ManageAccount")).Succeeded)
+            if (person == null)
                 return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Person with id {id} not found!");
 
             person.Firstname = request.Firstname;
@@ -127,6 +127,99 @@ namespace Clinic_Management_System.Controllers
                 return NoContent();
 
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The person could not be saved.");
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("{id}/image", Name = "UploadPersonImage")]
+        [RequestSizeLimit(ProfileImageStore.MaxBytes)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+        public async Task<ActionResult> UploadPersonImage(
+            [Range(1, int.MaxValue)] int id,
+            IFormFile image,
+            [FromServices] IAuthorizationService authorizationService,
+            CancellationToken cancellationToken
+        )
+        {
+            clsPerson? person = await _FindEditablePersonAsync(id, authorizationService);
+
+            if (person == null)
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Person with id {id} not found!");
+
+            string? newFileName = await _profileImageStore.SaveAsync(image, cancellationToken);
+
+            if (newFileName == null)
+                return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "That file is not valid image file.");
+
+            string? oldFileName = person.ProfileImage;
+
+            person.ProfileImage = newFileName;
+
+            if (!await _personRepository.UpdateAsync(person))
+            {
+                _profileImageStore.Delete(newFileName);
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The picture could not be saved.");
+            }
+
+            _profileImageStore.Delete(oldFileName);
+
+            return NoContent();
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{id}/image", Name = "RemovePersonImage")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+        public async Task<ActionResult> RemovePersonImage(
+            [Range(1, int.MaxValue)] int id,
+            [FromServices] IAuthorizationService authorizationService
+        )
+        {
+            clsPerson? person = await _FindEditablePersonAsync(id, authorizationService);
+
+            if (person == null)
+                return Problem(statusCode: StatusCodes.Status404NotFound, detail: $"Person with id {id} not found!");
+
+            string? oldFileName = person.ProfileImage;
+
+            if (oldFileName == null)
+                return NoContent();
+
+            person.ProfileImage = null;
+
+            if (!await _personRepository.UpdateAsync(person))
+                return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, detail: "The picture could not be removed.");
+
+            _profileImageStore.Delete(oldFileName);
+
+            return NoContent();
+        }
+
+        /// <summary>
+        /// The person this admin is allowed to write to.
+        ///
+        /// A person who owns an account is edited through that account's rules,
+        /// which is what stops one admin from rewriting another admin's details.
+        /// A person with no account belongs to the clinic's records and any admin
+        /// may correct it.
+        /// </summary>
+        /// <returns>The person, or null when there is none or the caller cannot touch it.</returns>
+        private async Task<clsPerson?> _FindEditablePersonAsync(int id, IAuthorizationService authorizationService)
+        {
+            clsPerson? person = await _personRepository.FindByIdAsync(id);
+            if (person == null)
+                return null;
+
+            clsUser? owner = await _userRepository.FindByPersonIDAsync(id);
+            if (owner != null && !(await authorizationService.AuthorizeAsync(User, owner, "ManageAccount")).Succeeded)
+                return null;
+
+            return person;
         }
 
         [Authorize(Roles = "Admin")]

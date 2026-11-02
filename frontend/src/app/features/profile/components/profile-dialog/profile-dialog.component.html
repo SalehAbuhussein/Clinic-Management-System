@@ -1,7 +1,6 @@
 @let currentPassword = profileForm.currentPassword();
 @let password = profileForm.password();
 @let confirmPassword = profileForm.confirmPassword();
-@let avatar = avatarUrl();
 
 <header>
   <h2 matDialogTitle>Profile</h2>
@@ -16,33 +15,10 @@
   }
 
   <section class="avatar-section" [hidden]="isLoading()">
-    <div class="avatar">
-      @if (avatar) {
-        <img class="avatar__picture" [src]="avatar" alt="Your profile picture">
-      } @else {
-        <span class="avatar__initials">{{ avatarInitials() }}</span>
-      }
-    </div>
-
-    <div class="avatar__actions">
-      <button type="button" matButton [disabled]="isSaving()" (click)="filePicker.click()">
-        {{ avatar ? 'Change photo' : 'Add photo' }}
-      </button>
-
-      @if (avatar) {
-        <button type="button" matButton [disabled]="isSaving()" (click)="removeImage()">Remove</button>
-      }
-
-      <p class="note">JPEG, PNG or WebP, up to 2 MB. Saved with the rest of the form.</p>
-    </div>
-
-    <input
-      #filePicker
-      hidden
-      type="file"
-      accept="image/jpeg,image/png,image/webp"
-      (change)="chooseImage($event)"
-    >
+    <app-avatar-picker
+      [fileName]="imageFileName()"
+      [name]="profileModel().firstname + ' ' + profileModel().lastname"
+      [disabled]="isSaving()" />
   </section>
 
   <section class="form-section" [hidden]="isLoading()">

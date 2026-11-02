@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, viewChild } from '@angular/core';
 import { MatAnchor, MatButton } from '@angular/material/button';
 import { MatDatepickerToggle, MatDatepicker, MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
@@ -14,6 +14,8 @@ import { formatDate } from '@angular/common';
 import { Observable, of, switchMap } from 'rxjs';
 
 import { AuthService } from '@core/auth/service/auth.service';
+
+import { AvatarPickerComponent } from '@shared/components/avatar-picker/avatar-picker.component';
 import { ProfileService } from '@shared/services/profile/profile.service';
 
 import { ApiError } from '@core/auth/types/auth.types';
@@ -22,6 +24,7 @@ import { ProfileData } from '@features/profile/types/profile.types';
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    AvatarPickerComponent,
     FormField,
     MatAnchor,
     MatButton,
@@ -46,37 +49,20 @@ import { ProfileData } from '@features/profile/types/profile.types';
   styleUrl: './profile-dialog.component.scss',
   templateUrl: './profile-dialog.component.html',
 })
-export class ProfileDialogComponent implements OnDestroy {
+export class ProfileDialogComponent {
   authService = inject(AuthService);
   dialogRef = inject(MatDialogRef<ProfileDialogComponent>);
   profileService = inject(ProfileService);
   snackbar = inject(MatSnackBar);
+
+  avatarPicker = viewChild.required(AvatarPickerComponent);
 
   isLoading = signal(true);
   isSaving = signal(false);
   showUserInfo = signal(false);
   error = signal('');
 
-  maxImageBytes = 2 * 1024 * 1024; // 2MB limit
-
   imageFileName = signal<string | null>(null);
-  pickedImage = signal<File | null>(null);
-  isImageCleared = signal(false);
-  previewUrl = signal<string | null>(null);
-
-  avatarUrl = computed(() => {
-    if (this.previewUrl()) {
-      return this.previewUrl();
-    }
-
-    return this.isImageCleared() ? null : this.profileService.imageUrlOf(this.imageFileName());
-  });
-
-  avatarInitials = computed(() => {
-    const { firstname, lastname } = this.profileModel();
-
-    return `${firstname.charAt(0)}${lastname.charAt(0)}`.toUpperCase();
-  });
 
   profileModel = signal<ProfileData>({
     firstname: '',
@@ -219,77 +205,20 @@ export class ProfileDialogComponent implements OnDestroy {
   }
 
   /**
-   * Shows the picked file without sending it. Nothing reaches the server until
-   * Save, so trying five pictures still uploads one.
-   *
-   * The input is cleared either way, because picking the same file twice in a
-   * row raises no change event otherwise. The size is checked here only to say
-   * which file and why: the API refuses an oversized body with a bare 413.
-   *
-   * @param event The file input's change event.
-   */
-  chooseImage = (event: Event): void => {
-    const input = event.target as HTMLInputElement;
-    const image = input.files?.[0];
-
-    input.value = '';
-
-    if (!image) {
-      return;
-    }
-
-    if (image.size > this.maxImageBytes) {
-      this.error.set('That picture is larger than 2 MB. Pick a smaller one.');
-      return;
-    }
-
-    this.dropPreview();
-
-    this.error.set('');
-    this.pickedImage.set(image);
-    this.isImageCleared.set(false);
-    this.previewUrl.set(URL.createObjectURL(image));
-  }
-
-  /**
-   * Marks the picture for removal. The stored file survives until Save, so
-   * closing the dialog leaves it alone.
-   */
-  removeImage = (): void => {
-    this.dropPreview();
-    this.pickedImage.set(null);
-    this.isImageCleared.set(true);
-  }
-
-  /**
-   * Releases the preview. An object URL pins its file in memory for the life
-   * of the tab until it is revoked, so every one that is replaced or abandoned
-   * goes through here.
-   */
-  dropPreview(): void {
-    const url = this.previewUrl();
-
-    if (url) {
-      URL.revokeObjectURL(url);
-    }
-
-    this.previewUrl.set(null);
-  }
-
-  /**
    * The picture call the save should carry, if any.
    *
    * @param userId The account.
    * @returns The upload, the removal, or nothing to do.
    */
   imageRequest(userId: number): Observable<unknown> {
-    const image = this.pickedImage();
+    const picker = this.avatarPicker();
+    const image = picker.picked();
 
     if (image) {
       return this.profileService.uploadProfileImage(userId, image);
     }
 
-    if (this.isImageCleared() && this.imageFileName()) {
+    if (picker.isCleared() && this.imageFileName()) {
       return this.profileService.removeProfileImage(userId);
     }
 
@@ -346,11 +275,4 @@ export class ProfileDialogComponent implements OnDestroy {
     });
   }
 
-  /**
-   * Releases the preview when the dialog goes, so a picture that was picked
-   * and never saved does not stay pinned in memory.
-   */
-  ngOnDestroy(): void {
-    this.dropPreview();
-  }
 }
