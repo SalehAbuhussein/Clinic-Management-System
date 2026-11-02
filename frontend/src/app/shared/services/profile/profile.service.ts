@@ -33,9 +33,8 @@ export class ProfileService {
   }
 
   /**
-   * Replaces an account's picture, and answers with the name the file was
-   * stored under. The previous file is deleted once the new name is recorded,
-   * so an account never keeps more than one.
+   * Replaces an account's picture. The previous file is deleted once the new
+   * name is recorded, so an account never keeps more than one.
    *
    * @param userId The account.
    * @param image The chosen file. The API reads the type from the bytes and
@@ -45,7 +44,7 @@ export class ProfileService {
     const body = new FormData();
     body.append('image', image);
 
-    return this.apiService.post<string>(`/Profile/${userId}/image`, body);
+    return this.apiService.post<void>(`/Profile/${userId}/image`, body);
   }
 
   /**

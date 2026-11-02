@@ -110,11 +110,11 @@ namespace Clinic_Management_System.Controllers
 
         [HttpPost("{id}/image", Name = "UploadProfileImage")]
         [RequestSizeLimit(ProfileImageStore.MaxBytes)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<string>> UploadProfileImage(
+        public async Task<ActionResult> UploadProfileImage(
             [Range(1, int.MaxValue)] int id,
             IFormFile image,
             [FromServices] IAuthorizationService authorizationService,
@@ -153,7 +153,7 @@ namespace Clinic_Management_System.Controllers
 
             _profielImageStore.Delete(oldFileName);
 
-            return Ok(newFileName);
+            return NoContent();
         }
     
         [HttpDelete("{id}/image", Name = "RemoveProfileImage")]

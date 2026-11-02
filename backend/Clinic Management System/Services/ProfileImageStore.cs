@@ -17,7 +17,7 @@ namespace Clinic_Management_System.Services
     {
         private const string Folder = "uploads/profiles";
 
-        public const long MaxBytes = 2 * 1024 * 1024;
+        public const long MaxBytes = 2 * 1024 * 1024; // 2MB
 
         private static readonly byte[] PngHeader = { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
 
@@ -74,11 +74,6 @@ namespace Clinic_Management_System.Services
 
         private string FolderPath() => Path.Combine(_environment.WebRootPath, Folder);
 
-        /// <summary>
-        /// Reads the file type out of the first bytes rather than trusting the
-        /// Content-Type header or the file name, both of which the client sets
-        /// and neither of which says anything about what was actually sent.
-        /// </summary>
         private static string? _ExtensionOf(ReadOnlySpan<byte> header)
         {
             if (header[0] == 0xFF && header[1] == 0xD8 && header[2] == 0xFF)

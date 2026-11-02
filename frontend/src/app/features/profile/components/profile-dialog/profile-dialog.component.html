@@ -1,6 +1,7 @@
 @let currentPassword = profileForm.currentPassword();
 @let password = profileForm.password();
 @let confirmPassword = profileForm.confirmPassword();
+@let avatar = avatarUrl();
 
 <header>
   <h2 matDialogTitle>Profile</h2>
@@ -16,27 +17,23 @@
 
   <section class="avatar-section" [hidden]="isLoading()">
     <div class="avatar">
-      @if (imageUrl(); as url) {
-        <img class="avatar__picture" [src]="url" alt="Your profile picture">
+      @if (avatar) {
+        <img class="avatar__picture" [src]="avatar" alt="Your profile picture">
       } @else {
         <span class="avatar__initials">{{ avatarInitials() }}</span>
       }
     </div>
 
     <div class="avatar__actions">
-      <button type="button" matButton [disabled]="isSavingImage()" (click)="filePicker.click()">
-        @if (isSavingImage()) {
-          <mat-progress-spinner class="spinner" diameter="18" mode="indeterminate" />
-        }
-
-        {{ imageFileName() ? 'Change photo' : 'Add photo' }}
+      <button type="button" matButton [disabled]="isSaving()" (click)="filePicker.click()">
+        {{ avatar ? 'Change photo' : 'Add photo' }}
       </button>
 
-      @if (imageFileName()) {
-        <button type="button" matButton [disabled]="isSavingImage()" (click)="removeImage()">Remove</button>
+      @if (avatar) {
+        <button type="button" matButton [disabled]="isSaving()" (click)="removeImage()">Remove</button>
       }
 
-      <p class="note">JPEG, PNG or WebP, up to 2 MB.</p>
+      <p class="note">JPEG, PNG or WebP, up to 2 MB. Saved with the rest of the form.</p>
     </div>
 
     <input
