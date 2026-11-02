@@ -23,7 +23,7 @@ export class AvatarPickerComponent implements OnDestroy {
   name = input('');
   disabled = input(false);
 
-  maxBytes = 2 * 1024 * 1024; // 2MB, the limit the API enforces
+  maxBytes = 500 * 1024; // 500KB
 
   picked = signal<File | null>(null);
   isCleared = signal(false);
@@ -54,7 +54,7 @@ export class AvatarPickerComponent implements OnDestroy {
     }
 
     if (image.size > this.maxBytes) {
-      this.error.set('That picture is larger than 2 MB. Pick a smaller one.');
+      this.error.set('That picture is larger than 500KB. Pick a smaller one.');
       return;
     }
 

@@ -17,7 +17,7 @@ namespace Clinic_Management_System.Services
     {
         private const string Folder = "uploads/profiles";
 
-        public const long MaxBytes = 2 * 1024 * 1024; // 2MB
+        public const long MaxBytes = 500 * 1024; // 500KB
 
         private static readonly byte[] PngHeader = { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
 
@@ -32,6 +32,9 @@ namespace Clinic_Management_System.Services
 
         public async Task<string?> SaveAsync(IFormFile image, CancellationToken cancellationToken)
         {
+            if (image.Length > MaxBytes)
+                return null;
+
             byte[] header = new byte[12];
 
             await using (Stream reading = image.OpenReadStream())

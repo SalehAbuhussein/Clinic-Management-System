@@ -139,7 +139,7 @@ namespace Clinic_Management_System.Controllers
             string? newFileName = await _profileImageStore.SaveAsync(image, cancellationToken);
             if (newFileName == null)
             {
-                return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "That file is not valid image file.");
+                return Problem(statusCode: StatusCodes.Status400BadRequest, detail: "That file is not a JPEG, PNG or WebP, or it is larger than 500KB.");
             }
 
             clsPerson person = user.PersonInfo;
