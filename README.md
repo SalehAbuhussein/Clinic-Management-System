@@ -22,6 +22,7 @@
 - [Features](#-features)
 - [Who can do what](#-who-can-do-what)
 - [The domain](#%EF%B8%8F-the-domain)
+- [How the data is indexed](#-how-the-data-is-indexed)
 - [How a request travels](#-how-a-request-travels)
 - [Staying signed in](#-staying-signed-in)
 - [Built with](#%EF%B8%8F-built-with)
@@ -166,6 +167,37 @@ so is a user, which is why one human can be both without the details being typed
 
 The 1-to-1 edges are enforced by **unique indexes**, not by checking first and hoping. Two
 simultaneous check-ins on the same appointment end with one visit and a 409, not two rows.
+
+---
+
+## 🔎 How the data is indexed
+
+Every index below exists for a query that runs in `Clinic_DataAccess`, not for a column
+that looked important. Primary keys and unique constraints are left out; these eight were
+added deliberately, after reading the predicates in the data access layer.
+
+| Index | Serves | Why that shape |
+|---|---|---|
+| `Appointments (DoctorID, StartAt)`<br>`INCLUDE (EndAt, Status, PatientID)` | the doctor overlap check on every booking, the day strip, the list filtered by doctor | equality column leads, range column follows; the columns the query only tests ride in `INCLUDE`, so the seek answers without touching the table |
+| `Appointments (PatientID, StartAt)`<br>`INCLUDE (EndAt, Status)` | the patient overlap check, the list filtered by patient | a second equality column needs a second sort order; it cannot be folded into the one above |
+| `Appointments (StartAt)`<br>`INCLUDE (Status)` | the four dashboard counts and the day chart | those queries name no doctor, so an index led by `DoctorID` cannot serve them |
+| `Leaves (UserID, StartAt)`<br>`INCLUDE (EndAt, Status)` | both leave overlap checks, the leaves list | same shape as the booking check; one of them runs on every booking, through the join from `Doctors` |
+| `Users (PersonID)` | `FindByPersonIDAsync`, the person-delete check, the joins from `People` | a foreign key, and SQL Server indexes primary and unique keys only, never foreign keys |
+| `PrescriptionItems (MedicineID)` | the medicine-in-use check before a delete | the unique `(VisitID, MedicineID)` index already holds this column, but as the second key, so it cannot be searched on its own |
+| `Visits (CheckinTime DESC, VisitID DESC)` | the visits list's ordering and date filter | `OFFSET`/`FETCH` has to sort the whole set before it can skip; arriving in order removes the sort |
+| `Visits (VisitID) WHERE CheckoutTime IS NULL` | the "in clinic now" counter | a filtered index holding only open visits, so it stays tiny and is only written when a visit opens or closes |
+
+**What is deliberately not indexed.** The name search on People, Users, Doctors and
+Patients reads
+`CONCAT_WS(' ', Firstname, Midname, Thirdname, Lastname) LIKE '%term%'`.
+That is unindexable twice over: a function wraps the columns, and the leading wildcard
+rules out a seek. If it ever needs to be fast the answer is full-text search, not an
+index. The `NationalNo`, `Phone` and `Email` filters anchor at the start of the string,
+so those do use their indexes.
+
+At a single clinic's volume none of this is measurable, and a table scan is the correct
+plan for a few hundred rows. The indexes are here because the access patterns are known
+now, not because a profiler asked for them.
 
 ---
 
